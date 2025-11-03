@@ -25,7 +25,7 @@ cp .env.example .env
 
 `.env` 文件示例：
 
-```
+```text
 VUE_APP_API_BASE_URL=http://localhost:5000/api
 VUE_APP_TITLE=Forge 软件发布管理平台
 VUE_APP_VERSION=1.0.0
@@ -37,11 +37,11 @@ VUE_APP_VERSION=1.0.0
 npm run serve
 ```
 
-访问 http://localhost:8080 查看前端应用。
+访问 [http://localhost:8080](http://localhost:8080) 查看前端应用。
 
 ## 项目结构
 
-```
+```text
 frontend/
 ├── public/                 # 静态资源
 ├── src/

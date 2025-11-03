@@ -34,7 +34,7 @@ cp .env.example .env
 
 `.env` 文件示例：
 
-```
+```text
 FLASK_APP=app
 FLASK_ENV=development
 SECRET_KEY=your-secret-key
@@ -64,11 +64,11 @@ python run.py create-admin
 python run.py run
 ```
 
-访问 http://localhost:5000/api 查看后端 API。
+访问 [http://localhost:5000/api](http://localhost:5000/api) 查看后端 API。
 
 ## 项目结构
 
-```
+```text
 backend/
 ├── app/
 │   ├── __init__.py       # 应用工厂
@@ -215,55 +215,55 @@ Webhook 日志表，存储 Webhook 调用记录。
 
 1. **安装 Gunicorn**
 
-```bash
-pip install gunicorn
-```
+    ```bash
+    pip install gunicorn
+    ```
 
 2. **创建服务文件**
 
-创建 `/etc/systemd/system/forge.service` 文件：
+    创建 `/etc/systemd/system/forge.service` 文件：
 
-```ini
-[Unit]
-Description=Forge API Server
-After=network.target
+    ```ini
+    [Unit]
+    Description=Forge API Server
+    After=network.target
 
-[Service]
-User=www-data
-Group=www-data
-WorkingDirectory=/opt/forge/backend
-Environment=PATH=/opt/forge/backend/venv/bin
-ExecStart=/opt/forge/backend/venv/bin/gunicorn --workers 5 --bind unix:forge.sock -m 007 run:app
+    [Service]
+    User=www-data
+    Group=www-data
+    WorkingDirectory=/opt/forge/backend
+    Environment=PATH=/opt/forge/backend/venv/bin
+    ExecStart=/opt/forge/backend/venv/bin/gunicorn --workers 5 --bind unix:forge.sock -m 007 run:app
 
-[Install]
-WantedBy=multi-user.target
-```
+    [Install]
+    WantedBy=multi-user.target
+    ```
 
 3. **启动服务**
 
-```bash
-sudo systemctl start forge
-sudo systemctl enable forge
-```
+    ```bash
+    sudo systemctl start forge
+    sudo systemctl enable forge
+    ```
 
 ### Docker 部署
 
 1. **构建镜像**
 
-```bash
-docker build -t forge-backend .
-```
+    ```bash
+    docker build -t forge-backend .
+    ```
 
 2. **运行容器**
 
-```bash
-docker run -d \
-  --name forge-backend \
-  -p 5000:5000 \
-  -v $(pwd)/uploads:/app/uploads \
-  -v $(pwd)/instance:/app/instance \
-  forge-backend
-```
+    ```bash
+    docker run -d \
+      --name forge-backend \
+      -p 5000:5000 \
+      -v $(pwd)/uploads:/app/uploads \
+      -v $(pwd)/instance:/app/instance \
+      forge-backend
+    ```
 
 ### 数据库配置
 
@@ -271,51 +271,51 @@ docker run -d \
 
 1. **安装 PostgreSQL**
 
-```bash
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-```
+    ```bash
+    sudo apt update
+    sudo apt install postgresql postgresql-contrib
+    ```
 
 2. **创建数据库和用户**
 
-```bash
-sudo -u postgres createuser --interactive
-sudo -u postgres createdb forge_db
-```
+    ```bash
+    sudo -u postgres createuser --interactive
+    sudo -u postgres createdb forge_db
+    ```
 
 3. **配置连接字符串**
 
-在 `.env` 文件中设置：
+    在 `.env` 文件中设置：
 
-```
-DATABASE_URL=postgresql://user:password@localhost/forge_db
-```
+    ```text
+    DATABASE_URL=postgresql://user:password@localhost/forge_db
+    ```
 
 #### MySQL
 
 1. **安装 MySQL**
 
-```bash
-sudo apt update
-sudo apt install mysql-server
-```
+    ```bash
+    sudo apt update
+    sudo apt install mysql-server
+    ```
 
 2. **创建数据库和用户**
 
-```sql
-CREATE DATABASE forge_db;
-CREATE USER 'forge'@'localhost' IDENTIFIED BY 'forge_password';
-GRANT ALL PRIVILEGES ON forge_db.* TO 'forge'@'localhost';
-FLUSH PRIVILEGES;
-```
+    ```sql
+    CREATE DATABASE forge_db;
+    CREATE USER 'forge'@'localhost' IDENTIFIED BY 'forge_password';
+    GRANT ALL PRIVILEGES ON forge_db.* TO 'forge'@'localhost';
+    FLUSH PRIVILEGES;
+    ```
 
 3. **配置连接字符串**
 
-在 `.env` 文件中设置：
+    在 `.env` 文件中设置：
 
-```
-DATABASE_URL=mysql+pymysql://forge:forge_password@localhost:3306/forge_db
-```
+    ```text
+    DATABASE_URL=mysql+pymysql://forge:forge_password@localhost:3306/forge_db
+    ```
 
 ## 安全配置
 
@@ -341,7 +341,7 @@ print(secrets.token_hex(32))
 
 在 `.env` 文件中设置合适的文件上传限制：
 
-```
+```text
 MAX_CONTENT_LENGTH=1073741824  # 1GB
 ```
 
