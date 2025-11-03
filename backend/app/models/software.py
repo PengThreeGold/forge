@@ -111,7 +111,10 @@ class SoftwareVersion(db.Model):
             
         sha256_hash = hashlib.sha256()
         with open(path, 'rb') as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
+            while True:
+                byte_block = f.read(4096)
+                if not byte_block:
+                    break
                 sha256_hash.update(byte_block)
         
         self.file_hash = sha256_hash.hexdigest()

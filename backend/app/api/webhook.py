@@ -22,12 +22,20 @@ def verify_webhook_signature(payload, signature, secret):
     if not signature or not secret:
         return False
     
+    # 确保payload是字节类型
+    if isinstance(payload, str):
+        payload = payload.encode('utf-8')
+    
     # 计算HMAC签名
     computed_signature = hmac.new(
         secret.encode('utf-8'),
         payload,
         hashlib.sha256
     ).hexdigest()
+    
+    # 如果签名包含前缀，需要处理
+    if signature.startswith('sha256='):
+        signature = signature[7:]
     
     # 比较签名
     return hmac.compare_digest(computed_signature, signature)

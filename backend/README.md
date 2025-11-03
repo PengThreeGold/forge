@@ -92,7 +92,6 @@ backend/
 │       └── auth.py       # 认证工具
 ├── run.py                # 启动脚本
 ├── requirements.txt      # Python 依赖
-└── Dockerfile           # Docker 配置
 ```
 
 ## API 接口
@@ -246,24 +245,6 @@ Webhook 日志表，存储 Webhook 调用记录。
     sudo systemctl enable forge
     ```
 
-### Docker 部署
-
-1. **构建镜像**
-
-    ```bash
-    docker build -t forge-backend .
-    ```
-
-2. **运行容器**
-
-    ```bash
-    docker run -d \
-      --name forge-backend \
-      -p 5000:5000 \
-      -v $(pwd)/uploads:/app/uploads \
-      -v $(pwd)/instance:/app/instance \
-      forge-backend
-    ```
 
 ### 数据库配置
 

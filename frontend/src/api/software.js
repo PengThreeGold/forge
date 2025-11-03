@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 获取软件空间列表
 export function getSpaces() {
   return request({
-    url: '/api/software/spaces',
+    url: '/api/software',
     method: 'get'
   })
 }
@@ -11,7 +11,7 @@ export function getSpaces() {
 // 创建软件空间
 export function createSpace(data) {
   return request({
-    url: '/api/software/spaces',
+    url: '/api/software',
     method: 'post',
     data
   })
@@ -20,7 +20,7 @@ export function createSpace(data) {
 // 获取软件空间详情
 export function getSpace(id) {
   return request({
-    url: `/api/software/spaces/${id}`,
+    url: `/api/software/${id}`,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function getSpace(id) {
 // 更新软件空间
 export function updateSpace(id, data) {
   return request({
-    url: `/api/software/spaces/${id}`,
+    url: `/api/software/${id}`,
     method: 'put',
     data
   })
@@ -37,7 +37,7 @@ export function updateSpace(id, data) {
 // 删除软件空间
 export function deleteSpace(id) {
   return request({
-    url: `/api/software/spaces/${id}`,
+    url: `/api/software/${id}`,
     method: 'delete'
   })
 }
@@ -45,7 +45,7 @@ export function deleteSpace(id) {
 // 重新生成API密钥
 export function regenerateApiKey(id) {
   return request({
-    url: `/api/software/spaces/${id}/regenerate-api-key`,
+    url: `/api/software/${id}/regenerate-api-key`,
     method: 'post'
   })
 }
@@ -53,7 +53,7 @@ export function regenerateApiKey(id) {
 // 获取软件版本列表
 export function getVersions(spaceId) {
   return request({
-    url: `/api/software/spaces/${spaceId}/versions`,
+    url: `/api/software/${spaceId}/versions`,
     method: 'get'
   })
 }
@@ -61,7 +61,7 @@ export function getVersions(spaceId) {
 // 创建软件版本
 export function createVersion(spaceId, data) {
   return request({
-    url: `/api/software/spaces/${spaceId}/versions`,
+    url: `/api/software/${spaceId}/versions`,
     method: 'post',
     data,
     headers: {
@@ -107,7 +107,7 @@ export function publishVersion(id, data) {
 // 下载软件版本
 export function downloadVersion(id) {
   return request({
-    url: `/api/software/download/${id}`,
+    url: `/api/download/${id}`,
     method: 'get',
     responseType: 'blob' // 返回二进制数据
   })
@@ -116,7 +116,7 @@ export function downloadVersion(id) {
 // 获取软件空间信息（公开API）
 export function getSpaceInfo(apiKey) {
   return request({
-    url: `/api/software/public/${apiKey}`,
+    url: `/api/public/${apiKey}`,
     method: 'get'
   })
 }
@@ -124,7 +124,7 @@ export function getSpaceInfo(apiKey) {
 // 获取软件版本列表（公开API）
 export function getVersionsInfo(apiKey) {
   return request({
-    url: `/api/software/public/${apiKey}/versions`,
+    url: `/api/public/${apiKey}/versions`,
     method: 'get'
   })
 }
@@ -132,7 +132,7 @@ export function getVersionsInfo(apiKey) {
 // 下载软件版本（公开API）
 export function downloadVersionPublic(apiKey, version) {
   return request({
-    url: `/api/software/public/${apiKey}/download/${version}`,
+    url: `/api/public/${apiKey}/download/${version}`,
     method: 'get',
     responseType: 'blob' // 返回二进制数据
   })

@@ -22,6 +22,17 @@ class BaseConfig:
     # 数据库配置
     DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'forge.db')
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
+    
+    # PostgreSQL配置（如果使用PostgreSQL）
+    POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
+    POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'postgres')
+    POSTGRES_DB = os.environ.get('POSTGRES_DB', 'forge')
+    POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
+    POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
+    
+    # 根据环境变量选择数据库类型
+    if os.environ.get('USE_POSTGRES', 'false').lower() == 'true':
+        SQLALCHEMY_DATABASE_URI = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
 
 
 class DevelopmentConfig(BaseConfig):
@@ -39,9 +50,21 @@ class ProductionConfig(BaseConfig):
     # 生产环境HTTPS配置
     HTTPS_ENABLED = os.environ.get('HTTPS_ENABLED', 'True').lower() == 'true'
     
-    # 生产环境数据库路径
-    DATABASE_PATH = os.environ.get('DATABASE_PATH', '/app/data/forge.db')
-    SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
+    # 数据库配置
+    USE_POSTGRES = os.environ.get('USE_POSTGRES', 'false').lower() == 'true'
+    
+    if USE_POSTGRES:
+        # 生产环境PostgreSQL配置
+        POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
+        POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'postgres')
+        POSTGRES_DB = os.environ.get('POSTGRES_DB', 'forge')
+        POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
+        POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
+        SQLALCHEMY_DATABASE_URI = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+    else:
+        # 生产环境SQLite配置
+        DATABASE_PATH = os.environ.get('DATABASE_PATH', '/app/data/forge.db')
+        SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
 
 
 class TestingConfig(BaseConfig):

@@ -4,35 +4,6 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 
 ## 快速开始
 
-### 使用 Docker (推荐)
-
-1. **克隆仓库**
-
-    ```bash
-    git clone https://github.com/your-username/forge.git
-    cd forge
-    ```
-
-2. **配置环境变量**
-
-    ```bash
-    cp .env.example .env
-    # 编辑 .env 文件，填入您的配置信息
-    ```
-
-3. **启动服务**
-
-    ```bash
-    docker-compose up -d
-    ```
-
-4. **访问应用**
-
-    - 前端应用：<https://localhost>
-    - 后端 API：<https://localhost/api>
-
-### 本地开发
-
 1. **克隆仓库**
 
     ```bash
@@ -47,7 +18,8 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
     pip install -r requirements.txt
     cp .env.example .env
     # 编辑 .env 文件，填入您的配置信息
-    python run.py db-init
+    python run.py init-db
+    python run.py init-admin --username admin --password admin123 --email admin@example.com
     python run.py run
     ```
 
@@ -64,7 +36,7 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 4. **访问应用**
 
     - 前端应用：<http://localhost:8080>
-    - 后端 API：<http://localhost:5000>
+    - 后端 API：<http://localhost:5000/api>
 
 ## 项目结构
 
@@ -72,9 +44,7 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 forge/
 ├── backend/                 # 后端 Flask 应用
 ├── frontend/                # 前端 Vue 应用
-├── nginx/                   # Nginx 配置
 ├── scripts/                 # 脚本文件
-├── docker-compose.yml       # Docker Compose 配置
 └── README.md               # 项目说明
 ```
 

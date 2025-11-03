@@ -55,7 +55,6 @@ frontend/
 │   └── views/             # 页面组件
 ├── package.json           # Node.js 依赖
 ├── vue.config.js          # Vue 配置
-└── Dockerfile             # Docker 配置
 ```
 
 ## 构建与部署
@@ -67,16 +66,6 @@ npm run build
 ```
 
 构建后的文件将位于 `dist` 目录。
-
-### Docker 部署
-
-```bash
-# 构建镜像
-docker build -t forge-frontend .
-
-# 运行容器
-docker run -d -p 8080:80 forge-frontend
-```
 
 ### Nginx 部署
 

@@ -12,10 +12,6 @@ module.exports = defineConfig({
           '^/api': '/api'
         }
       }
-    },
-    // 开发环境启用HTTPS
-    server: {
-      type: 'https'
     }
   },
   // 生产环境配置

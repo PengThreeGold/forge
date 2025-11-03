@@ -72,13 +72,21 @@ def calculate_file_hash(file_path):
 def move_file_to_storage(source_path, software_space_id, version):
     """将文件从上传目录移动到软件存储目录"""
     # 确保目标目录存在
-    storage_folder = current_app.config['SOFTWARE_STORAGE']
+    try:
+        from flask import current_app
+        storage_folder = current_app.config['SOFTWARE_STORAGE']
+    except RuntimeError:
+        # 如果不在应用上下文中，使用默认路径
+        storage_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'storage', 'software')
+    
     target_folder = os.path.join(storage_folder, str(software_space_id))
     os.makedirs(target_folder, exist_ok=True)
     
     # 构建目标文件路径
     filename = os.path.basename(source_path)
-    target_path = os.path.join(target_folder, f"v{version}_{filename}")
+    # 清理版本号，确保在文件名中是安全的
+    safe_version = "".join(c if c.isalnum() or c in ".-" else "_" for c in version)
+    target_path = os.path.join(target_folder, f"v{safe_version}_{filename}")
     
     # 移动文件
     try:
