@@ -146,16 +146,29 @@ service.interceptors.response.use(
           break
         case 401:
           // 401错误：未授权，可能是token过期或无效
-          ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
-            confirmButtonText: '重新登录',
-            cancelButtonText: '取消',
-            type: 'warning',
-          }).then(() => {
-            // 清除token并跳转到登录页
-            store.dispatch('auth/logout').then(() => {
-              location.reload()
+          // 如果是登录请求，让调用方处理错误消息（避免重复显示）
+          if (error.config && error.config.url && error.config.url.includes('/api/auth/login')) {
+            // 登录失败，不在此处处理消息，让Login.vue处理
+            // 但需要处理取消操作的Promise拒绝，避免JavaScript错误
+            return Promise.reject(error)
+          } else {
+            // 其他401错误，可能是token过期
+            ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
+              confirmButtonText: '重新登录',
+              cancelButtonText: '取消',
+              type: 'warning',
             })
-          })
+              .then(() => {
+                // 清除token并跳转到登录页
+                store.dispatch('auth/logout').then(() => {
+                  location.reload()
+                })
+              })
+              .catch(() => {
+                // 用户点击取消，不做任何操作，避免未捕获的Promise拒绝
+                console.log('用户取消了重新登录操作')
+              })
+          }
           break
         case 403:
           ElMessage({
