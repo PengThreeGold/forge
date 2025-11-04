@@ -287,18 +287,37 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, onMounted, nextTick } from 'vue'
+import { defineComponent, ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import * as echarts from 'echarts'
 import { formatDateTime } from '@/utils/common'
+import {
+  FolderOpened,
+  Document,
+  Download,
+  User,
+  Refresh,
+  RefreshRight,
+} from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'Statistics',
+  components: {
+    FolderOpened,
+    Document,
+    Download,
+    User,
+    Refresh,
+    RefreshRight,
+  },
   setup() {
     const store = useStore()
 
     // 数据
     const overview = reactive({})
+
+    // 保证 overview 始终为对象
+    const safeOverview = computed(() => (overview && typeof overview === 'object' ? overview : {}))
     const spaces = ref([])
     const loading = ref(false)
 

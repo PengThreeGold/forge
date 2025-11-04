@@ -223,6 +223,9 @@ export default defineComponent({
     // 数据
     const space = ref({})
     const versions = ref([])
+
+    // 保证 versions 始终为数组
+    const safeVersions = computed(() => (Array.isArray(versions.value) ? versions.value : []))
     const loading = ref(false)
 
     // 过滤器

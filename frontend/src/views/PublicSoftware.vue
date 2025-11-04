@@ -83,7 +83,7 @@
               <div class="software-meta">
                 <div class="version-info">
                   <el-tag type="success" size="small">
-                    {{ getLatestVersion(space) }}
+                    {{ getLatestVersion(space)?.version || '暂无版本' }}
                   </el-tag>
                   <span class="publish-date">
                     {{ formatDate(space.updated_at || space.created_at) }}
@@ -138,7 +138,7 @@
               </div>
               <div class="stat-item">
                 <el-icon><Document /></el-icon>
-                <span>版本数: {{ versions.length }}</span>
+                <span>版本数: {{ versions ? versions.length : 0 }}</span>
               </div>
             </div>
           </div>
@@ -222,12 +222,8 @@ export default defineComponent({
 
     // 计算属性
     const filteredSpaces = computed(() => {
-      if (!spaces.value || !Array.isArray(spaces.value)) {
-        return []
-      }
-
+      if (!spaces.value || !Array.isArray(spaces.value)) return []
       let result = [...spaces.value]
-
       // 搜索过滤
       if (searchKeyword.value) {
         const keyword = searchKeyword.value.toLowerCase()
@@ -238,12 +234,10 @@ export default defineComponent({
             (space.description && space.description.toLowerCase().includes(keyword))
         )
       }
-
       // 分类过滤 (这里假设后端会提供分类信息，目前只是示例)
       if (selectedCategory.value !== 'all') {
         // result = result.filter(space => space.category === selectedCategory.value)
       }
-
       // 排序
       switch (sortBy.value) {
         case 'latest':
@@ -259,11 +253,11 @@ export default defineComponent({
           result.sort((a, b) => a.name.localeCompare(b.name))
           break
       }
-
-      return result
+      return Array.isArray(result) ? result : []
     })
 
     const paginatedSpaces = computed(() => {
+      if (!filteredSpaces.value || !Array.isArray(filteredSpaces.value)) return []
       const start = (currentPage.value - 1) * pageSize.value
       const end = start + pageSize.value
       return filteredSpaces.value.slice(start, end)
@@ -278,7 +272,7 @@ export default defineComponent({
         if (response && response.data && Array.isArray(response.data)) {
           // 只显示有已发布版本的软件空间
           spaces.value = response.data.filter(space => {
-            return space && space.versions_count && space.versions_count > 0
+            return space && space.versions_count && Number(space.versions_count) > 0
           })
         } else {
           spaces.value = []
@@ -322,20 +316,30 @@ export default defineComponent({
       }
     }
 
-    // 获取最新版本
+    // 获取最新已发布版本对象
     const getLatestVersion = software => {
-      // 这里应该从versions数据中获取最新版本，目前使用占位符
-      return 'v1.0.0'
+      if (!versions.value || !Array.isArray(versions.value)) return null
+      // 按发布时间降序，筛选已发布版本
+      const publishedVersions = versions.value
+        .filter(v => v.is_published)
+        .sort((a, b) => new Date(b.publish_date || 0) - new Date(a.publish_date || 0))
+      return publishedVersions.length > 0 ? publishedVersions[0] : null
     }
 
     // 下载最新版本
-    const downloadLatest = software => {
-      if (software.api_key) {
-        const version = getLatestVersion(software)
-        downloadVersion({ version, api_key: software.api_key, name: software.name })
-      } else {
+    const downloadLatest = async software => {
+      if (!software.api_key) {
         ElMessage.error('无法获取下载链接')
+        return
       }
+      // 获取最新已发布版本
+      await getVersions(software.api_key)
+      const latestVersion = getLatestVersion(software)
+      if (!latestVersion) {
+        ElMessage.error('暂无已发布版本可下载')
+        return
+      }
+      downloadVersion(latestVersion)
     }
 
     // 下载指定版本

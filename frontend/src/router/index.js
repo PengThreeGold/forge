@@ -3,7 +3,6 @@ import store from '../store'
 
 // 路由组件懒加载
 const Login = () => import('../views/Login.vue')
-const Dashboard = () => import('../views/Dashboard.vue')
 const SoftwareList = () => import('../views/SoftwareList.vue')
 const SoftwareDetail = () => import('../views/SoftwareDetail.vue')
 const SoftwareEdit = () => import('../views/SoftwareEdit.vue')
@@ -38,12 +37,6 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: { title: '登录' },
-  },
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: true, title: '仪表盘' },
   },
   {
     path: '/software',

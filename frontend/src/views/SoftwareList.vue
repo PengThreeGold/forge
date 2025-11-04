@@ -181,19 +181,18 @@ export default defineComponent({
 
     // 计算属性
     const filteredSpaces = computed(() => {
-      let result = [...spaces.value]
-
+      if (!spaces.value || !Array.isArray(spaces.value)) return []
+      let result = Array.isArray(spaces.value) ? [...spaces.value] : []
       // 搜索过滤
       if (searchKeyword.value) {
         const keyword = searchKeyword.value.toLowerCase()
         result = result.filter(
           space =>
-            space.name.toLowerCase().includes(keyword) ||
-            space.author.toLowerCase().includes(keyword) ||
+            (space.name && space.name.toLowerCase().includes(keyword)) ||
+            (space.author && space.author.toLowerCase().includes(keyword)) ||
             (space.description && space.description.toLowerCase().includes(keyword))
         )
       }
-
       // 排序
       if (sortProp.value && sortOrder.value) {
         result.sort((a, b) => {

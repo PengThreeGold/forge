@@ -366,6 +366,13 @@ def get_public_spaces():
         space_dict = space.to_dict()
         space_dict.pop('api_key', None)  # 不返回API密钥
         
+        # 添加已发布版本计数
+        published_versions_count = SoftwareVersion.query.filter_by(
+            space_id=space.id,
+            is_published=True
+        ).count()
+        space_dict['versions_count'] = published_versions_count
+        
         # 获取最新发布的版本
         latest_version = SoftwareVersion.query.filter_by(
             space_id=space.id,

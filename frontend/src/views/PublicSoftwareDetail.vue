@@ -199,6 +199,9 @@ export default defineComponent({
     // 数据
     const software = ref({})
     const versions = ref([])
+
+    // 保证 versions 始终为数组
+    const safeVersions = computed(() => (Array.isArray(versions.value) ? versions.value : []))
     const loading = ref(false)
     const downloading = ref(null)
     const versionFilter = ref('all')
@@ -231,26 +234,28 @@ export default defineComponent({
     const getSoftwareInfo = async () => {
       try {
         loading.value = true
-
+        // 路由参数判空
+        if (!softwareId.value) {
+          ElMessage.error('参数错误，无法获取软件信息')
+          router.push('/notfound')
+          return
+        }
         // 使用公共API通过ID获取软件信息
         const response = await getSpaceInfoById(softwareId.value)
-        if (response && response.data) {
+        if (response && response.data && typeof response.data === 'object') {
           software.value = response.data
-
           // 获取版本列表
           if (response.data.api_key) {
             await getVersions(response.data.api_key)
           }
         } else {
           ElMessage.error('获取软件信息失败')
-          // 返回上一页
-          router.push('/public')
+          router.push('/notfound')
         }
       } catch (error) {
         console.error('获取软件信息失败:', error)
         ElMessage.error('获取软件信息失败')
-        // 返回上一页
-        router.push('/public')
+        router.push('/notfound')
       } finally {
         loading.value = false
       }
@@ -259,14 +264,13 @@ export default defineComponent({
     // 获取版本列表
     const getVersions = async apiKey => {
       try {
+        if (!apiKey) {
+          versions.value = []
+          return
+        }
         const response = await getVersionsInfo(apiKey)
-        if (response && response.data) {
-          versions.value = Array.isArray(response.data)
-            ? response.data.map(v => ({
-                ...v,
-                showFull: false,
-              }))
-            : []
+        if (response && response.data && Array.isArray(response.data)) {
+          versions.value = response.data.map(v => ({ ...v, showFull: false }))
         } else {
           versions.value = []
         }
