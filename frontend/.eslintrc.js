@@ -3,12 +3,16 @@ module.exports = {
   env: {
     node: true,
     browser: true,
+    jest: true,
     es6: true
   },
   extends: [
     'plugin:vue/vue3-essential',
+    'plugin:vue/vue3-recommended',
+    'plugin:prettier/recommended',
     'eslint:recommended'
   ],
+  parser: 'vue-eslint-parser',
   parserOptions: {
     parser: '@babel/eslint-parser',
     ecmaVersion: 2020,

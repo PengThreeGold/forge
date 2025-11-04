@@ -42,6 +42,9 @@ module.exports = defineConfig({
     // 是否将组件中的CSS提取到独立的CSS文件中
     extract: process.env.NODE_ENV === 'production',
     // 是否为CSS开启source map
-    sourceMap: false
+    sourceMap: false,
+    sass: {
+      api: 'modern-compiler' // 使用新 sass 编译 api
+    }
   }
 })
