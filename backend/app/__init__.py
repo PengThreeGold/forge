@@ -37,11 +37,24 @@ def create_app(config=None):
     migrate.init_app(app, db)
     jwt.init_app(app)
     # 配置CORS以允许前端访问
+    # 支持从配置中获取允许的源，如果未配置则允许所有源
+    allowed_origins = app.config.get('CORS_ORIGINS', ["*"])
+    
     cors.init_app(app, resources={
         r"/api/*": {
-            "origins": "*",
+            "origins": allowed_origins,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]
+            "allow_headers": [
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With",
+                "X-CSRF-Token",
+                "X-Content-Type-Options",
+                "X-Frame-Options",
+                "X-XSS-Protection"
+            ],
+            "supports_credentials": True,
+            "expose_headers": ["Content-Range", "X-Content-Range"]
         }
     })
     limiter.init_app(app)

@@ -33,6 +33,9 @@ class BaseConfig:
     # 根据环境变量选择数据库类型
     if os.environ.get('USE_POSTGRES', 'false').lower() == 'true':
         SQLALCHEMY_DATABASE_URI = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+    
+    # CORS配置
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', "*").split(",") if os.environ.get('CORS_ORIGINS') else ["*"]
 
 
 class DevelopmentConfig(BaseConfig):
@@ -49,6 +52,9 @@ class ProductionConfig(BaseConfig):
     
     # 生产环境HTTPS配置
     HTTPS_ENABLED = os.environ.get('HTTPS_ENABLED', 'True').lower() == 'true'
+    
+    # 生产环境CORS配置
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', "*").split(",") if os.environ.get('CORS_ORIGINS') else ["https://localhost:8080", "https://localhost:3000"]
     
     # 数据库配置
     USE_POSTGRES = os.environ.get('USE_POSTGRES', 'false').lower() == 'true'

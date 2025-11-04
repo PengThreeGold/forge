@@ -8,11 +8,26 @@ module.exports = defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+        secure: false,
         pathRewrite: {
           '^/api': '/api',
         },
+        onProxyReq: function(proxyReq, req, res) {
+          // 添加必要的请求头
+          proxyReq.setHeader('X-Requested-With', 'XMLHttpRequest');
+        },
+        onError: function(err, req, res) {
+          // 代理错误处理
+          console.error('代理错误:', err);
+        }
       },
     },
+    // 添加 CORS 配置
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    }
   },
   // 生产环境配置
   // 部署应用包时的基本URL

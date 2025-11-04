@@ -8,11 +8,13 @@ const service = axios.create({
   baseURL: process.env.VUE_APP_API_URL || API_BASE_URL, // API基础URL
   timeout: process.env.VUE_APP_TIMEOUT || TIMEOUT, // 请求超时时间
   // 设置跨域请求是否需要凭证（cookies）
-  withCredentials: true,
+  // 注意：当CORS配置为 "*" 时，withCredentials 必须为 false
+  withCredentials: process.env.NODE_ENV === 'production' ? true : false,
   // 设置请求头
   headers: {
     'Cache-Control': 'no-cache',
     Pragma: 'no-cache',
+    'Content-Type': 'application/json',
   },
 })
 
@@ -41,6 +43,9 @@ service.interceptors.request.use(
       config.headers['X-Frame-Options'] = 'DENY'
       config.headers['X-XSS-Protection'] = '1; mode=block'
     }
+
+    // 确保所有请求都包含必要的 CORS 头
+    config.headers['X-Requested-With'] = 'XMLHttpRequest'
 
     // 设置Loading状态，使用计数器避免多次设置
     if (config.showLoading !== false) {
@@ -243,6 +248,7 @@ export function upload(url, file, onUploadProgress, config = {}) {
     data: formData,
     headers: {
       'Content-Type': 'multipart/form-data',
+      'X-Requested-With': 'XMLHttpRequest',
     },
     onUploadProgress,
     ...config,

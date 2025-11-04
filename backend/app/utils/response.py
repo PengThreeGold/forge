@@ -1,29 +1,64 @@
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from werkzeug.exceptions import HTTPException
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 def success_response(data=None, message="操作成功", status_code=200):
     """成功响应"""
-    response = {
+    response_data = {
         "success": True,
         "message": message,
         "data": data
     }
-    return jsonify(response), status_code
+    response = make_response(jsonify(response_data), status_code)
+    
+    # 添加CORS头
+    add_cors_headers(response)
+    
+    return response
 
 
 def error_response(message="操作失败", status_code=400, details=None):
     """错误响应"""
-    response = {
+    response_data = {
         "success": False,
         "message": message
     }
     
     if details:
-        response["details"] = details
+        response_data["details"] = details
         
-    return jsonify(response), status_code
+    response = make_response(jsonify(response_data), status_code)
+    
+    # 添加CORS头
+    add_cors_headers(response)
+    
+    return response
+
+
+def add_cors_headers(response):
+    """添加CORS头到响应"""
+    # 获取允许的源
+    from flask import current_app
+    allowed_origins = current_app.config.get('CORS_ORIGINS', ["*"])
+    
+    # 处理请求源
+    origin = request.headers.get('Origin', '')
+    
+    if "*" in allowed_origins:
+        # 如果允许所有源，则设置 *
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    elif origin in allowed_origins:
+        # 如果请求的源在允许列表中，则设置该源
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    
+    # 添加其他CORS头
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.add('Access-Control-Allow-Headers',
+                         'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Max-Age', '86400')  # 24小时
+    response.headers.add('Vary', 'Origin')
 
 
 def register_error_handlers(app):
@@ -63,6 +98,15 @@ def register_error_handlers(app):
         """处理未预期的异常"""
         app.logger.error(f"未预期的异常: {str(e)}")
         return error_response("服务器内部错误", 500)
+    
+    # 添加预检请求处理
+    @app.before_request
+    def before_request():
+        """处理预检请求"""
+        if request.method == 'OPTIONS':
+            response = make_response()
+            add_cors_headers(response)
+            return response
 
 
 def admin_required(f):
