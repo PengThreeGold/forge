@@ -52,6 +52,9 @@
     "not ie 11"
   ],
   "lint-staged": {
-    "*.{vue,js,ts}": ["eslint --fix", "prettier --write"]
+    "*.{vue,js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
