@@ -1,5 +1,5 @@
 <template>
-  <div class="software-edit-container" v-loading="loading">
+  <div v-loading="loading" class="software-edit-container">
     <div class="page-header">
       <div class="page-title">
         <el-button icon="ArrowLeft" circle @click="goBack" />

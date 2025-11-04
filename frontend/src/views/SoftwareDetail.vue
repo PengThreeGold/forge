@@ -1,5 +1,5 @@
 <template>
-  <div class="software-detail-container" v-loading="loading">
+  <div v-loading="loading" class="software-detail-container">
     <div class="page-header">
       <div class="page-title">
         <el-button icon="ArrowLeft" circle @click="goBack" />
@@ -115,7 +115,7 @@
               </el-radio-group>
             </div>
           </template>
-          <div class="chart-content" ref="downloadChart"></div>
+          <div ref="downloadChart" class="chart-content"></div>
         </el-card>
       </el-col>
     </el-row>

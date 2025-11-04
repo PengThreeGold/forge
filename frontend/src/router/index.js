@@ -7,16 +7,31 @@ const Dashboard = () => import('../views/Dashboard.vue')
 const SoftwareList = () => import('../views/SoftwareList.vue')
 const SoftwareDetail = () => import('../views/SoftwareDetail.vue')
 const SoftwareEdit = () => import('../views/SoftwareEdit.vue')
+const SoftwareRelease = () => import('../views/SoftwareRelease.vue')
 const Statistics = () => import('../views/Statistics.vue')
 const Settings = () => import('../views/Settings.vue')
+const PermissionManagement = () => import('../views/PermissionManagement.vue')
+const PublicSoftware = () => import('../views/PublicSoftware.vue')
+const PublicSoftwareDetail = () => import('../views/PublicSoftwareDetail.vue')
 const NotFound = () => import('../views/NotFound.vue')
 
 // 路由配置
 const routes = [
   {
     path: '/',
-    redirect: '/dashboard',
-    meta: { requiresAuth: true },
+    redirect: '/public',
+  },
+  {
+    path: '/public',
+    name: 'PublicSoftware',
+    component: PublicSoftware,
+    meta: { title: '软件商店' },
+  },
+  {
+    path: '/public/:id',
+    name: 'PublicSoftwareDetail',
+    component: PublicSoftwareDetail,
+    meta: { title: '软件详情' },
   },
   {
     path: '/login',
@@ -55,6 +70,12 @@ const routes = [
     meta: { requiresAuth: true, title: '编辑软件空间' },
   },
   {
+    path: '/software/:id/releases',
+    name: 'SoftwareRelease',
+    component: SoftwareRelease,
+    meta: { requiresAuth: true, title: '版本发布' },
+  },
+  {
     path: '/statistics',
     name: 'Statistics',
     component: Statistics,
@@ -65,6 +86,12 @@ const routes = [
     name: 'Settings',
     component: Settings,
     meta: { requiresAuth: true, title: '系统设置' },
+  },
+  {
+    path: '/permissions',
+    name: 'PermissionManagement',
+    component: PermissionManagement,
+    meta: { requiresAuth: true, title: '权限管理' },
   },
   {
     path: '/:pathMatch(.*)*',

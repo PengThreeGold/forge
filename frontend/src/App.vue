@@ -1,20 +1,32 @@
 <template>
-  <div id="app">
-    <!-- 路由视图 -->
-    <router-view />
+  <div id="app" :class="{ 'dark-theme': isDarkTheme }">
+    <template v-if="$route.path !== '/login'">
+      <layout />
+    </template>
+    <template v-else>
+      <router-view />
+    </template>
   </div>
 </template>
 
 <script>
-export default {
+import { defineComponent, computed } from 'vue'
+import { useStore } from 'vuex'
+import Layout from './components/Layout.vue'
+
+export default defineComponent({
   name: 'App',
-  mounted() {
-    // 检查主题
-    this.checkTheme()
+  components: {
+    Layout,
   },
-  methods: {
-    checkTheme() {
-      // 检查系统主题偏好
+  setup() {
+    const store = useStore()
+
+    // 计算属性
+    const isDarkTheme = computed(() => store.state.theme === 'dark')
+
+    // 检查系统主题偏好
+    const checkTheme = () => {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.body.classList.add('dark-theme')
       } else {
@@ -31,9 +43,16 @@ export default {
           }
         })
       }
-    },
+    }
+
+    // 初始化
+    checkTheme()
+
+    return {
+      isDarkTheme,
+    }
   },
-}
+})
 </script>
 
 <style>

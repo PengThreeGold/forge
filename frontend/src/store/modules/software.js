@@ -371,6 +371,37 @@ const actions = {
     }
   },
 
+  // 设为最新版本
+  async setAsLatest({ commit }, { versionId }) {
+    try {
+      commit('SET_LOADING', true)
+      commit('CLEAR_ERROR')
+
+      const response = await softwareApi.setAsLatest(versionId)
+
+      // 更新所有版本的is_latest状态
+      if (state.versions.length > 0) {
+        const updatedVersions = state.versions.map(version => ({
+          ...version,
+          is_latest: version.id === versionId,
+        }))
+        commit('SET_VERSIONS', updatedVersions)
+      }
+
+      // 如果当前版本是更新后的版本，也更新当前版本
+      if (state.currentVersion && state.currentVersion.id === response.data.id) {
+        commit('SET_CURRENT_VERSION', response.data)
+      }
+
+      commit('SET_LOADING', false)
+      return response
+    } catch (error) {
+      commit('SET_LOADING', false)
+      commit('SET_ERROR', error.response?.data?.message || '设为最新版本失败')
+      throw error
+    }
+  },
+
   // 下载软件版本
   async downloadVersion({ commit }, versionId) {
     try {
@@ -384,6 +415,74 @@ const actions = {
     } catch (error) {
       commit('SET_LOADING', false)
       commit('SET_ERROR', error.response?.data?.message || '下载软件版本失败')
+      throw error
+    }
+  },
+
+  // 获取版本下载统计
+  async getVersionDownloadStats({ commit }, versionId) {
+    try {
+      commit('SET_LOADING', true)
+      commit('CLEAR_ERROR')
+
+      const response = await softwareApi.getVersionDownloadStats(versionId)
+
+      commit('SET_LOADING', false)
+      return response
+    } catch (error) {
+      commit('SET_LOADING', false)
+      commit('SET_ERROR', error.response?.data?.message || '获取版本下载统计失败')
+      throw error
+    }
+  },
+
+  // 获取软件空间下载统计
+  async getSpaceDownloadStats({ commit }, spaceId) {
+    try {
+      commit('SET_LOADING', true)
+      commit('CLEAR_ERROR')
+
+      const response = await softwareApi.getSpaceDownloadStats(spaceId)
+
+      commit('SET_LOADING', false)
+      return response
+    } catch (error) {
+      commit('SET_LOADING', false)
+      commit('SET_ERROR', error.response?.data?.message || '获取软件空间下载统计失败')
+      throw error
+    }
+  },
+
+  // 获取所有公开软件空间
+  async getPublicSpaces({ commit }) {
+    try {
+      commit('SET_LOADING', true)
+      commit('CLEAR_ERROR')
+
+      const response = await softwareApi.getPublicSpaces()
+
+      commit('SET_LOADING', false)
+      return response
+    } catch (error) {
+      commit('SET_LOADING', false)
+      commit('SET_ERROR', error.response?.data?.message || '获取公开软件空间列表失败')
+      throw error
+    }
+  },
+
+  // 通过ID获取软件空间信息
+  async getSpaceInfoById({ commit }, spaceId) {
+    try {
+      commit('SET_LOADING', true)
+      commit('CLEAR_ERROR')
+
+      const response = await softwareApi.getSpaceInfoById(spaceId)
+
+      commit('SET_LOADING', false)
+      return response
+    } catch (error) {
+      commit('SET_LOADING', false)
+      commit('SET_ERROR', error.response?.data?.message || '获取软件空间信息失败')
       throw error
     }
   },

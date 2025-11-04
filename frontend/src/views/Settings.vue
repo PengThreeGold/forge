@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-container" v-loading="loading">
+  <div v-loading="loading" class="settings-container">
     <div class="page-header">
       <h2>系统设置</h2>
     </div>

@@ -91,7 +91,7 @@
               </el-radio-group>
             </div>
           </template>
-          <div class="chart-content" ref="downloadTimelineChart"></div>
+          <div ref="downloadTimelineChart" class="chart-content"></div>
         </el-card>
       </el-col>
 
@@ -103,7 +103,7 @@
               <el-button type="text" @click="router.push('/statistics')">查看更多</el-button>
             </div>
           </template>
-          <div class="chart-content" ref="popularSoftwareChart"></div>
+          <div ref="popularSoftwareChart" class="chart-content"></div>
         </el-card>
       </el-col>
     </el-row>

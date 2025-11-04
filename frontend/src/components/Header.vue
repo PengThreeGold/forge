@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import {
@@ -72,13 +72,12 @@ import {
 } from '@element-plus/icons-vue'
 
 export default defineComponent({
-  name: 'Header',
+  name: 'AppHeader',
   components: {
     Fold,
     Expand,
     Moon,
     Sunny,
-    UserFilled,
     ArrowDown,
     User,
     Setting,

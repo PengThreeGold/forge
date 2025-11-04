@@ -6,9 +6,9 @@
         :collapse="sidebarCollapsed"
         :collapse-transition="false"
         class="sidebar-menu"
-        @select="handleSelect"
         :unique-opened="true"
         router
+        @select="handleSelect"
       >
         <!-- 仪表盘 -->
         <el-menu-item index="/">
@@ -26,6 +26,15 @@
           <el-menu-item index="/software/create">添加软件</el-menu-item>
         </el-sub-menu>
 
+        <!-- 版本发布 -->
+        <el-sub-menu index="releases">
+          <template #title>
+            <el-icon><DocumentCopy /></el-icon>
+            <span>版本发布</span>
+          </template>
+          <el-menu-item index="/software/:id/releases">发布管理</el-menu-item>
+        </el-sub-menu>
+
         <!-- 统计分析 -->
         <el-menu-item index="/statistics">
           <el-icon><TrendCharts /></el-icon>
@@ -33,16 +42,30 @@
         </el-menu-item>
 
         <!-- 系统设置 -->
-        <el-menu-item index="/settings">
-          <el-icon><Setting /></el-icon>
-          <template #title>系统设置</template>
-        </el-menu-item>
+        <el-sub-menu index="system">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/settings">系统设置</el-menu-item>
+          <el-menu-item index="/permissions">权限管理</el-menu-item>
+        </el-sub-menu>
       </el-menu>
 
       <!-- 底部信息 -->
-      <div class="sidebar-footer" v-if="!sidebarCollapsed">
+      <div v-if="!sidebarCollapsed" class="sidebar-footer">
+        <div class="footer-links">
+          <el-button type="text" size="small" @click="goToPublicStore">
+            <el-icon><Shop /></el-icon>
+            软件商店
+          </el-button>
+          <el-button type="text" size="small" @click="goToDocs">
+            <el-icon><Document /></el-icon>
+            文档
+          </el-button>
+        </div>
         <div class="version-info">
-          <div class="version">Forge v1.0.0</div>
+          <div class="version">Forge v2.0.0</div>
           <div class="copyright">© 2023 Forge Team</div>
         </div>
       </div>
@@ -51,10 +74,18 @@
 </template>
 
 <script>
-import { defineComponent, computed, ref, watch } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { DataLine, FolderOpened, TrendCharts, Setting } from '@element-plus/icons-vue'
+import {
+  DataLine,
+  FolderOpened,
+  TrendCharts,
+  Setting,
+  DocumentCopy,
+  Shop,
+  Document,
+} from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'Sidebar',
@@ -63,6 +94,9 @@ export default defineComponent({
     FolderOpened,
     TrendCharts,
     Setting,
+    DocumentCopy,
+    Shop,
+    Document,
   },
   setup() {
     const route = useRoute()
@@ -83,11 +117,23 @@ export default defineComponent({
       router.push(index)
     }
 
+    // 跳转到软件商店
+    const goToPublicStore = () => {
+      window.open('/public', '_blank')
+    }
+
+    // 跳转到文档
+    const goToDocs = () => {
+      window.open('https://forge.example.com/docs', '_blank')
+    }
+
     return {
       sidebarCollapsed,
       isDarkTheme,
       activeMenu,
       handleSelect,
+      goToPublicStore,
+      goToDocs,
     }
   },
 })
@@ -178,6 +224,23 @@ export default defineComponent({
   background-color: #1890ff;
 }
 
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.footer-links .el-button {
+  color: #909399;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.footer-links .el-button:hover {
+  color: #409eff;
+}
+
 .sidebar-footer {
   padding: 16px;
   border-top: 1px solid #f0f0f0;
@@ -209,6 +272,14 @@ export default defineComponent({
 
 .dark-theme .copyright {
   color: #7c7e81;
+}
+
+.dark-theme .footer-links .el-button {
+  color: #7c7e81;
+}
+
+.dark-theme .footer-links .el-button:hover {
+  color: #79bbff;
 }
 
 /* 移动端适配 */
