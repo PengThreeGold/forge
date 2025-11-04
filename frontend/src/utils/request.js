@@ -42,9 +42,15 @@ service.interceptors.request.use(
       config.headers['X-XSS-Protection'] = '1; mode=block'
     }
 
-    // 设置Loading状态
+    // 设置Loading状态，使用计数器避免多次设置
     if (config.showLoading !== false) {
-      store.dispatch('setLoading', true)
+      if (!window.__loadingCount) {
+        window.__loadingCount = 0
+      }
+      window.__loadingCount++
+      if (window.__loadingCount === 1) {
+        store.dispatch('setLoading', true)
+      }
     }
 
     return config
@@ -62,9 +68,14 @@ service.interceptors.response.use(
   response => {
     // 对响应数据做点什么
 
-    // 关闭Loading状态
+    // 关闭Loading状态，使用计数器避免提前关闭
     if (response.config.showLoading !== false) {
-      store.dispatch('setLoading', false)
+      if (window.__loadingCount && window.__loadingCount > 0) {
+        window.__loadingCount--
+        if (window.__loadingCount === 0) {
+          store.dispatch('setLoading', false)
+        }
+      }
     }
 
     // 如果是二进制数据（文件下载），直接返回
@@ -86,6 +97,7 @@ service.interceptors.response.use(
     // 根据自定义状态码处理响应
     if (res.success !== undefined) {
       if (res.success) {
+        // 成功响应，返回完整响应对象，让调用方自行处理data字段
         return res
       } else {
         // 处理业务错误
@@ -104,9 +116,14 @@ service.interceptors.response.use(
   error => {
     // 对响应错误做点什么
 
-    // 关闭Loading状态
+    // 关闭Loading状态，使用计数器避免提前关闭
     if (error.config && error.config.showLoading !== false) {
-      store.dispatch('setLoading', false)
+      if (window.__loadingCount && window.__loadingCount > 0) {
+        window.__loadingCount--
+        if (window.__loadingCount === 0) {
+          store.dispatch('setLoading', false)
+        }
+      }
     }
 
     // 获取错误响应

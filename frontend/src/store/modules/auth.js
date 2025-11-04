@@ -56,20 +56,22 @@ const actions = {
   // 登录
   async login({ commit, dispatch }, credentials) {
     try {
-      dispatch('setLoading', true, { root: true })
-
       const response = await authApi.login(credentials)
 
-      // 保存token和用户信息
-      commit('SET_TOKEN', response.data.access_token)
-      commit('SET_REFRESH_TOKEN', response.data.refresh_token)
-      commit('SET_USER', response.data.user)
+      // 保存token和用户信息，处理后端返回的结构化响应
+      if (response.success && response.data) {
+        commit('SET_TOKEN', response.data.access_token)
+        commit('SET_REFRESH_TOKEN', response.data.refresh_token)
+        commit('SET_USER', response.data.user)
+      } else {
+        throw new Error(response.message || '登录失败')
+      }
 
-      dispatch('setLoading', false, { root: true })
       return response
     } catch (error) {
-      dispatch('setLoading', false, { root: true })
-      dispatch('setError', error.response?.data?.message || '登录失败', { root: true })
+      dispatch('setError', error.response?.data?.message || error.message || '登录失败', {
+        root: true,
+      })
       throw error
     }
   },
@@ -95,14 +97,23 @@ const actions = {
     try {
       const response = await authApi.refreshToken()
 
-      // 更新token
-      commit('SET_TOKEN', response.data.access_token)
-
-      return response.data.access_token
+      // 更新token，处理后端返回的结构化响应
+      if (response.success && response.data) {
+        commit('SET_TOKEN', response.data.access_token)
+        return response.data.access_token
+      } else {
+        throw new Error(response.message || '令牌刷新失败')
+      }
     } catch (error) {
       // 刷新失败，清除认证信息并跳转到登录页
       dispatch('logout')
-      dispatch('setError', '会话已过期，请重新登录', { root: true })
+      dispatch(
+        'setError',
+        error.response?.data?.message || error.message || '会话已过期，请重新登录',
+        {
+          root: true,
+        }
+      )
       throw error
     }
   },
@@ -110,18 +121,20 @@ const actions = {
   // 获取用户信息
   async getUserProfile({ commit, dispatch }) {
     try {
-      dispatch('setLoading', true, { root: true })
-
       const response = await authApi.getProfile()
 
-      // 更新用户信息
-      commit('SET_USER', response.data)
+      // 更新用户信息，处理后端返回的结构化响应
+      if (response.success && response.data) {
+        commit('SET_USER', response.data)
+      } else {
+        throw new Error(response.message || '获取用户信息失败')
+      }
 
-      dispatch('setLoading', false, { root: true })
       return response
     } catch (error) {
-      dispatch('setLoading', false, { root: true })
-      dispatch('setError', error.response?.data?.message || '获取用户信息失败', { root: true })
+      dispatch('setError', error.response?.data?.message || error.message || '获取用户信息失败', {
+        root: true,
+      })
 
       // 如果是401错误，可能是token过期，尝试刷新
       if (error.response && error.response.status === 401) {
@@ -136,14 +149,9 @@ const actions = {
   // 修改密码
   async changePassword({ dispatch }, passwords) {
     try {
-      dispatch('setLoading', true, { root: true })
-
       const response = await authApi.changePassword(passwords)
-
-      dispatch('setLoading', false, { root: true })
       return response.data
     } catch (error) {
-      dispatch('setLoading', false, { root: true })
       dispatch('setError', error.response?.data?.message || '修改密码失败', { root: true })
       throw error
     }
@@ -152,15 +160,22 @@ const actions = {
   // 初始化管理员账户
   async initAdmin({ dispatch }, adminData) {
     try {
-      dispatch('setLoading', true, { root: true })
-
       const response = await authApi.initAdmin(adminData)
 
-      dispatch('setLoading', false, { root: true })
-      return response.data
+      // 处理后端返回的结构化响应
+      if (response.success && response.data) {
+        return response.data
+      } else {
+        throw new Error(response.message || '初始化管理员账户失败')
+      }
     } catch (error) {
-      dispatch('setLoading', false, { root: true })
-      dispatch('setError', error.response?.data?.message || '初始化管理员账户失败', { root: true })
+      dispatch(
+        'setError',
+        error.response?.data?.message || error.message || '初始化管理员账户失败',
+        {
+          root: true,
+        }
+      )
       throw error
     }
   },

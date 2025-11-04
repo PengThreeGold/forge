@@ -301,8 +301,8 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
+  background-size: 150% 150%;
+  animation: gradientBG 25s ease infinite;
 }
 
 @keyframes gradientBG {
@@ -320,11 +320,21 @@ export default defineComponent({
 .login-box {
   width: 400px;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  /* 进一步减少模糊效果以降低资源消耗 */
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  /* 只在hover时添加过渡效果，减少持续渲染 */
+}
+
+.login-box:hover {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .login-header {
@@ -347,6 +357,9 @@ export default defineComponent({
 
 .login-form {
   margin-top: 20px;
+  /* 减少不必要的重绘 */
+  transform: translateZ(0);
+  will-change: auto;
 }
 
 .login-button {

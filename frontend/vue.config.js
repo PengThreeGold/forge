@@ -35,6 +35,12 @@ module.exports = defineConfig({
         chunks: 'all',
       },
     },
+    resolve: {
+      alias: {
+        // 解决字体资源加载问题
+        'fonts': '@/assets/fonts'
+      }
+    }
   },
   // CSS相关配置
   css: {
@@ -43,4 +49,18 @@ module.exports = defineConfig({
     // 是否为CSS开启source map
     sourceMap: false,
   },
+  // 链式webpack配置
+  chainWebpack: config => {
+    // 优化字体资源加载
+    config.module
+      .rule('fonts')
+      .test(/\.(woff2?|eot|ttf|otf)$/)
+      .use('url-loader')
+      .loader('url-loader')
+      .options({
+        limit: 10000,
+        name: 'fonts/[name].[hash:7].[ext]'
+      })
+      .end()
+  }
 })
