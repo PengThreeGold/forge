@@ -178,14 +178,13 @@ export default defineComponent({
         // 首先检查是否有token
         const hasToken = store.getters.token
         if (!hasToken) {
-          // 没有token，直接检查是否需要初始化管理员
+          // 没有token，调用后端的安全检查接口（GET），不会创建管理员
           try {
-            await store.dispatch('auth/initAdmin', { username: 'check', password: 'check' })
-            initAdminRequired.value = false
+            const data = await store.dispatch('auth/checkInitAdmin')
+            initAdminRequired.value = !!data && data.init_required === true
           } catch (initError) {
-            if (initError.response && initError.response.status === 400) {
-              initAdminRequired.value = true
-            }
+            // 如果检查接口异常，将提示初始化为必需（更安全的默认）
+            initAdminRequired.value = true
           }
         } else {
           // 有token，尝试获取用户信息
@@ -193,14 +192,12 @@ export default defineComponent({
         }
       } catch (error) {
         if (error.response && error.response.status === 401) {
-          // token无效，检查是否需要初始化管理员
+          // token无效，调用后端的安全检查接口
           try {
-            await store.dispatch('auth/initAdmin', { username: 'check', password: 'check' })
-            initAdminRequired.value = false
+            const data = await store.dispatch('auth/checkInitAdmin')
+            initAdminRequired.value = !!data && data.init_required === true
           } catch (initError) {
-            if (initError.response && initError.response.status === 400) {
-              initAdminRequired.value = true
-            }
+            initAdminRequired.value = true
           }
         }
       }

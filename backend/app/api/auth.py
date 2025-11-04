@@ -137,3 +137,23 @@ def init_admin():
         }, message)
     else:
         return error_response(message, 400)
+
+
+@auth_bp.route('/init-admin', methods=['GET'])
+def init_admin_status():
+    """检查是否需要初始化管理员账户（不创建）
+
+    返回：
+    - 如果管理员已存在：{ init_required: False }
+    - 如果管理员不存在：{ init_required: True }
+    这样前端可以用GET请求检测是否需要初始化，而不会误触发创建操作。
+    """
+    try:
+        from app.models.user import User
+
+        admin_exists = User.query.filter_by(role='admin').first() is not None
+
+        return success_response({'init_required': not admin_exists})
+    except Exception as e:
+        # 返回更详细的错误信息以便调试（生产环境可以改为更模糊的消息）
+        return error_response(f"检查初始化状态失败: {str(e)}", 500)

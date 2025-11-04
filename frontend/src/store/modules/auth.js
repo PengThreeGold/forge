@@ -191,6 +191,28 @@ const actions = {
       throw error
     }
   },
+
+  // 检查是否需要初始化管理员账户（使用GET，不会创建）
+  async checkInitAdmin({ dispatch }) {
+    try {
+      const response = await authApi.checkInitAdmin()
+
+      if (response.success && response.data) {
+        return response.data
+      } else {
+        throw new Error(response.message || '检查初始化管理员失败')
+      }
+    } catch (error) {
+      dispatch(
+        'setError',
+        error.response?.data?.message || error.message || '检查初始化管理员失败',
+        {
+          root: true,
+        }
+      )
+      throw error
+    }
+  },
 }
 
 export default {

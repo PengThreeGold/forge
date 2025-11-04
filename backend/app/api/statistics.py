@@ -61,12 +61,13 @@ def get_overview():
         desc('downloads')
     ).limit(10).all()
     
+    # 查询返回 (space_name, downloads) 的元组
     spaces_downloads_data = [
         {
-            'name': space.name,
+            'name': space_name,
             'downloads': downloads
         }
-        for space, downloads in spaces_downloads
+        for space_name, downloads in spaces_downloads
     ]
     
     # 按版本统计下载次数
@@ -109,12 +110,13 @@ def get_overview():
         for record in recent_downloads_records
     ]
     
+    # recent_downloads 是最近7天的计数，recent_downloads_data 是最近的记录列表，避免字段名冲突
     return success_response({
         'spaces_count': spaces_count,
         'versions_count': versions_count,
         'published_versions_count': published_versions_count,
         'total_downloads': total_downloads,
-        'recent_downloads': recent_downloads,
+        'recent_downloads_count': recent_downloads,
         'monthly_downloads': monthly_downloads,
         'unique_ips': unique_ips,
         'spaces_downloads': spaces_downloads_data,

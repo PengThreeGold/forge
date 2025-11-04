@@ -94,6 +94,17 @@ def create_app(config=None):
     from app.utils.response import register_error_handlers
     register_error_handlers(app)
     
+    # 确保所有响应都包含CORS头（防止某些扩展或错误处理绕过CORS添加）
+    from app.utils.response import add_cors_headers
+
+    @app.after_request
+    def apply_cors(response):
+        try:
+            add_cors_headers(response)
+        except Exception:
+            # 不应阻塞正常响应流程，如果添加CORS失败，还是返回原始响应
+            app.logger.exception('添加CORS头时发生异常')
+        return response
     # 创建存储目录
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['SOFTWARE_STORAGE'], exist_ok=True)

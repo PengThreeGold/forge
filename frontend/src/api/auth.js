@@ -50,3 +50,11 @@ export function initAdmin(data) {
     data,
   })
 }
+
+// 检查是否需要初始化管理员（安全的GET，不会创建用户）
+export function checkInitAdmin() {
+  return request({
+    url: '/api/auth/init-admin',
+    method: 'get',
+  })
+}
