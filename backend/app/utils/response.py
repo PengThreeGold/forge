@@ -47,18 +47,17 @@ def add_cors_headers(response):
     
     if "*" in allowed_origins:
         # 如果允许所有源，则设置 *
-        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers['Access-Control-Allow-Origin'] = '*'
     elif origin in allowed_origins:
         # 如果请求的源在允许列表中，则设置该源
-        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers['Access-Control-Allow-Origin'] = origin
     
     # 添加其他CORS头
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.add('Access-Control-Allow-Headers',
-                         'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Max-Age', '86400')  # 24小时
-    response.headers.add('Vary', 'Origin')
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Max-Age'] = '86400'  # 24小时
+    response.headers['Vary'] = 'Origin'
 
 
 def register_error_handlers(app):
@@ -107,6 +106,9 @@ def register_error_handlers(app):
             response = make_response()
             add_cors_headers(response)
             return response
+        
+        # 为所有请求添加CORS头
+        return None
 
 
 def admin_required(f):

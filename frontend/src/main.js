@@ -26,7 +26,7 @@ app.use(ElementPlus, {
 
 // 初始化应用
 store
-  .dispatch('initApp')
+  .dispatch('initApp', { skipUserProfile: true })
   .then(() => {
     // 挂载应用
     app.mount('#app')

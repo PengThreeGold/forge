@@ -138,8 +138,20 @@ const actions = {
 
       // 如果是401错误，可能是token过期，尝试刷新
       if (error.response && error.response.status === 401) {
-        await dispatch('refreshToken')
-        return await dispatch('getUserProfile')
+        // 避免无限循环的token刷新
+        if (!this.refreshing) {
+          this.refreshing = true
+          try {
+            await dispatch('refreshToken')
+            this.refreshing = false
+            return await dispatch('getUserProfile')
+          } catch (refreshError) {
+            this.refreshing = false
+            throw refreshError
+          }
+        } else {
+          throw error
+        }
       }
 
       throw error

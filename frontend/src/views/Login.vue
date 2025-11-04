@@ -175,11 +175,25 @@ export default defineComponent({
     // 检查是否需要初始化管理员
     const checkInitAdmin = async () => {
       try {
-        // 尝试获取用户信息，如果返回401且没有管理员，则需要初始化
-        await store.dispatch('auth/getUserProfile')
+        // 首先检查是否有token
+        const hasToken = store.getters.token
+        if (!hasToken) {
+          // 没有token，直接检查是否需要初始化管理员
+          try {
+            await store.dispatch('auth/initAdmin', { username: 'check', password: 'check' })
+            initAdminRequired.value = false
+          } catch (initError) {
+            if (initError.response && initError.response.status === 400) {
+              initAdminRequired.value = true
+            }
+          }
+        } else {
+          // 有token，尝试获取用户信息
+          await store.dispatch('auth/getUserProfile')
+        }
       } catch (error) {
         if (error.response && error.response.status === 401) {
-          // 检查是否已经存在管理员
+          // token无效，检查是否需要初始化管理员
           try {
             await store.dispatch('auth/initAdmin', { username: 'check', password: 'check' })
             initAdminRequired.value = false

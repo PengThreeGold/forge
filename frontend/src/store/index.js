@@ -75,7 +75,7 @@ export default createStore({
     },
 
     // 初始化应用
-    async initApp({ dispatch, commit }) {
+    async initApp({ dispatch, commit }, { skipUserProfile = false } = {}) {
       try {
         // 设置加载状态
         dispatch('setLoading', true)
@@ -86,8 +86,10 @@ export default createStore({
           // 设置token到auth模块
           commit('auth/SET_TOKEN', token, { root: true })
 
-          // 获取用户信息
-          await dispatch('auth/getUserProfile', null, { root: true })
+          // 获取用户信息（除非明确跳过）
+          if (!skipUserProfile) {
+            await dispatch('auth/getUserProfile', null, { root: true })
+          }
         }
 
         // 设置主题

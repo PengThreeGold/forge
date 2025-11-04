@@ -9,7 +9,7 @@ const service = axios.create({
   timeout: process.env.VUE_APP_TIMEOUT || TIMEOUT, // 请求超时时间
   // 设置跨域请求是否需要凭证（cookies）
   // 注意：当CORS配置为 "*" 时，withCredentials 必须为 false
-  withCredentials: process.env.NODE_ENV === 'production' ? true : false,
+  withCredentials: false, // 在开发环境中始终使用 false，避免 CORS 错误
   // 设置请求头
   headers: {
     'Cache-Control': 'no-cache',

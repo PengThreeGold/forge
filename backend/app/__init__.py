@@ -40,23 +40,43 @@ def create_app(config=None):
     # 支持从配置中获取允许的源，如果未配置则允许所有源
     allowed_origins = app.config.get('CORS_ORIGINS', ["*"])
     
-    cors.init_app(app, resources={
-        r"/api/*": {
-            "origins": allowed_origins,
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": [
-                "Content-Type",
-                "Authorization",
-                "X-Requested-With",
-                "X-CSRF-Token",
-                "X-Content-Type-Options",
-                "X-Frame-Options",
-                "X-XSS-Protection"
-            ],
-            "supports_credentials": True,
-            "expose_headers": ["Content-Range", "X-Content-Range"]
-        }
-    })
+    # 如果允许所有源，则设置为 "*" 以简化配置
+    if "*" in allowed_origins:
+        cors.init_app(app, resources={
+            r"/api/*": {
+                "origins": "*",
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With",
+                    "X-CSRF-Token",
+                    "X-Content-Type-Options",
+                    "X-Frame-Options",
+                    "X-XSS-Protection"
+                ],
+                "supports_credentials": False,  # 当 origins 为 "*" 时，必须为 False
+                "expose_headers": ["Content-Range", "X-Content-Range"]
+            }
+        })
+    else:
+        cors.init_app(app, resources={
+            r"/api/*": {
+                "origins": allowed_origins,
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Requested-With",
+                    "X-CSRF-Token",
+                    "X-Content-Type-Options",
+                    "X-Frame-Options",
+                    "X-XSS-Protection"
+                ],
+                "supports_credentials": True,
+                "expose_headers": ["Content-Range", "X-Content-Range"]
+            }
+        })
     limiter.init_app(app)
     
     # 注册蓝图
