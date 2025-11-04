@@ -140,7 +140,8 @@ async function addSoftware(data) {
 import axios from '@/utils/request'
 
 // 发起 GET 请求
-axios.get('/api/software')
+axios
+  .get('/api/software')
   .then(response => {
     console.log(response.data)
   })
@@ -149,9 +150,10 @@ axios.get('/api/software')
   })
 
 // 发起 POST 请求
-axios.post('/api/software', {
+axios
+  .post('/api/software', {
     name: 'Test Software',
-    description: 'Test Description'
+    description: 'Test Description',
   })
   .then(response => {
     console.log(response.data)
@@ -171,26 +173,26 @@ import { useStore } from 'vuex'
 export default {
   setup() {
     const store = useStore()
-    
+
     // 获取状态
     const user = computed(() => store.state.auth.user)
-    
+
     // 提交 mutation
-    const login = (userData) => {
+    const login = userData => {
       store.commit('auth/SET_USER', userData)
     }
-    
+
     // 分发 action
     const fetchUser = () => {
       store.dispatch('auth/fetchUser')
     }
-    
+
     return {
       user,
       login,
-      fetchUser
+      fetchUser,
     }
-  }
+  },
 }
 ```
 

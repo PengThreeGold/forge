@@ -1,5 +1,5 @@
 <template>
-  <aside class="app-sidebar" :class="{ 'dark-theme': isDarkTheme, 'collapsed': sidebarCollapsed }">
+  <aside class="app-sidebar" :class="{ 'dark-theme': isDarkTheme, collapsed: sidebarCollapsed }">
     <div class="sidebar-container">
       <el-menu
         :default-active="activeMenu"
@@ -15,7 +15,7 @@
           <el-icon><DataLine /></el-icon>
           <template #title>仪表盘</template>
         </el-menu-item>
-        
+
         <!-- 软件管理 -->
         <el-sub-menu index="software">
           <template #title>
@@ -25,20 +25,20 @@
           <el-menu-item index="/software">软件列表</el-menu-item>
           <el-menu-item index="/software/create">添加软件</el-menu-item>
         </el-sub-menu>
-        
+
         <!-- 统计分析 -->
         <el-menu-item index="/statistics">
           <el-icon><TrendCharts /></el-icon>
           <template #title>统计分析</template>
         </el-menu-item>
-        
+
         <!-- 系统设置 -->
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
           <template #title>系统设置</template>
         </el-menu-item>
       </el-menu>
-      
+
       <!-- 底部信息 -->
       <div class="sidebar-footer" v-if="!sidebarCollapsed">
         <div class="version-info">
@@ -54,12 +54,7 @@
 import { defineComponent, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import {
-  DataLine,
-  FolderOpened,
-  TrendCharts,
-  Setting
-} from '@element-plus/icons-vue'
+import { DataLine, FolderOpened, TrendCharts, Setting } from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'Sidebar',
@@ -67,34 +62,34 @@ export default defineComponent({
     DataLine,
     FolderOpened,
     TrendCharts,
-    Setting
+    Setting,
   },
   setup() {
     const route = useRoute()
     const router = useRouter()
     const store = useStore()
-    
+
     // 计算属性
     const sidebarCollapsed = computed(() => store.state.sidebarCollapsed)
     const isDarkTheme = computed(() => store.state.theme === 'dark')
-    
+
     // 当前激活的菜单项
     const activeMenu = computed(() => {
       return route.path
     })
-    
+
     // 处理菜单选择
-    const handleSelect = (index) => {
+    const handleSelect = index => {
       router.push(index)
     }
-    
+
     return {
       sidebarCollapsed,
       isDarkTheme,
       activeMenu,
-      handleSelect
+      handleSelect,
     }
-  }
+  },
 })
 </script>
 
@@ -106,7 +101,9 @@ export default defineComponent({
   bottom: 0;
   width: 220px;
   background-color: #fff;
-  transition: width 0.3s, background-color 0.3s;
+  transition:
+    width 0.3s,
+    background-color 0.3s;
   box-shadow: 1px 0 4px rgba(0, 21, 41, 0.08);
   z-index: 900;
   overflow: hidden;
@@ -220,11 +217,11 @@ export default defineComponent({
     transform: translateX(-100%);
     transition: transform 0.3s;
   }
-  
+
   .app-sidebar.mobile-open {
     transform: translateX(0);
   }
-  
+
   .app-sidebar.collapsed {
     width: 220px;
   }

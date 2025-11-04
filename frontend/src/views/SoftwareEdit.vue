@@ -6,22 +6,17 @@
         <h2>{{ isEdit ? '编辑软件空间' : '创建软件空间' }}</h2>
       </div>
     </div>
-    
+
     <el-card shadow="hover" class="edit-card">
-      <el-form
-        ref="spaceFormRef"
-        :model="spaceForm"
-        :rules="spaceRules"
-        label-width="120px"
-      >
+      <el-form ref="spaceFormRef" :model="spaceForm" :rules="spaceRules" label-width="120px">
         <el-form-item label="软件名称" prop="name">
           <el-input v-model="spaceForm.name" placeholder="请输入软件名称" />
         </el-form-item>
-        
+
         <el-form-item label="作者" prop="author">
           <el-input v-model="spaceForm.author" placeholder="请输入作者名称" />
         </el-form-item>
-        
+
         <el-form-item label="描述" prop="description">
           <el-input
             v-model="spaceForm.description"
@@ -30,14 +25,12 @@
             placeholder="请输入软件描述"
           />
         </el-form-item>
-        
+
         <el-form-item label="Webhook URL" prop="webhook_url">
           <el-input v-model="spaceForm.webhook_url" placeholder="请输入Webhook URL（可选）" />
-          <div class="form-tip">
-            用于接收软件下载、版本发布等事件通知的回调地址
-          </div>
+          <div class="form-tip">用于接收软件下载、版本发布等事件通知的回调地址</div>
         </el-form-item>
-        
+
         <el-form-item>
           <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
             {{ isEdit ? '更新' : '创建' }}
@@ -61,36 +54,34 @@ export default defineComponent({
     const store = useStore()
     const router = useRouter()
     const route = useRoute()
-    
+
     // 数据
     const loading = ref(false)
     const submitLoading = ref(false)
     const isEdit = ref(false)
     const spaceId = ref(null)
-    
+
     // 表单
     const spaceForm = reactive({
       name: '',
       author: '',
       description: '',
-      webhook_url: ''
+      webhook_url: '',
     })
-    
+
     const spaceRules = {
-      name: [
-        { required: true, message: '请输入软件名称', trigger: 'blur' }
-      ]
+      name: [{ required: true, message: '请输入软件名称', trigger: 'blur' }],
     }
-    
+
     const spaceFormRef = ref(null)
-    
+
     // 获取软件空间详情
     const getSpaceDetail = async () => {
       try {
         loading.value = true
-        
+
         const response = await store.dispatch('software/getSpace', spaceId.value)
-        
+
         // 填充表单
         spaceForm.name = response.data.name
         spaceForm.author = response.data.author || ''
@@ -103,21 +94,21 @@ export default defineComponent({
         loading.value = false
       }
     }
-    
+
     // 处理提交
     const handleSubmit = async () => {
       if (!spaceFormRef.value) return
-      
+
       try {
         await spaceFormRef.value.validate()
-        
+
         submitLoading.value = true
-        
+
         if (isEdit.value) {
           // 更新软件空间
           await store.dispatch('software/updateSpace', {
             spaceId: spaceId.value,
-            spaceData: spaceForm
+            spaceData: spaceForm,
           })
           ElMessage.success('更新成功')
         } else {
@@ -125,7 +116,7 @@ export default defineComponent({
           await store.dispatch('software/createSpace', spaceForm)
           ElMessage.success('创建成功')
         }
-        
+
         // 返回列表页
         goBack()
       } catch (error) {
@@ -134,12 +125,12 @@ export default defineComponent({
         submitLoading.value = false
       }
     }
-    
+
     // 返回上一页
     const goBack = () => {
       router.push('/software')
     }
-    
+
     onMounted(() => {
       // 检查是否是编辑模式
       if (route.params.id) {
@@ -148,7 +139,7 @@ export default defineComponent({
         getSpaceDetail()
       }
     })
-    
+
     return {
       loading,
       submitLoading,
@@ -157,9 +148,9 @@ export default defineComponent({
       spaceRules,
       spaceFormRef,
       handleSubmit,
-      goBack
+      goBack,
     }
-  }
+  },
 })
 </script>
 
@@ -202,16 +193,16 @@ export default defineComponent({
   .software-edit-container {
     padding: 10px;
   }
-  
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .page-title h2 {
     font-size: 20px;
   }
-  
+
   .edit-card {
     margin: 0;
   }

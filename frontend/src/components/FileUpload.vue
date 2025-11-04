@@ -34,7 +34,7 @@
           </el-button>
         </slot>
       </template>
-      
+
       <template #default>
         <slot>
           <!-- 拖拽上传区域 -->
@@ -45,7 +45,7 @@
               <el-button type="primary" link>点击上传</el-button>
             </div>
           </div>
-          
+
           <!-- 普通上传区域 -->
           <div v-else class="upload-normal-area">
             <el-button type="primary" :disabled="disabled">
@@ -55,7 +55,7 @@
           </div>
         </slot>
       </template>
-      
+
       <template #tip>
         <slot name="tip">
           <div class="upload-tip" v-if="tip">
@@ -63,7 +63,7 @@
           </div>
         </slot>
       </template>
-      
+
       <template #file-list="{ files }">
         <slot name="file-list" :files="files">
           <ul class="el-upload-list">
@@ -74,7 +74,7 @@
               :class="{
                 'is-success': file.status === 'success',
                 'is-uploading': file.status === 'uploading',
-                'is-error': file.status === 'error'
+                'is-error': file.status === 'error',
               }"
             >
               <div class="el-upload-list__item-info">
@@ -85,7 +85,7 @@
                   </span>
                 </span>
               </div>
-              
+
               <div class="el-upload-list__item-actions">
                 <!-- 预览按钮 -->
                 <el-button
@@ -95,7 +95,7 @@
                 >
                   <el-icon><zoom-in /></el-icon>
                 </el-button>
-                
+
                 <!-- 下载按钮 -->
                 <el-button
                   v-if="file.status === 'success' && showDownloadButton"
@@ -104,17 +104,13 @@
                 >
                   <el-icon><download /></el-icon>
                 </el-button>
-                
+
                 <!-- 删除按钮 -->
-                <el-button
-                  v-if="showRemoveButton"
-                  type="text"
-                  @click="handleRemove(file)"
-                >
+                <el-button v-if="showRemoveButton" type="text" @click="handleRemove(file)">
                   <el-icon><delete /></el-icon>
                 </el-button>
               </div>
-              
+
               <!-- 上传进度 -->
               <el-progress
                 v-if="file.status === 'uploading'"
@@ -127,26 +123,21 @@
         </slot>
       </template>
     </el-upload>
-    
+
     <!-- 文件预览对话框 -->
-    <el-dialog
-      v-model="previewVisible"
-      :title="previewTitle"
-      width="50%"
-      append-to-body
-    >
+    <el-dialog v-model="previewVisible" :title="previewTitle" width="50%" append-to-body>
       <div class="preview-container">
         <slot name="preview" :file="previewFile">
           <!-- 图片预览 -->
           <div v-if="isImage(previewFile)" class="image-preview">
             <img :src="previewFile.url" :alt="previewFile.name" />
           </div>
-          
+
           <!-- 文本预览 -->
           <div v-else-if="isText(previewFile)" class="text-preview">
             <pre>{{ previewText }}</pre>
           </div>
-          
+
           <!-- 其他类型文件 -->
           <div v-else class="default-preview">
             <el-empty description="无法预览此类型文件" />
@@ -160,14 +151,7 @@
 <script>
 import { defineComponent, ref, computed, watch } from 'vue'
 import { ElUpload, ElButton, ElIcon, ElProgress, ElDialog, ElEmpty, ElMessage } from 'element-plus'
-import {
-  Upload,
-  UploadFilled,
-  Document,
-  ZoomIn,
-  Download,
-  Delete
-} from '@element-plus/icons-vue'
+import { Upload, UploadFilled, Document, ZoomIn, Download, Delete } from '@element-plus/icons-vue'
 
 export default defineComponent({
   name: 'FileUpload',
@@ -183,92 +167,92 @@ export default defineComponent({
     Document,
     ZoomIn,
     Download,
-    Delete
+    Delete,
   },
   props: {
     // 基础属性
     uploadUrl: {
       type: String,
-      required: true
+      required: true,
     },
     headers: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
     },
     multiple: {
       type: Boolean,
-      default: false
+      default: false,
     },
     data: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
     },
     name: {
       type: String,
-      default: 'file'
+      default: 'file',
     },
     withCredentials: {
       type: Boolean,
-      default: false
+      default: false,
     },
     showFileList: {
       type: Boolean,
-      default: true
+      default: true,
     },
     drag: {
       type: Boolean,
-      default: false
+      default: false,
     },
     accept: {
       type: String,
-      default: ''
+      default: '',
     },
     listType: {
       type: String,
-      default: 'text'
+      default: 'text',
     },
     autoUpload: {
       type: Boolean,
-      default: true
+      default: true,
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     limit: {
       type: Number,
-      default: 5
+      default: 5,
     },
-    
+
     // 自定义属性
     buttonText: {
       type: String,
-      default: '上传文件'
+      default: '上传文件',
     },
     tip: {
       type: String,
-      default: ''
+      default: '',
     },
     showPreviewButton: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showDownloadButton: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showRemoveButton: {
       type: Boolean,
-      default: true
+      default: true,
     },
     fileSizeLimit: {
       type: Number,
-      default: 0 // 0表示不限制，单位为MB
+      default: 0, // 0表示不限制，单位为MB
     },
     allowedFileTypes: {
       type: Array,
-      default: () => [] // 允许的文件类型，如 ['.jpg', '.png', '.gif']
-    }
+      default: () => [], // 允许的文件类型，如 ['.jpg', '.png', '.gif']
+    },
   },
   emits: [
     'exceed',
@@ -279,7 +263,7 @@ export default defineComponent({
     'preview',
     'before-upload',
     'before-remove',
-    'download'
+    'download',
   ],
   setup(props, { emit }) {
     const uploadRef = ref(null)
@@ -287,51 +271,55 @@ export default defineComponent({
     const previewVisible = ref(false)
     const previewFile = ref(null)
     const previewText = ref('')
-    
+
     // 计算属性
     const previewTitle = computed(() => {
       return previewFile.value ? `预览: ${previewFile.value.name}` : '文件预览'
     })
-    
+
     // 监听文件列表变化
-    watch(fileList, (newVal) => {
-      emit('change', newVal)
-    }, { deep: true })
-    
+    watch(
+      fileList,
+      newVal => {
+        emit('change', newVal)
+      },
+      { deep: true }
+    )
+
     // 处理文件超出限制
     const handleExceed = (files, fileList) => {
       ElMessage.warning(`最多只能上传 ${props.limit} 个文件`)
       emit('exceed', files, fileList)
     }
-    
+
     // 处理上传成功
     const handleSuccess = (response, uploadFile, uploadFiles) => {
       ElMessage.success('上传成功')
       emit('success', response, uploadFile, uploadFiles)
     }
-    
+
     // 处理上传失败
     const handleError = (error, uploadFile, uploadFiles) => {
       ElMessage.error('上传失败')
       emit('error', error, uploadFile, uploadFiles)
     }
-    
+
     // 处理文件变化
     const handleChange = (uploadFile, uploadFiles) => {
       fileList.value = uploadFiles
       emit('change', uploadFile, uploadFiles)
     }
-    
+
     // 处理文件移除
     const handleRemove = (file, fileList) => {
       ElMessage.info('文件已移除')
       emit('remove', file, fileList)
     }
-    
+
     // 处理文件预览
-    const handlePreview = async (file) => {
+    const handlePreview = async file => {
       previewFile.value = file
-      
+
       // 如果是文本文件，读取内容
       if (isText(file)) {
         try {
@@ -342,13 +330,13 @@ export default defineComponent({
           previewText.value = '读取文件内容失败'
         }
       }
-      
+
       previewVisible.value = true
       emit('preview', file)
     }
-    
+
     // 处理文件下载
-    const handleDownload = (file) => {
+    const handleDownload = file => {
       const link = document.createElement('a')
       link.href = file.url
       link.download = file.name
@@ -357,15 +345,15 @@ export default defineComponent({
       document.body.removeChild(link)
       emit('download', file)
     }
-    
+
     // 上传前钩子
-    const beforeUpload = (file) => {
+    const beforeUpload = file => {
       // 检查文件大小
       if (props.fileSizeLimit > 0 && file.size > props.fileSizeLimit * 1024 * 1024) {
         ElMessage.error(`文件大小不能超过 ${props.fileSizeLimit}MB`)
         return false
       }
-      
+
       // 检查文件类型
       if (props.allowedFileTypes.length > 0) {
         const fileExtension = '.' + file.name.split('.').pop().toLowerCase()
@@ -374,14 +362,14 @@ export default defineComponent({
           return false
         }
       }
-      
+
       const result = emit('before-upload', file)
       if (result === false) {
         return false
       }
       return true
     }
-    
+
     // 移除前钩子
     const beforeRemove = (file, fileList) => {
       const result = emit('before-remove', file, fileList)
@@ -390,41 +378,41 @@ export default defineComponent({
       }
       return true
     }
-    
+
     // 自定义上传方法
-    const httpRequest = (options) => {
+    const httpRequest = options => {
       emit('http-request', options)
     }
-    
+
     // 判断是否为图片
-    const isImage = (file) => {
+    const isImage = file => {
       if (!file || !file.name) return false
       const imageTypes = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
       const extension = '.' + file.name.split('.').pop().toLowerCase()
       return imageTypes.includes(extension)
     }
-    
+
     // 判断是否为文本文件
-    const isText = (file) => {
+    const isText = file => {
       if (!file || !file.name) return false
       const textTypes = ['.txt', '.json', '.xml', '.html', '.css', '.js', '.vue', '.md']
       const extension = '.' + file.name.split('.').pop().toLowerCase()
       return textTypes.includes(extension)
     }
-    
+
     // 暴露方法
     const submit = () => {
       uploadRef.value?.submit()
     }
-    
+
     const clearFiles = () => {
       uploadRef.value?.clearFiles()
     }
-    
-    const abort = (file) => {
+
+    const abort = file => {
       uploadRef.value?.abort(file)
     }
-    
+
     return {
       uploadRef,
       fileList,
@@ -446,9 +434,9 @@ export default defineComponent({
       isText,
       submit,
       clearFiles,
-      abort
+      abort,
     }
-  }
+  },
 })
 </script>
 
@@ -472,7 +460,7 @@ export default defineComponent({
 }
 
 .upload-drag-area:hover {
-  border-color: #409EFF;
+  border-color: #409eff;
 }
 
 .upload-icon {

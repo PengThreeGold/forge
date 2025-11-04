@@ -21,14 +21,17 @@ app.use(store)
 app.use(router)
 app.use(ElementPlus, {
   size: 'default',
-  zIndex: 3000
+  zIndex: 3000,
 })
 
 // 初始化应用
-store.dispatch('initApp').then(() => {
-  // 挂载应用
-  app.mount('#app')
-}).catch(error => {
-  console.error('应用初始化失败:', error)
-  app.mount('#app')
-})
+store
+  .dispatch('initApp')
+  .then(() => {
+    // 挂载应用
+    app.mount('#app')
+  })
+  .catch(error => {
+    console.error('应用初始化失败:', error)
+    app.mount('#app')
+  })

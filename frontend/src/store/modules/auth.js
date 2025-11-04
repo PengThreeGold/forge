@@ -3,7 +3,7 @@ import * as authApi from '@/api/auth'
 const state = {
   token: localStorage.getItem('token') || null,
   refreshToken: localStorage.getItem('refreshToken') || null,
-  user: JSON.parse(localStorage.getItem('user')) || null
+  user: JSON.parse(localStorage.getItem('user')) || null,
 }
 
 const getters = {
@@ -11,7 +11,7 @@ const getters = {
   currentUser: state => state.user,
   token: state => state.token,
   refreshToken: state => state.refreshToken,
-  userRole: state => state.user ? state.user.role : null
+  userRole: state => (state.user ? state.user.role : null),
 }
 
 const mutations = {
@@ -23,7 +23,7 @@ const mutations = {
       localStorage.removeItem('token')
     }
   },
-  
+
   SET_REFRESH_TOKEN(state, refreshToken) {
     state.refreshToken = refreshToken
     if (refreshToken) {
@@ -32,7 +32,7 @@ const mutations = {
       localStorage.removeItem('refreshToken')
     }
   },
-  
+
   SET_USER(state, user) {
     state.user = user
     if (user) {
@@ -41,7 +41,7 @@ const mutations = {
       localStorage.removeItem('user')
     }
   },
-  
+
   CLEAR_AUTH(state) {
     state.token = null
     state.refreshToken = null
@@ -49,7 +49,7 @@ const mutations = {
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
-  }
+  },
 }
 
 const actions = {
@@ -57,14 +57,14 @@ const actions = {
   async login({ commit, dispatch }, credentials) {
     try {
       dispatch('setLoading', true, { root: true })
-      
+
       const response = await authApi.login(credentials)
-      
+
       // 保存token和用户信息
       commit('SET_TOKEN', response.data.access_token)
       commit('SET_REFRESH_TOKEN', response.data.refresh_token)
       commit('SET_USER', response.data.user)
-      
+
       dispatch('setLoading', false, { root: true })
       return response
     } catch (error) {
@@ -73,7 +73,7 @@ const actions = {
       throw error
     }
   },
-  
+
   // 登出
   async logout({ commit, dispatch }) {
     try {
@@ -89,15 +89,15 @@ const actions = {
       dispatch('setError', null, { root: true })
     }
   },
-  
+
   // 刷新令牌
-  async refreshToken({ commit, state, dispatch }) {
+  async refreshToken({ commit, dispatch }) {
     try {
       const response = await authApi.refreshToken()
-      
+
       // 更新token
       commit('SET_TOKEN', response.data.access_token)
-      
+
       return response.data.access_token
     } catch (error) {
       // 刷新失败，清除认证信息并跳转到登录页
@@ -106,40 +106,40 @@ const actions = {
       throw error
     }
   },
-  
+
   // 获取用户信息
   async getUserProfile({ commit, dispatch }) {
     try {
       dispatch('setLoading', true, { root: true })
-      
+
       const response = await authApi.getProfile()
-      
+
       // 更新用户信息
       commit('SET_USER', response.data)
-      
+
       dispatch('setLoading', false, { root: true })
       return response
     } catch (error) {
       dispatch('setLoading', false, { root: true })
       dispatch('setError', error.response?.data?.message || '获取用户信息失败', { root: true })
-      
+
       // 如果是401错误，可能是token过期，尝试刷新
       if (error.response && error.response.status === 401) {
         await dispatch('refreshToken')
         return await dispatch('getUserProfile')
       }
-      
+
       throw error
     }
   },
-  
+
   // 修改密码
   async changePassword({ dispatch }, passwords) {
     try {
       dispatch('setLoading', true, { root: true })
-      
+
       const response = await authApi.changePassword(passwords)
-      
+
       dispatch('setLoading', false, { root: true })
       return response.data
     } catch (error) {
@@ -148,14 +148,14 @@ const actions = {
       throw error
     }
   },
-  
+
   // 初始化管理员账户
   async initAdmin({ dispatch }, adminData) {
     try {
       dispatch('setLoading', true, { root: true })
-      
+
       const response = await authApi.initAdmin(adminData)
-      
+
       dispatch('setLoading', false, { root: true })
       return response.data
     } catch (error) {
@@ -163,7 +163,7 @@ const actions = {
       dispatch('setError', error.response?.data?.message || '初始化管理员账户失败', { root: true })
       throw error
     }
-  }
+  },
 }
 
 export default {
@@ -171,5 +171,5 @@ export default {
   state,
   getters,
   mutations,
-  actions
+  actions,
 }

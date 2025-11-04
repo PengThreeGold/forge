@@ -5,7 +5,7 @@ export function login(data) {
   return request({
     url: '/api/auth/login',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -13,7 +13,7 @@ export function login(data) {
 export function logout() {
   return request({
     url: '/api/auth/logout',
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -21,7 +21,7 @@ export function logout() {
 export function refreshToken() {
   return request({
     url: '/api/auth/refresh',
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -29,7 +29,7 @@ export function refreshToken() {
 export function getProfile() {
   return request({
     url: '/api/auth/profile',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -38,7 +38,7 @@ export function changePassword(data) {
   return request({
     url: '/api/auth/change-password',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -47,6 +47,6 @@ export function initAdmin(data) {
   return request({
     url: '/api/auth/init-admin',
     method: 'post',
-    data
+    data,
   })
 }

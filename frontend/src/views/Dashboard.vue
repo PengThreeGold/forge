@@ -18,7 +18,7 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="6">
         <el-card shadow="hover" class="dashboard-card">
           <template #header>
@@ -36,7 +36,7 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="6">
         <el-card shadow="hover" class="dashboard-card">
           <template #header>
@@ -54,7 +54,7 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="6">
         <el-card shadow="hover" class="dashboard-card">
           <template #header>
@@ -73,14 +73,18 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-row :gutter="20" class="chart-row">
       <el-col :span="16">
         <el-card shadow="hover" class="chart-card">
           <template #header>
             <div class="card-header">
               <span>下载趋势</span>
-              <el-radio-group v-model="timelineDays" size="small" @change="handleTimelineDaysChange">
+              <el-radio-group
+                v-model="timelineDays"
+                size="small"
+                @change="handleTimelineDaysChange"
+              >
                 <el-radio-button :label="7">7天</el-radio-button>
                 <el-radio-button :label="30">30天</el-radio-button>
                 <el-radio-button :label="90">90天</el-radio-button>
@@ -90,7 +94,7 @@
           <div class="chart-content" ref="downloadTimelineChart"></div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="8">
         <el-card shadow="hover" class="chart-card">
           <template #header>
@@ -103,7 +107,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-row :gutter="20" class="data-row">
       <el-col :span="12">
         <el-card shadow="hover" class="data-card">
@@ -114,7 +118,12 @@
             </div>
           </template>
           <el-table :data="overview.recent_downloads || []" style="width: 100%" max-height="300">
-            <el-table-column prop="space_name" label="软件名称" min-width="120" show-overflow-tooltip />
+            <el-table-column
+              prop="space_name"
+              label="软件名称"
+              min-width="120"
+              show-overflow-tooltip
+            />
             <el-table-column prop="version" label="版本" width="100" />
             <el-table-column prop="ip_address" label="IP地址" width="130" />
             <el-table-column prop="download_time" label="下载时间" width="160">
@@ -125,7 +134,7 @@
           </el-table>
         </el-card>
       </el-col>
-      
+
       <el-col :span="12">
         <el-card shadow="hover" class="data-card">
           <template #header>
@@ -135,7 +144,12 @@
             </div>
           </template>
           <el-table :data="overview.versions_downloads || []" style="width: 100%" max-height="300">
-            <el-table-column prop="space_name" label="软件名称" min-width="120" show-overflow-tooltip />
+            <el-table-column
+              prop="space_name"
+              label="软件名称"
+              min-width="120"
+              show-overflow-tooltip
+            />
             <el-table-column prop="version" label="版本" width="100" />
             <el-table-column prop="downloads" label="下载次数" width="100" />
             <el-table-column label="操作" width="100">
@@ -162,25 +176,25 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const router = useRouter()
-    
+
     // 数据
     const overview = reactive({})
     const timeline = ref([])
     const timelineDays = ref(30)
-    
+
     // 图表引用
     const downloadTimelineChart = ref(null)
     const popularSoftwareChart = ref(null)
-    
+
     // 图表实例
     let downloadTimelineChartInstance = null
     let popularSoftwareChartInstance = null
-    
+
     // 获取概览数据
     const getOverviewData = async () => {
       try {
         store.dispatch('setLoading', true)
-        
+
         const response = await store.dispatch('statistics/getOverview')
         Object.assign(overview, response.data)
       } catch (error) {
@@ -189,16 +203,16 @@ export default defineComponent({
         store.dispatch('setLoading', false)
       }
     }
-    
+
     // 获取下载时间线数据
     const getTimelineData = async () => {
       try {
         store.dispatch('setLoading', true)
-        
+
         const response = await store.dispatch('statistics/getDownloadsTimeline', {
-          days: timelineDays.value
+          days: timelineDays.value,
         })
-        
+
         timeline.value = response.data.timeline
         renderDownloadTimelineChart()
       } catch (error) {
@@ -207,32 +221,32 @@ export default defineComponent({
         store.dispatch('setLoading', false)
       }
     }
-    
+
     // 渲染下载时间线图表
     const renderDownloadTimelineChart = () => {
       if (!downloadTimelineChart.value) return
-      
+
       if (downloadTimelineChartInstance) {
         downloadTimelineChartInstance.dispose()
       }
-      
+
       downloadTimelineChartInstance = echarts.init(downloadTimelineChart.value)
-      
+
       const dates = timeline.value.map(item => item.date)
       const downloads = timeline.value.map(item => item.downloads)
-      
+
       const option = {
         tooltip: {
           trigger: 'axis',
           axisPointer: {
-            type: 'cross'
-          }
+            type: 'cross',
+          },
         },
         grid: {
           left: '3%',
           right: '4%',
           bottom: '3%',
-          containLabel: true
+          containLabel: true,
         },
         xAxis: {
           type: 'category',
@@ -240,12 +254,12 @@ export default defineComponent({
           data: dates,
           axisLabel: {
             interval: 'auto',
-            rotate: 45
-          }
+            rotate: 45,
+          },
         },
         yAxis: {
           type: 'value',
-          name: '下载次数'
+          name: '下载次数',
         },
         series: [
           {
@@ -254,48 +268,48 @@ export default defineComponent({
             stack: 'Total',
             smooth: true,
             areaStyle: {
-              opacity: 0.3
+              opacity: 0.3,
             },
             emphasis: {
-              focus: 'series'
+              focus: 'series',
             },
-            data: downloads
-          }
-        ]
+            data: downloads,
+          },
+        ],
       }
-      
+
       downloadTimelineChartInstance.setOption(option)
-      
+
       // 响应式调整
       window.addEventListener('resize', () => {
         downloadTimelineChartInstance && downloadTimelineChartInstance.resize()
       })
     }
-    
+
     // 渲染热门软件图表
     const renderPopularSoftwareChart = () => {
       if (!popularSoftwareChart.value) return
-      
+
       if (popularSoftwareChartInstance) {
         popularSoftwareChartInstance.dispose()
       }
-      
+
       popularSoftwareChartInstance = echarts.init(popularSoftwareChart.value)
-      
+
       // 取前5个热门软件
       const topSoftware = [...(overview.spaces_downloads || [])].slice(0, 5)
       const names = topSoftware.map(item => item.name)
       const downloads = topSoftware.map(item => item.downloads)
-      
+
       const option = {
         tooltip: {
           trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)'
+          formatter: '{a} <br/>{b}: {c} ({d}%)',
         },
         legend: {
           orient: 'vertical',
           right: 10,
-          top: 'center'
+          top: 'center',
         },
         series: [
           {
@@ -306,45 +320,45 @@ export default defineComponent({
             itemStyle: {
               borderRadius: 10,
               borderColor: '#fff',
-              borderWidth: 2
+              borderWidth: 2,
             },
             label: {
               show: false,
-              position: 'center'
+              position: 'center',
             },
             emphasis: {
               label: {
                 show: true,
                 fontSize: '16',
-                fontWeight: 'bold'
-              }
+                fontWeight: 'bold',
+              },
             },
             labelLine: {
-              show: false
+              show: false,
             },
             data: names.map((name, index) => ({
               value: downloads[index],
-              name: name
-            }))
-          }
-        ]
+              name: name,
+            })),
+          },
+        ],
       }
-      
+
       popularSoftwareChartInstance.setOption(option)
-      
+
       // 响应式调整
       window.addEventListener('resize', () => {
         popularSoftwareChartInstance && popularSoftwareChartInstance.resize()
       })
     }
-    
+
     // 处理时间线天数变化
     const handleTimelineDaysChange = () => {
       getTimelineData()
     }
-    
+
     // 查看软件详情
-    const viewSoftware = (softwareName) => {
+    const viewSoftware = softwareName => {
       // 跳转到软件列表页并搜索该软件
       store.dispatch('software/getSpaces').then(() => {
         const space = store.getters['software/spaces'].find(s => s.name === softwareName)
@@ -358,18 +372,18 @@ export default defineComponent({
         }
       })
     }
-    
+
     onMounted(async () => {
       // 获取数据
       await getOverviewData()
       await getTimelineData()
-      
+
       // 等待DOM更新后渲染图表
       await nextTick()
       renderDownloadTimelineChart()
       renderPopularSoftwareChart()
     })
-    
+
     return {
       overview,
       timeline,
@@ -378,9 +392,9 @@ export default defineComponent({
       popularSoftwareChart,
       handleTimelineDaysChange,
       viewSoftware,
-      formatDateTime
+      formatDateTime,
     }
-  }
+  },
 })
 </script>
 
@@ -410,7 +424,7 @@ export default defineComponent({
 
 .card-icon {
   font-size: 36px;
-  color: #409EFF;
+  color: #409eff;
   margin-bottom: 10px;
 }
 
@@ -454,16 +468,16 @@ export default defineComponent({
   .dashboard-container {
     padding: 10px;
   }
-  
+
   .el-col {
     margin-bottom: 10px;
   }
-  
+
   .chart-row .el-col,
   .data-row .el-col {
     margin-bottom: 0;
   }
-  
+
   .chart-content {
     height: 250px;
   }

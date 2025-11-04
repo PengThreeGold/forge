@@ -12,15 +12,15 @@ const service = axios.create({
   // 设置请求头
   headers: {
     'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache'
-  }
+    Pragma: 'no-cache',
+  },
 })
 
 // 请求拦截器
 service.interceptors.request.use(
   config => {
     // 在发送请求之前做些什么
-    
+
     // 如果是刷新令牌的请求，使用刷新令牌
     if (config.url === '/api/auth/refresh') {
       const refreshToken = store.getters.refreshToken
@@ -34,19 +34,19 @@ service.interceptors.request.use(
         config.headers['Authorization'] = `Bearer ${token}`
       }
     }
-    
+
     // 如果是HTTPS请求，添加安全相关请求头
     if (window.location.protocol === 'https:') {
       config.headers['X-Content-Type-Options'] = 'nosniff'
       config.headers['X-Frame-Options'] = 'DENY'
       config.headers['X-XSS-Protection'] = '1; mode=block'
     }
-    
+
     // 设置Loading状态
     if (config.showLoading !== false) {
       store.dispatch('setLoading', true)
     }
-    
+
     return config
   },
   error => {
@@ -61,25 +61,28 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     // 对响应数据做点什么
-    
+
     // 关闭Loading状态
     if (response.config.showLoading !== false) {
       store.dispatch('setLoading', false)
     }
-    
+
     // 如果是二进制数据（文件下载），直接返回
     if (response.config.responseType === 'blob') {
       return response
     }
-    
+
     // 获取响应数据
     const res = response.data
-    
+
     // 如果返回的是二进制数据（文件下载），直接返回
-    if (response.headers['content-type'] && response.headers['content-type'].includes('application/octet-stream')) {
+    if (
+      response.headers['content-type'] &&
+      response.headers['content-type'].includes('application/octet-stream')
+    ) {
       return response
     }
-    
+
     // 根据自定义状态码处理响应
     if (res.success !== undefined) {
       if (res.success) {
@@ -89,7 +92,7 @@ service.interceptors.response.use(
         ElMessage({
           message: res.message || '操作失败',
           type: 'error',
-          duration: 5 * 1000
+          duration: 5 * 1000,
         })
         return Promise.reject(new Error(res.message || '操作失败'))
       }
@@ -100,15 +103,15 @@ service.interceptors.response.use(
   },
   error => {
     // 对响应错误做点什么
-    
+
     // 关闭Loading状态
     if (error.config && error.config.showLoading !== false) {
       store.dispatch('setLoading', false)
     }
-    
+
     // 获取错误响应
     const response = error.response
-    
+
     // 处理不同的HTTP状态码
     if (response) {
       switch (response.status) {
@@ -116,20 +119,16 @@ service.interceptors.response.use(
           ElMessage({
             message: response.data?.message || '请求参数错误',
             type: 'error',
-            duration: 5 * 1000
+            duration: 5 * 1000,
           })
           break
         case 401:
           // 401错误：未授权，可能是token过期或无效
-          ElMessageBox.confirm(
-            '登录状态已过期，请重新登录',
-            '系统提示',
-            {
-              confirmButtonText: '重新登录',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }
-          ).then(() => {
+          ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
+            confirmButtonText: '重新登录',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }).then(() => {
             // 清除token并跳转到登录页
             store.dispatch('auth/logout').then(() => {
               location.reload()
@@ -140,28 +139,28 @@ service.interceptors.response.use(
           ElMessage({
             message: response.data?.message || '权限不足，无法访问',
             type: 'error',
-            duration: 5 * 1000
+            duration: 5 * 1000,
           })
           break
         case 404:
           ElMessage({
             message: response.data?.message || '请求的资源不存在',
             type: 'error',
-            duration: 5 * 1000
+            duration: 5 * 1000,
           })
           break
         case 500:
           ElMessage({
             message: response.data?.message || '服务器内部错误',
             type: 'error',
-            duration: 5 * 1000
+            duration: 5 * 1000,
           })
           break
         default:
           ElMessage({
             message: response.data?.message || `未知错误: ${response.status}`,
             type: 'error',
-            duration: 5 * 1000
+            duration: 5 * 1000,
           })
       }
     } else {
@@ -169,10 +168,10 @@ service.interceptors.response.use(
       ElMessage({
         message: error.message || '网络错误，请检查您的网络连接',
         type: 'error',
-        duration: 5 * 1000
+        duration: 5 * 1000,
       })
     }
-    
+
     return Promise.reject(error)
   }
 )
@@ -183,7 +182,7 @@ export function get(url, params = {}, config = {}) {
     url,
     method: 'get',
     params,
-    ...config
+    ...config,
   })
 }
 
@@ -193,7 +192,7 @@ export function post(url, data = {}, config = {}) {
     url,
     method: 'post',
     data,
-    ...config
+    ...config,
   })
 }
 
@@ -203,7 +202,7 @@ export function put(url, data = {}, config = {}) {
     url,
     method: 'put',
     data,
-    ...config
+    ...config,
   })
 }
 
@@ -212,7 +211,7 @@ export function del(url, config = {}) {
   return service({
     url,
     method: 'delete',
-    ...config
+    ...config,
   })
 }
 
@@ -220,16 +219,16 @@ export function del(url, config = {}) {
 export function upload(url, file, onUploadProgress, config = {}) {
   const formData = new FormData()
   formData.append('file', file)
-  
+
   return service({
     url,
     method: 'post',
     data: formData,
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'multipart/form-data',
     },
     onUploadProgress,
-    ...config
+    ...config,
   })
 }
 
@@ -239,12 +238,12 @@ export function download(url, filename, config = {}) {
     url,
     method: 'get',
     responseType: 'blob',
-    ...config
+    ...config,
   }).then(response => {
     // 从响应头获取文件名
     const contentDisposition = response.headers['content-disposition']
     let downloadFilename = filename || 'download'
-    
+
     if (contentDisposition) {
       const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
       const matches = filenameRegex.exec(contentDisposition)
@@ -252,7 +251,7 @@ export function download(url, filename, config = {}) {
         downloadFilename = matches[1].replace(/['"]/g, '')
       }
     }
-    
+
     // 创建下载链接
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
@@ -260,11 +259,11 @@ export function download(url, filename, config = {}) {
     link.setAttribute('download', downloadFilename)
     document.body.appendChild(link)
     link.click()
-    
+
     // 清理
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    
+
     return response
   })
 }

@@ -16,68 +16,68 @@ const routes = [
   {
     path: '/',
     redirect: '/dashboard',
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { title: '登录' }
+    meta: { title: '登录' },
   },
   {
     path: '/dashboard',
     name: 'Dashboard',
     component: Dashboard,
-    meta: { requiresAuth: true, title: '仪表盘' }
+    meta: { requiresAuth: true, title: '仪表盘' },
   },
   {
     path: '/software',
     name: 'SoftwareList',
     component: SoftwareList,
-    meta: { requiresAuth: true, title: '软件空间' }
+    meta: { requiresAuth: true, title: '软件空间' },
   },
   {
     path: '/software/create',
     name: 'SoftwareCreate',
     component: SoftwareEdit,
-    meta: { requiresAuth: true, title: '创建软件空间' }
+    meta: { requiresAuth: true, title: '创建软件空间' },
   },
   {
     path: '/software/:id',
     name: 'SoftwareDetail',
     component: SoftwareDetail,
-    meta: { requiresAuth: true, title: '软件详情' }
+    meta: { requiresAuth: true, title: '软件详情' },
   },
   {
     path: '/software/:id/edit',
     name: 'SoftwareEdit',
     component: SoftwareEdit,
-    meta: { requiresAuth: true, title: '编辑软件空间' }
+    meta: { requiresAuth: true, title: '编辑软件空间' },
   },
   {
     path: '/statistics',
     name: 'Statistics',
     component: Statistics,
-    meta: { requiresAuth: true, title: '统计分析' }
+    meta: { requiresAuth: true, title: '统计分析' },
   },
   {
     path: '/settings',
     name: 'Settings',
     component: Settings,
-    meta: { requiresAuth: true, title: '系统设置' }
+    meta: { requiresAuth: true, title: '系统设置' },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: NotFound,
-    meta: { title: '页面不存在' }
-  }
+    meta: { title: '页面不存在' },
+  },
 ]
 
 // 创建路由实例
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
+  routes,
 })
 
 // 全局路由守卫
@@ -86,7 +86,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = `${to.meta.title} - Forge`
   }
-  
+
   // 检查是否需要认证
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // 检查用户是否已登录
@@ -94,7 +94,7 @@ router.beforeEach((to, from, next) => {
       // 如果未登录，重定向到登录页
       next({
         path: '/login',
-        query: { redirect: to.fullPath }
+        query: { redirect: to.fullPath },
       })
     } else {
       // 已登录，继续导航

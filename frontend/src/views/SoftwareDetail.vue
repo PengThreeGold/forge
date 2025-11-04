@@ -20,7 +20,7 @@
         </el-button>
       </div>
     </div>
-    
+
     <el-row :gutter="20">
       <el-col :span="8">
         <el-card shadow="hover" class="info-card">
@@ -30,18 +30,22 @@
           <el-descriptions :column="1" border>
             <el-descriptions-item label="软件名称">{{ space.name }}</el-descriptions-item>
             <el-descriptions-item label="作者">{{ space.author || '未设置' }}</el-descriptions-item>
-            <el-descriptions-item label="创建时间">{{ formatDateTime(space.created_at) }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间">{{
+              formatDateTime(space.created_at)
+            }}</el-descriptions-item>
             <el-descriptions-item label="版本数">{{ versions.length }}</el-descriptions-item>
-            <el-descriptions-item label="下载次数">{{ space.downloads_count || 0 }}</el-descriptions-item>
+            <el-descriptions-item label="下载次数">{{
+              space.downloads_count || 0
+            }}</el-descriptions-item>
           </el-descriptions>
-          
+
           <div class="description-box">
             <h3>描述</h3>
             <p>{{ space.description || '暂无描述' }}</p>
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="16">
         <el-card shadow="hover" class="versions-card">
           <template #header>
@@ -54,7 +58,7 @@
               </el-radio-group>
             </div>
           </template>
-          
+
           <el-table :data="filteredVersions" style="width: 100%">
             <el-table-column prop="version" label="版本" width="120" />
             <el-table-column prop="file_size_human" label="文件大小" width="120" />
@@ -72,16 +76,20 @@
             </el-table-column>
             <el-table-column label="操作" width="250">
               <template #default="scope">
-                <el-button 
-                  v-if="scope.row.is_published" 
-                  type="primary" 
-                  size="small" 
+                <el-button
+                  v-if="scope.row.is_published"
+                  type="primary"
+                  size="small"
                   @click="downloadVersion(scope.row)"
                 >
                   <el-icon><Download /></el-icon>
                   下载
                 </el-button>
-                <el-button type="warning" size="small" @click="publishVersion(scope.row, !scope.row.is_published)">
+                <el-button
+                  type="warning"
+                  size="small"
+                  @click="publishVersion(scope.row, !scope.row.is_published)"
+                >
                   {{ scope.row.is_published ? '下架' : '发布' }}
                 </el-button>
                 <el-button type="danger" size="small" @click="confirmDeleteVersion(scope.row)">
@@ -93,7 +101,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-row :gutter="20" class="chart-row">
       <el-col :span="24">
         <el-card shadow="hover" class="chart-card">
@@ -111,7 +119,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- 创建版本对话框 -->
     <el-dialog
       v-model="versionDialogVisible"
@@ -119,16 +127,11 @@
       width="600px"
       :close-on-click-modal="false"
     >
-      <el-form
-        ref="versionFormRef"
-        :model="versionForm"
-        :rules="versionRules"
-        label-width="100px"
-      >
+      <el-form ref="versionFormRef" :model="versionForm" :rules="versionRules" label-width="100px">
         <el-form-item label="版本号" prop="version">
           <el-input v-model="versionForm.version" placeholder="请输入版本号，如：1.0.0" />
         </el-form-item>
-        
+
         <el-form-item label="选择文件" prop="file">
           <el-upload
             ref="upload"
@@ -142,9 +145,7 @@
             :on-remove="handleFileRemove"
           >
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="el-upload__text">
-              将文件拖到此处，或<em>点击上传</em>
-            </div>
+            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
             <template #tip>
               <div class="el-upload__tip">
                 支持exe、msi、dmg、pkg、deb、rpm、zip、tar、gz、rar、7z等格式，且不超过500MB
@@ -152,7 +153,7 @@
             </template>
           </el-upload>
         </el-form-item>
-        
+
         <el-form-item label="发布说明" prop="release_note">
           <el-input
             v-model="versionForm.release_note"
@@ -161,12 +162,12 @@
             placeholder="请输入版本发布说明（可选）"
           />
         </el-form-item>
-        
+
         <el-form-item label="文档地址" prop="documentation_url">
           <el-input v-model="versionForm.documentation_url" placeholder="请输入文档地址（可选）" />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="versionDialogVisible = false">取消</el-button>
@@ -176,7 +177,7 @@
         </span>
       </template>
     </el-dialog>
-    
+
     <!-- API密钥对话框 -->
     <el-dialog
       v-model="apiKeyDialogVisible"
@@ -187,12 +188,7 @@
       <div class="api-key-container">
         <p class="api-key-desc">API密钥用于外部访问您的软件空间，请妥善保管：</p>
         <div class="api-key-box">
-          <el-input
-            v-model="currentApiKey"
-            type="textarea"
-            :rows="3"
-            readonly
-          />
+          <el-input v-model="currentApiKey" type="textarea" :rows="3" readonly />
           <el-button type="primary" @click="copyApiKey">
             <el-icon><CopyDocument /></el-icon>
             复制
@@ -223,51 +219,49 @@ export default defineComponent({
     const store = useStore()
     const router = useRouter()
     const route = useRoute()
-    
+
     // 数据
     const space = ref({})
     const versions = ref([])
     const loading = ref(false)
-    
+
     // 过滤器
     const versionFilter = ref('all')
-    
+
     // 图表相关
     const downloadChart = ref(null)
     const chartDays = ref(30)
     const timelineData = ref([])
     let downloadChartInstance = null
-    
+
     // 对话框相关
     const versionDialogVisible = ref(false)
     const uploadLoading = ref(false)
-    
+
     // 表单
     const versionForm = reactive({
       version: '',
       file: null,
       release_note: '',
-      documentation_url: ''
+      documentation_url: '',
     })
-    
+
     const versionRules = {
       version: [
         { required: true, message: '请输入版本号', trigger: 'blur' },
-        { pattern: /^\d+\.\d+\.\d+$/, message: '版本号格式应为 x.y.z', trigger: 'blur' }
+        { pattern: /^\d+\.\d+\.\d+$/, message: '版本号格式应为 x.y.z', trigger: 'blur' },
       ],
-      file: [
-        { required: true, message: '请选择文件', trigger: 'change' }
-      ]
+      file: [{ required: true, message: '请选择文件', trigger: 'change' }],
     }
-    
+
     const versionFormRef = ref(null)
     const fileList = ref([])
     const upload = ref(null)
-    
+
     // API密钥对话框
     const apiKeyDialogVisible = ref(false)
     const currentApiKey = ref('')
-    
+
     // 计算属性
     const filteredVersions = computed(() => {
       if (versionFilter.value === 'all') {
@@ -278,19 +272,19 @@ export default defineComponent({
         return versions.value.filter(v => !v.is_published)
       }
     })
-    
+
     // 获取软件空间详情
     const getSpaceDetail = async () => {
       try {
         loading.value = true
-        
+
         const spaceId = route.params.id
         const response = await store.dispatch('software/getSpace', spaceId)
         space.value = response.data
-        
+
         // 获取版本列表
         await getVersions(spaceId)
-        
+
         // 获取下载时间线数据
         await loadTimelineData()
       } catch (error) {
@@ -299,9 +293,9 @@ export default defineComponent({
         loading.value = false
       }
     }
-    
+
     // 获取版本列表
-    const getVersions = async (spaceId) => {
+    const getVersions = async spaceId => {
       try {
         const response = await store.dispatch('software/getVersions', spaceId)
         versions.value = response.data
@@ -309,47 +303,47 @@ export default defineComponent({
         console.error('获取版本列表失败:', error)
       }
     }
-    
+
     // 加载时间线数据
     const loadTimelineData = async () => {
       try {
         const response = await store.dispatch('statistics/getDownloadsTimeline', {
           days: chartDays.value,
-          spaceId: route.params.id
+          spaceId: route.params.id,
         })
-        
+
         timelineData.value = response.data.timeline
         renderDownloadChart()
       } catch (error) {
         console.error('获取下载时间线数据失败:', error)
       }
     }
-    
+
     // 渲染下载图表
     const renderDownloadChart = () => {
       if (!downloadChart.value) return
-      
+
       if (downloadChartInstance) {
         downloadChartInstance.dispose()
       }
-      
+
       downloadChartInstance = echarts.init(downloadChart.value)
-      
+
       const dates = timelineData.value.map(item => item.date)
       const downloads = timelineData.value.map(item => item.downloads)
-      
+
       const option = {
         tooltip: {
           trigger: 'axis',
           axisPointer: {
-            type: 'cross'
-          }
+            type: 'cross',
+          },
         },
         grid: {
           left: '3%',
           right: '4%',
           bottom: '3%',
-          containLabel: true
+          containLabel: true,
         },
         xAxis: {
           type: 'category',
@@ -357,12 +351,12 @@ export default defineComponent({
           data: dates,
           axisLabel: {
             interval: 'auto',
-            rotate: 45
-          }
+            rotate: 45,
+          },
         },
         yAxis: {
           type: 'value',
-          name: '下载次数'
+          name: '下载次数',
         },
         series: [
           {
@@ -371,72 +365,72 @@ export default defineComponent({
             stack: 'Total',
             smooth: true,
             areaStyle: {
-              opacity: 0.3
+              opacity: 0.3,
             },
             emphasis: {
-              focus: 'series'
+              focus: 'series',
             },
-            data: downloads
-          }
-        ]
+            data: downloads,
+          },
+        ],
       }
-      
+
       downloadChartInstance.setOption(option)
-      
+
       // 响应式调整
       window.addEventListener('resize', () => {
         downloadChartInstance && downloadChartInstance.resize()
       })
     }
-    
+
     // 返回上一页
     const goBack = () => {
       router.push('/software')
     }
-    
+
     // 编辑软件空间
     const editSpace = () => {
       router.push(`/software/${space.value.id}/edit`)
     }
-    
+
     // 显示API密钥
     const showApiKey = () => {
       currentApiKey.value = space.value.api_key
       apiKeyDialogVisible.value = true
     }
-    
+
     // 显示创建版本对话框
     const showCreateVersionDialog = () => {
       versionDialogVisible.value = true
     }
-    
+
     // 处理文件变化
-    const handleFileChange = (file) => {
+    const handleFileChange = file => {
       versionForm.file = file.raw
       fileList.value = [file]
     }
-    
+
     // 处理文件移除
     const handleFileRemove = () => {
       versionForm.file = null
       fileList.value = []
     }
-    
+
     // 处理上传
     const handleUpload = async () => {
       if (!versionFormRef.value) return
-      
+
       try {
         await versionFormRef.value.validate()
-        
+
         uploadLoading.value = true
-        
+
         const spaceId = route.params.id
         await store.dispatch('software/createVersion', {
           spaceId,
-          versionData: versionForm
+          versionData: versionForm,
         })
-        
+
         ElMessage.success('版本上传成功')
         versionDialogVisible.value = false
         resetVersionForm()
@@ -447,7 +441,7 @@ export default defineComponent({
         uploadLoading.value = false
       }
     }
-    
+
     // 重置版本表单
     const resetVersionForm = () => {
       versionForm.version = ''
@@ -455,30 +449,30 @@ export default defineComponent({
       versionForm.release_note = ''
       versionForm.documentation_url = ''
       fileList.value = []
-      
+
       if (versionFormRef.value) {
         versionFormRef.value.resetFields()
       }
-      
+
       if (upload.value) {
         upload.value.clearFiles()
       }
     }
-    
+
     // 下载版本
-    const downloadVersion = async (version) => {
+    const downloadVersion = async version => {
       try {
         const response = await store.dispatch('software/downloadVersion', version.id)
-        
+
         // 创建下载链接
         const url = window.URL.createObjectURL(new Blob([response.data]))
         const link = document.createElement('a')
         link.href = url
-        
+
         // 获取文件名
         const contentDisposition = response.headers['content-disposition']
         let filename = `v${version.version}`
-        
+
         if (contentDisposition) {
           const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
           const matches = filenameRegex.exec(contentDisposition)
@@ -486,11 +480,11 @@ export default defineComponent({
             filename = matches[1].replace(/['"]/g, '')
           }
         }
-        
+
         link.setAttribute('download', filename)
         document.body.appendChild(link)
         link.click()
-        
+
         // 清理
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
@@ -498,45 +492,43 @@ export default defineComponent({
         console.error('下载失败:', error)
       }
     }
-    
+
     // 发布/下架版本
     const publishVersion = async (version, publish) => {
       try {
         await store.dispatch('software/publishVersion', {
           versionId: version.id,
-          publish
+          publish,
         })
-        
+
         ElMessage.success(publish ? '版本发布成功' : '版本下架成功')
         getVersions(route.params.id)
       } catch (error) {
         console.error('操作失败:', error)
       }
     }
-    
+
     // 确认删除版本
-    const confirmDeleteVersion = (version) => {
-      ElMessageBox.confirm(
-        `确定要删除版本"${version.version}"吗？此操作不可逆。`,
-        '删除确认',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).then(async () => {
-        try {
-          await store.dispatch('software/deleteVersion', version.id)
-          ElMessage.success('删除成功')
-          getVersions(route.params.id)
-        } catch (error) {
-          console.error('删除版本失败:', error)
-        }
-      }).catch(() => {
-        // 用户取消删除
+    const confirmDeleteVersion = version => {
+      ElMessageBox.confirm(`确定要删除版本"${version.version}"吗？此操作不可逆。`, '删除确认', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
       })
+        .then(async () => {
+          try {
+            await store.dispatch('software/deleteVersion', version.id)
+            ElMessage.success('删除成功')
+            getVersions(route.params.id)
+          } catch (error) {
+            console.error('删除版本失败:', error)
+          }
+        })
+        .catch(() => {
+          // 用户取消删除
+        })
     }
-    
+
     // 复制API密钥
     const copyApiKey = async () => {
       try {
@@ -546,38 +538,36 @@ export default defineComponent({
         ElMessage.error('复制失败，请手动复制')
       }
     }
-    
+
     // 重新生成API密钥
     const regenerateApiKey = async () => {
       try {
-        ElMessageBox.confirm(
-          '确定要重新生成API密钥吗？旧的API密钥将立即失效。',
-          '确认操作',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        ).then(async () => {
-          const response = await store.dispatch('software/regenerateApiKey', route.params.id)
-          currentApiKey.value = response.data.api_key
-          ElMessage.success('API密钥已重新生成')
-        }).catch(() => {
-          // 用户取消操作
+        ElMessageBox.confirm('确定要重新生成API密钥吗？旧的API密钥将立即失效。', '确认操作', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
         })
+          .then(async () => {
+            const response = await store.dispatch('software/regenerateApiKey', route.params.id)
+            currentApiKey.value = response.data.api_key
+            ElMessage.success('API密钥已重新生成')
+          })
+          .catch(() => {
+            // 用户取消操作
+          })
       } catch (error) {
         console.error('重新生成API密钥失败:', error)
       }
     }
-    
+
     onMounted(async () => {
       await getSpaceDetail()
-      
+
       // 等待DOM更新后渲染图表
       await nextTick()
       renderDownloadChart()
     })
-    
+
     return {
       space,
       versions,
@@ -608,9 +598,9 @@ export default defineComponent({
       copyApiKey,
       regenerateApiKey,
       loadTimelineData,
-      formatDateTime
+      formatDateTime,
     }
-  }
+  },
 })
 </script>
 
@@ -730,22 +720,22 @@ export default defineComponent({
   .software-detail-container {
     padding: 10px;
   }
-  
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .page-actions {
     margin-top: 10px;
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .page-actions .el-button {
     margin-left: 0;
   }
-  
+
   .chart-content {
     height: 250px;
   }

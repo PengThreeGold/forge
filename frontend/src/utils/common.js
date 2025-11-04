@@ -1,18 +1,18 @@
 // 格式化文件大小
 export function formatFileSize(bytes) {
   if (bytes === 0) return '0 B'
-  
+
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
 // 格式化日期时间
 export function formatDateTime(date, format = 'YYYY-MM-DD HH:mm:ss') {
   if (!date) return ''
-  
+
   const d = new Date(date)
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, '0')
@@ -20,7 +20,7 @@ export function formatDateTime(date, format = 'YYYY-MM-DD HH:mm:ss') {
   const hours = String(d.getHours()).padStart(2, '0')
   const minutes = String(d.getMinutes()).padStart(2, '0')
   const seconds = String(d.getSeconds()).padStart(2, '0')
-  
+
   return format
     .replace('YYYY', year)
     .replace('MM', month)
@@ -33,11 +33,11 @@ export function formatDateTime(date, format = 'YYYY-MM-DD HH:mm:ss') {
 // 格式化相对时间
 export function formatRelativeTime(date) {
   if (!date) return ''
-  
+
   const now = new Date()
   const d = new Date(date)
   const diff = now - d
-  
+
   // 如果是未来的时间
   if (diff < 0) {
     const futureDiff = Math.abs(diff)
@@ -47,31 +47,31 @@ export function formatRelativeTime(date) {
     if (futureDiff < 2592000000) return Math.floor(futureDiff / 86400000) + '天后'
     return formatDateTime(date)
   }
-  
+
   // 如果是过去的时间
   if (diff < 60000) return '刚刚'
   if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
   if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
   if (diff < 2592000000) return Math.floor(diff / 86400000) + '天前'
-  
+
   return formatDateTime(date)
 }
 
 // 防抖函数
 export function debounce(func, wait, immediate) {
   let timeout
-  
+
   return function executedFunction(...args) {
     const later = () => {
       timeout = null
       if (!immediate) func(...args)
     }
-    
+
     const callNow = immediate && !timeout
-    
+
     clearTimeout(timeout)
     timeout = setTimeout(later, wait)
-    
+
     if (callNow) func(...args)
   }
 }
@@ -79,15 +79,15 @@ export function debounce(func, wait, immediate) {
 // 节流函数
 export function throttle(func, limit) {
   let inThrottle
-  
-  return function() {
+
+  return function () {
     const args = arguments
     const context = this
-    
+
     if (!inThrottle) {
       func.apply(context, args)
       inThrottle = true
-      setTimeout(() => inThrottle = false, limit)
+      setTimeout(() => (inThrottle = false), limit)
     }
   }
 }
@@ -95,13 +95,13 @@ export function throttle(func, limit) {
 // 深拷贝
 export function deepClone(obj) {
   if (obj === null || typeof obj !== 'object') return obj
-  
+
   if (obj instanceof Date) return new Date(obj.getTime())
-  
+
   if (obj instanceof Array) {
     return obj.map(item => deepClone(item))
   }
-  
+
   if (typeof obj === 'object') {
     const clonedObj = {}
     for (const key in obj) {
@@ -117,11 +117,11 @@ export function deepClone(obj) {
 export function generateRandomString(length = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   let result = ''
-  
+
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
-  
+
   return result
 }
 
@@ -137,7 +137,7 @@ export function copyToClipboard(text) {
     textarea.style.opacity = '0'
     document.body.appendChild(textarea)
     textarea.select()
-    
+
     try {
       const successful = document.execCommand('copy')
       document.body.removeChild(textarea)
@@ -186,22 +186,22 @@ export function compareVersions(version1, version2) {
   if (!isValidVersion(version1) || !isValidVersion(version2)) {
     throw new Error('Invalid version format')
   }
-  
+
   // 移除预发布标识和构建元数据
   const v1 = version1.split('-')[0]
   const v2 = version2.split('-')[0]
-  
+
   const v1Parts = v1.split('.').map(Number)
   const v2Parts = v2.split('.').map(Number)
-  
+
   for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
     const v1Part = v1Parts[i] || 0
     const v2Part = v2Parts[i] || 0
-    
+
     if (v1Part > v2Part) return 1
     if (v1Part < v2Part) return -1
   }
-  
+
   return 0
 }
 
@@ -210,7 +210,7 @@ export function getBrowserInfo() {
   const ua = navigator.userAgent
   let browserName = ''
   let browserVersion = ''
-  
+
   // 检测浏览器名称
   if (ua.indexOf('Chrome') > -1) {
     browserName = 'Chrome'
@@ -225,17 +225,17 @@ export function getBrowserInfo() {
   } else {
     browserName = 'Unknown'
   }
-  
+
   // 获取浏览器版本
   const versionMatch = ua.match(new RegExp(browserName + '/([0-9.]+)'))
   if (versionMatch && versionMatch[1]) {
     browserVersion = versionMatch[1]
   }
-  
+
   return {
     name: browserName,
     version: browserVersion,
-    userAgent: ua
+    userAgent: ua,
   }
 }
 
@@ -243,7 +243,7 @@ export function getBrowserInfo() {
 export function getOSInfo() {
   const ua = navigator.userAgent
   let os = 'Unknown'
-  
+
   if (ua.indexOf('Windows') > -1) {
     os = 'Windows'
   } else if (ua.indexOf('Mac') > -1) {
@@ -255,7 +255,7 @@ export function getOSInfo() {
   } else if (ua.indexOf('iOS') > -1 || /iPad|iPhone|iPod/.test(ua)) {
     os = 'iOS'
   }
-  
+
   return os
 }
 

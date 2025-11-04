@@ -6,12 +6,12 @@
           <h3>{{ title }}</h3>
         </slot>
       </div>
-      
+
       <div class="table-actions">
         <slot name="actions"></slot>
       </div>
     </div>
-    
+
     <el-table
       :data="data"
       :loading="loading"
@@ -62,7 +62,7 @@
         :reserve-selection="reserveSelection"
         :selectable="selectable"
       />
-      
+
       <!-- 索引列 -->
       <el-table-column
         v-if="showIndex"
@@ -72,19 +72,14 @@
         :label="indexLabel"
         :index="indexMethod"
       />
-      
+
       <!-- 展开列 -->
-      <el-table-column
-        v-if="expandable"
-        type="expand"
-        width="50"
-        align="center"
-      >
+      <el-table-column v-if="expandable" type="expand" width="50" align="center">
         <template #default="props">
           <slot name="expand" :row="props.row" :$index="props.$index"></slot>
         </template>
       </el-table-column>
-      
+
       <!-- 数据列 -->
       <template v-for="(column, index) in columns" :key="index">
         <el-table-column
@@ -114,13 +109,18 @@
           :filtered-value="column.filteredValue"
         >
           <template #default="scope">
-            <slot :name="column.prop" :row="scope.row" :column="scope.column" :$index="scope.$index">
+            <slot
+              :name="column.prop"
+              :row="scope.row"
+              :column="scope.column"
+              :$index="scope.$index"
+            >
               {{ scope.row[column.prop] }}
             </slot>
           </template>
         </el-table-column>
       </template>
-      
+
       <!-- 操作列 -->
       <el-table-column
         v-if="$slots.operations || operations.length > 0"
@@ -152,7 +152,7 @@
           </slot>
         </template>
       </el-table-column>
-      
+
       <!-- 空数据 -->
       <template #empty>
         <slot name="empty">
@@ -162,7 +162,7 @@
         </slot>
       </template>
     </el-table>
-    
+
     <!-- 分页 -->
     <div class="table-footer" v-if="showPagination">
       <el-pagination
@@ -193,53 +193,53 @@ export default defineComponent({
     ElTableColumn,
     ElPagination,
     ElEmpty,
-    ElButton
+    ElButton,
   },
   props: {
     // 基础属性
     data: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     title: {
       type: String,
-      default: ''
+      default: '',
     },
     showHeader: {
       type: Boolean,
-      default: true
+      default: true,
     },
-    
+
     // 表格属性
     height: [String, Number],
     maxHeight: [String, Number],
     stripe: {
       type: Boolean,
-      default: false
+      default: false,
     },
     border: {
       type: Boolean,
-      default: true
+      default: true,
     },
     size: {
       type: String,
-      default: 'default'
+      default: 'default',
     },
     fit: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showTableHeader: {
       type: Boolean,
-      default: true
+      default: true,
     },
     highlightCurrentRow: {
       type: Boolean,
-      default: false
+      default: false,
     },
     currentRowKey: [String, Number],
     rowClassName: [String, Function],
@@ -252,121 +252,121 @@ export default defineComponent({
     headerCellStyle: [Object, Function],
     lazy: {
       type: Boolean,
-      default: false
+      default: false,
     },
     load: Function,
     treeProps: {
       type: Object,
       default: () => ({
         hasChildren: 'hasChildren',
-        children: 'children'
-      })
+        children: 'children',
+      }),
     },
-    
+
     // 选择列
     selection: {
       type: Boolean,
-      default: false
+      default: false,
     },
     reserveSelection: {
       type: Boolean,
-      default: false
+      default: false,
     },
     selectable: Function,
-    
+
     // 索引列
     showIndex: {
       type: Boolean,
-      default: false
+      default: false,
     },
     indexLabel: {
       type: String,
-      default: '#'
+      default: '#',
     },
     indexMethod: Function,
-    
+
     // 展开列
     expandable: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    
+
     // 数据列
     columns: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
-    
+
     // 操作列
     operations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     operationsLabel: {
       type: String,
-      default: '操作'
+      default: '操作',
     },
     operationsWidth: {
       type: [String, Number],
-      default: ''
+      default: '',
     },
     operationsFixed: {
       type: [String, Boolean],
-      default: false
+      default: false,
     },
-    
+
     // 空数据
     emptyText: {
       type: String,
-      default: '暂无数据'
+      default: '暂无数据',
     },
     emptyImage: String,
     emptyImageSize: {
       type: Number,
-      default: 120
+      default: 120,
     },
-    
+
     // 分页
     showPagination: {
       type: Boolean,
-      default: true
+      default: true,
     },
     total: {
       type: Number,
-      default: 0
+      default: 0,
     },
     pageSize: {
       type: Number,
-      default: 20
+      default: 20,
     },
     currentPage: {
       type: Number,
-      default: 1
+      default: 1,
     },
     pageSizes: {
       type: Array,
-      default: () => [10, 20, 50, 100]
+      default: () => [10, 20, 50, 100],
     },
     paginationLayout: {
       type: String,
-      default: 'total, sizes, prev, pager, next, jumper'
+      default: 'total, sizes, prev, pager, next, jumper',
     },
     paginationBackground: {
       type: Boolean,
-      default: true
+      default: true,
     },
     paginationSmall: {
       type: Boolean,
-      default: false
+      default: false,
     },
     paginationDisabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     hideOnSinglePage: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   emits: [
     'select',
@@ -389,35 +389,41 @@ export default defineComponent({
     'size-change',
     'update:pageSize',
     'update:currentPage',
-    'operation-click'
+    'operation-click',
   ],
   setup(props, { emit }) {
     // 分页
     const currentPage = ref(props.currentPage)
     const pageSize = ref(props.pageSize)
-    
+
     // 监听props变化
-    watch(() => props.currentPage, (val) => {
-      currentPage.value = val
-    })
-    
-    watch(() => props.pageSize, (val) => {
-      pageSize.value = val
-    })
-    
+    watch(
+      () => props.currentPage,
+      val => {
+        currentPage.value = val
+      }
+    )
+
+    watch(
+      () => props.pageSize,
+      val => {
+        pageSize.value = val
+      }
+    )
+
     // 处理分页变化
-    const handleSizeChange = (size) => {
+    const handleSizeChange = size => {
       pageSize.value = size
       emit('update:pageSize', size)
       emit('size-change', size)
     }
-    
-    const handleCurrentPageChange = (page) => {
+
+    const handleCurrentPageChange = page => {
       currentPage.value = page
       emit('update:currentPage', page)
       emit('current-change', page)
     }
-    
+
     // 处理操作点击
     const handleOperationClick = (operation, row, index) => {
       if (operation.click) {
@@ -425,76 +431,76 @@ export default defineComponent({
       }
       emit('operation-click', { operation, row, index })
     }
-    
+
     // 表格事件处理
     const handleSelect = (selection, row) => {
       emit('select', selection, row)
     }
-    
-    const handleSelectAll = (selection) => {
+
+    const handleSelectAll = selection => {
       emit('select-all', selection)
     }
-    
-    const handleSelectionChange = (selection) => {
+
+    const handleSelectionChange = selection => {
       emit('selection-change', selection)
     }
-    
+
     const handleCellMouseEnter = (row, column, cell, event) => {
       emit('cell-mouse-enter', row, column, cell, event)
     }
-    
+
     const handleCellMouseLeave = (row, column, cell, event) => {
       emit('cell-mouse-leave', row, column, cell, event)
     }
-    
+
     const handleCellClick = (row, column, cell, event) => {
       emit('cell-click', row, column, cell, event)
     }
-    
+
     const handleCellDblclick = (row, column, cell, event) => {
       emit('cell-dblclick', row, column, cell, event)
     }
-    
+
     const handleRowClick = (row, column, event) => {
       emit('row-click', row, column, event)
     }
-    
+
     const handleRowContextmenu = (row, column, event) => {
       emit('row-contextmenu', row, column, event)
     }
-    
+
     const handleRowDblclick = (row, column, event) => {
       emit('row-dblclick', row, column, event)
     }
-    
+
     const handleHeaderClick = (column, event) => {
       emit('header-click', column, event)
     }
-    
+
     const handleHeaderContextmenu = (column, event) => {
       emit('header-contextmenu', column, event)
     }
-    
-    const handleSortChange = (obj) => {
+
+    const handleSortChange = obj => {
       emit('sort-change', obj)
     }
-    
-    const handleFilterChange = (filters) => {
+
+    const handleFilterChange = filters => {
       emit('filter-change', filters)
     }
-    
+
     const handleCurrentChange = (currentRow, oldCurrentRow) => {
       emit('current-change', currentRow, oldCurrentRow)
     }
-    
+
     const handleHeaderDragend = (newWidth, oldWidth, column, event) => {
       emit('header-dragend', newWidth, oldWidth, column, event)
     }
-    
+
     const handleExpandChange = (row, expanded) => {
       emit('expand-change', row, expanded)
     }
-    
+
     return {
       currentPage,
       pageSize,
@@ -517,9 +523,9 @@ export default defineComponent({
       handleFilterChange,
       handleCurrentChange,
       handleHeaderDragend,
-      handleExpandChange
+      handleExpandChange,
     }
-  }
+  },
 })
 </script>
 
@@ -569,13 +575,13 @@ export default defineComponent({
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .table-actions {
     margin-top: 12px;
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .table-footer {
     justify-content: center;
   }

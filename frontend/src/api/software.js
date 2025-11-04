@@ -4,7 +4,7 @@ import request from '@/utils/request'
 export function getSpaces() {
   return request({
     url: '/api/software',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -13,7 +13,7 @@ export function createSpace(data) {
   return request({
     url: '/api/software',
     method: 'post',
-    data
+    data,
   })
 }
 
@@ -21,7 +21,7 @@ export function createSpace(data) {
 export function getSpace(id) {
   return request({
     url: `/api/software/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -30,7 +30,7 @@ export function updateSpace(id, data) {
   return request({
     url: `/api/software/${id}`,
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -38,7 +38,7 @@ export function updateSpace(id, data) {
 export function deleteSpace(id) {
   return request({
     url: `/api/software/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -46,7 +46,7 @@ export function deleteSpace(id) {
 export function regenerateApiKey(id) {
   return request({
     url: `/api/software/${id}/regenerate-api-key`,
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -54,7 +54,7 @@ export function regenerateApiKey(id) {
 export function getVersions(spaceId) {
   return request({
     url: `/api/software/${spaceId}/versions`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -65,8 +65,8 @@ export function createVersion(spaceId, data) {
     method: 'post',
     data,
     headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+      'Content-Type': 'multipart/form-data',
+    },
   })
 }
 
@@ -74,7 +74,7 @@ export function createVersion(spaceId, data) {
 export function getVersion(id) {
   return request({
     url: `/api/software/versions/${id}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -83,7 +83,7 @@ export function updateVersion(id, data) {
   return request({
     url: `/api/software/versions/${id}`,
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -91,7 +91,7 @@ export function updateVersion(id, data) {
 export function deleteVersion(id) {
   return request({
     url: `/api/software/versions/${id}`,
-    method: 'delete'
+    method: 'delete',
   })
 }
 
@@ -100,7 +100,7 @@ export function publishVersion(id, data) {
   return request({
     url: `/api/software/versions/${id}/publish`,
     method: 'put',
-    data
+    data,
   })
 }
 
@@ -109,7 +109,7 @@ export function downloadVersion(id) {
   return request({
     url: `/api/download/${id}`,
     method: 'get',
-    responseType: 'blob' // 返回二进制数据
+    responseType: 'blob', // 返回二进制数据
   })
 }
 
@@ -117,7 +117,7 @@ export function downloadVersion(id) {
 export function getSpaceInfo(apiKey) {
   return request({
     url: `/api/public/${apiKey}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -125,7 +125,7 @@ export function getSpaceInfo(apiKey) {
 export function getVersionsInfo(apiKey) {
   return request({
     url: `/api/public/${apiKey}/versions`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -134,6 +134,6 @@ export function downloadVersionPublic(apiKey, version) {
   return request({
     url: `/api/public/${apiKey}/download/${version}`,
     method: 'get',
-    responseType: 'blob' // 返回二进制数据
+    responseType: 'blob', // 返回二进制数据
   })
 }

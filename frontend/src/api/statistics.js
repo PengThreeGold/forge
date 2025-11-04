@@ -4,7 +4,7 @@ import request from '@/utils/request'
 export function getOverview() {
   return request({
     url: '/api/statistics/overview',
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -13,7 +13,7 @@ export function getDownloads(params = {}) {
   return request({
     url: '/api/statistics/downloads',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -22,7 +22,7 @@ export function getDownloadsTimeline(params = {}) {
   return request({
     url: '/api/statistics/downloads/timeline',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -30,7 +30,7 @@ export function getDownloadsTimeline(params = {}) {
 export function getSpaceStatistics(spaceId) {
   return request({
     url: `/api/statistics/spaces/${spaceId}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -39,7 +39,7 @@ export function getWebhooks(params = {}) {
   return request({
     url: '/api/webhooks',
     method: 'get',
-    params
+    params,
   })
 }
 
@@ -47,7 +47,7 @@ export function getWebhooks(params = {}) {
 export function getWebhook(logId) {
   return request({
     url: `/api/webhooks/${logId}`,
-    method: 'get'
+    method: 'get',
   })
 }
 
@@ -55,7 +55,7 @@ export function getWebhook(logId) {
 export function retryWebhook(logId) {
   return request({
     url: `/api/webhooks/retry/${logId}`,
-    method: 'post'
+    method: 'post',
   })
 }
 
@@ -63,6 +63,6 @@ export function retryWebhook(logId) {
 export function testWebhook(spaceId) {
   return request({
     url: `/api/webhooks/test/${spaceId}`,
-    method: 'post'
+    method: 'post',
   })
 }

@@ -20,7 +20,7 @@ export default {
       } else {
         document.body.classList.remove('dark-theme')
       }
-      
+
       // 监听系统主题变化
       if (window.matchMedia) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
@@ -31,15 +31,17 @@ export default {
           }
         })
       }
-    }
-  }
+    },
+  },
 }
 </script>
 
 <style>
 /* 全局样式 */
 #app {
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑',
+    Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;

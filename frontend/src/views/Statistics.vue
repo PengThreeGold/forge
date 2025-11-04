@@ -18,7 +18,7 @@
         </el-button>
       </div>
     </div>
-    
+
     <el-row :gutter="20" class="overview-row">
       <el-col :span="6">
         <el-card shadow="hover" class="overview-card">
@@ -31,7 +31,7 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="6">
         <el-card shadow="hover" class="overview-card">
           <div class="card-content">
@@ -43,7 +43,7 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="6">
         <el-card shadow="hover" class="overview-card">
           <div class="card-content">
@@ -55,7 +55,7 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="6">
         <el-card shadow="hover" class="overview-card">
           <div class="card-content">
@@ -68,14 +68,18 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-row :gutter="20" class="chart-row">
       <el-col :span="16">
         <el-card shadow="hover" class="chart-card">
           <template #header>
             <div class="card-header">
               <span>下载趋势</span>
-              <el-radio-group v-model="timelineDays" size="small" @change="handleTimelineDaysChange">
+              <el-radio-group
+                v-model="timelineDays"
+                size="small"
+                @change="handleTimelineDaysChange"
+              >
                 <el-radio-button :label="7">7天</el-radio-button>
                 <el-radio-button :label="30">30天</el-radio-button>
                 <el-radio-button :label="90">90天</el-radio-button>
@@ -85,7 +89,7 @@
           <div class="chart-content" ref="downloadTimelineChart"></div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="8">
         <el-card shadow="hover" class="chart-card">
           <template #header>
@@ -97,14 +101,19 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-row :gutter="20" class="data-row">
       <el-col :span="12">
         <el-card shadow="hover" class="data-card">
           <template #header>
             <div class="card-header">
               <span>下载记录</span>
-              <el-select v-model="selectedSpace" placeholder="选择软件空间" clearable @change="handleSpaceChange">
+              <el-select
+                v-model="selectedSpace"
+                placeholder="选择软件空间"
+                clearable
+                @change="handleSpaceChange"
+              >
                 <el-option
                   v-for="space in spaces"
                   :key="space.id"
@@ -114,14 +123,19 @@
               </el-select>
             </div>
           </template>
-          
+
           <el-table
             :data="downloads"
             style="width: 100%"
             max-height="400"
             v-loading="downloadsLoading"
           >
-            <el-table-column prop="space_name" label="软件名称" min-width="120" show-overflow-tooltip />
+            <el-table-column
+              prop="space_name"
+              label="软件名称"
+              min-width="120"
+              show-overflow-tooltip
+            />
             <el-table-column prop="version" label="版本" width="100" />
             <el-table-column prop="ip_address" label="IP地址" width="130" />
             <el-table-column prop="download_time" label="下载时间" width="160">
@@ -130,7 +144,7 @@
               </template>
             </el-table-column>
           </el-table>
-          
+
           <div class="pagination-container">
             <el-pagination
               v-model:current-page="downloadsPage"
@@ -145,13 +159,18 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="12">
         <el-card shadow="hover" class="data-card">
           <template #header>
             <div class="card-header">
               <span>Webhook日志</span>
-              <el-select v-model="webhookSpace" placeholder="选择软件空间" clearable @change="handleWebhookSpaceChange">
+              <el-select
+                v-model="webhookSpace"
+                placeholder="选择软件空间"
+                clearable
+                @change="handleWebhookSpaceChange"
+              >
                 <el-option
                   v-for="space in spaces"
                   :key="space.id"
@@ -161,14 +180,19 @@
               </el-select>
             </div>
           </template>
-          
+
           <el-table
             :data="webhooks"
             style="width: 100%"
             max-height="400"
             v-loading="webhooksLoading"
           >
-            <el-table-column prop="space_name" label="软件名称" min-width="120" show-overflow-tooltip />
+            <el-table-column
+              prop="space_name"
+              label="软件名称"
+              min-width="120"
+              show-overflow-tooltip
+            />
             <el-table-column prop="event_type" label="事件类型" width="120" />
             <el-table-column prop="response_status" label="状态" width="100">
               <template #default="scope">
@@ -184,11 +208,13 @@
             </el-table-column>
             <el-table-column label="操作" width="100">
               <template #default="scope">
-                <el-button type="primary" size="small" @click="viewWebhook(scope.row)">详情</el-button>
+                <el-button type="primary" size="small" @click="viewWebhook(scope.row)"
+                  >详情</el-button
+                >
               </template>
             </el-table-column>
           </el-table>
-          
+
           <div class="pagination-container">
             <el-pagination
               v-model:current-page="webhooksPage"
@@ -204,7 +230,7 @@
         </el-card>
       </el-col>
     </el-row>
-    
+
     <!-- Webhook详情对话框 -->
     <el-dialog
       v-model="webhookDetailVisible"
@@ -214,14 +240,20 @@
     >
       <div v-if="currentWebhook" class="webhook-detail">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="软件名称">{{ currentWebhook.space_name }}</el-descriptions-item>
-          <el-descriptions-item label="事件类型">{{ currentWebhook.event_type }}</el-descriptions-item>
+          <el-descriptions-item label="软件名称">{{
+            currentWebhook.space_name
+          }}</el-descriptions-item>
+          <el-descriptions-item label="事件类型">{{
+            currentWebhook.event_type
+          }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="getWebhookStatusType(currentWebhook.response_status)">
               {{ getWebhookStatusText(currentWebhook.response_status) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="时间">{{ formatDateTime(currentWebhook.attempt_time) }}</el-descriptions-item>
+          <el-descriptions-item label="时间">{{
+            formatDateTime(currentWebhook.attempt_time)
+          }}</el-descriptions-item>
           <el-descriptions-item label="请求载荷" :span="2">
             <el-input
               type="textarea"
@@ -242,7 +274,7 @@
             />
           </el-descriptions-item>
         </el-descriptions>
-        
+
         <div class="webhook-actions">
           <el-button type="primary" @click="retryWebhook(currentWebhook)">
             <el-icon><RefreshRight /></el-icon>
@@ -264,15 +296,15 @@ export default defineComponent({
   name: 'Statistics',
   setup() {
     const store = useStore()
-    
+
     // 数据
     const overview = reactive({})
     const spaces = ref([])
     const loading = ref(false)
-    
+
     // 日期范围
     const dateRange = ref([])
-    
+
     // 下载记录
     const downloads = ref([])
     const downloadsLoading = ref(false)
@@ -280,7 +312,7 @@ export default defineComponent({
     const downloadsPageSize = ref(20)
     const downloadsTotal = ref(0)
     const selectedSpace = ref(null)
-    
+
     // Webhook日志
     const webhooks = ref([])
     const webhooksLoading = ref(false)
@@ -288,28 +320,28 @@ export default defineComponent({
     const webhooksPageSize = ref(20)
     const webhooksTotal = ref(0)
     const webhookSpace = ref(null)
-    
+
     // 图表相关
     const timelineDays = ref(30)
     const timeline = ref([])
-    
+
     // 图表引用
     const downloadTimelineChart = ref(null)
     const popularSoftwareChart = ref(null)
-    
+
     // 图表实例
     let downloadTimelineChartInstance = null
     let popularSoftwareChartInstance = null
-    
+
     // Webhook详情
     const webhookDetailVisible = ref(false)
     const currentWebhook = ref(null)
-    
+
     // 获取概览数据
     const getOverviewData = async () => {
       try {
         loading.value = true
-        
+
         const response = await store.dispatch('statistics/getOverview')
         Object.assign(overview, response.data)
       } catch (error) {
@@ -318,7 +350,7 @@ export default defineComponent({
         loading.value = false
       }
     }
-    
+
     // 获取软件空间列表
     const getSpaces = async () => {
       try {
@@ -328,26 +360,26 @@ export default defineComponent({
         console.error('获取软件空间列表失败:', error)
       }
     }
-    
+
     // 获取下载记录
     const getDownloads = async () => {
       try {
         downloadsLoading.value = true
-        
+
         const params = {
           page: downloadsPage.value,
-          per_page: downloadsPageSize.value
+          per_page: downloadsPageSize.value,
         }
-        
+
         if (selectedSpace.value) {
           params.space_id = selectedSpace.value
         }
-        
+
         if (dateRange.value && dateRange.value.length === 2) {
           params.start_date = dateRange.value[0]
           params.end_date = dateRange.value[1]
         }
-        
+
         const response = await store.dispatch('statistics/getDownloads', params)
         downloads.value = response.data.downloads
         downloadsTotal.value = response.data.total
@@ -357,21 +389,21 @@ export default defineComponent({
         downloadsLoading.value = false
       }
     }
-    
+
     // 获取Webhook日志
     const getWebhooks = async () => {
       try {
         webhooksLoading.value = true
-        
+
         const params = {
           page: webhooksPage.value,
-          per_page: webhooksPageSize.value
+          per_page: webhooksPageSize.value,
         }
-        
+
         if (webhookSpace.value) {
           params.space_id = webhookSpace.value
         }
-        
+
         const response = await store.dispatch('statistics/getWebhooks', params)
         webhooks.value = response.data.webhooks
         webhooksTotal.value = response.data.total
@@ -381,18 +413,18 @@ export default defineComponent({
         webhooksLoading.value = false
       }
     }
-    
+
     // 获取下载时间线数据
     const getTimelineData = async () => {
       try {
         const params = {
-          days: timelineDays.value
+          days: timelineDays.value,
         }
-        
+
         if (selectedSpace.value) {
           params.space_id = selectedSpace.value
         }
-        
+
         const response = await store.dispatch('statistics/getDownloadsTimeline', params)
         timeline.value = response.data.timeline
         renderDownloadTimelineChart()
@@ -400,32 +432,32 @@ export default defineComponent({
         console.error('获取下载时间线数据失败:', error)
       }
     }
-    
+
     // 渲染下载时间线图表
     const renderDownloadTimelineChart = () => {
       if (!downloadTimelineChart.value) return
-      
+
       if (downloadTimelineChartInstance) {
         downloadTimelineChartInstance.dispose()
       }
-      
+
       downloadTimelineChartInstance = echarts.init(downloadTimelineChart.value)
-      
+
       const dates = timeline.value.map(item => item.date)
       const downloads = timeline.value.map(item => item.downloads)
-      
+
       const option = {
         tooltip: {
           trigger: 'axis',
           axisPointer: {
-            type: 'cross'
-          }
+            type: 'cross',
+          },
         },
         grid: {
           left: '3%',
           right: '4%',
           bottom: '3%',
-          containLabel: true
+          containLabel: true,
         },
         xAxis: {
           type: 'category',
@@ -433,12 +465,12 @@ export default defineComponent({
           data: dates,
           axisLabel: {
             interval: 'auto',
-            rotate: 45
-          }
+            rotate: 45,
+          },
         },
         yAxis: {
           type: 'value',
-          name: '下载次数'
+          name: '下载次数',
         },
         series: [
           {
@@ -447,48 +479,48 @@ export default defineComponent({
             stack: 'Total',
             smooth: true,
             areaStyle: {
-              opacity: 0.3
+              opacity: 0.3,
             },
             emphasis: {
-              focus: 'series'
+              focus: 'series',
             },
-            data: downloads
-          }
-        ]
+            data: downloads,
+          },
+        ],
       }
-      
+
       downloadTimelineChartInstance.setOption(option)
-      
+
       // 响应式调整
       window.addEventListener('resize', () => {
         downloadTimelineChartInstance && downloadTimelineChartInstance.resize()
       })
     }
-    
+
     // 渲染热门软件图表
     const renderPopularSoftwareChart = () => {
       if (!popularSoftwareChart.value) return
-      
+
       if (popularSoftwareChartInstance) {
         popularSoftwareChartInstance.dispose()
       }
-      
+
       popularSoftwareChartInstance = echarts.init(popularSoftwareChart.value)
-      
+
       // 取前5个热门软件
       const topSoftware = [...(overview.spaces_downloads || [])].slice(0, 5)
       const names = topSoftware.map(item => item.name)
       const downloads = topSoftware.map(item => item.downloads)
-      
+
       const option = {
         tooltip: {
           trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)'
+          formatter: '{a} <br/>{b}: {c} ({d}%)',
         },
         legend: {
           orient: 'vertical',
           right: 10,
-          top: 'center'
+          top: 'center',
         },
         series: [
           {
@@ -499,109 +531,109 @@ export default defineComponent({
             itemStyle: {
               borderRadius: 10,
               borderColor: '#fff',
-              borderWidth: 2
+              borderWidth: 2,
             },
             label: {
               show: false,
-              position: 'center'
+              position: 'center',
             },
             emphasis: {
               label: {
                 show: true,
                 fontSize: '16',
-                fontWeight: 'bold'
-              }
+                fontWeight: 'bold',
+              },
             },
             labelLine: {
-              show: false
+              show: false,
             },
             data: names.map((name, index) => ({
               value: downloads[index],
-              name: name
-            }))
-          }
-        ]
+              name: name,
+            })),
+          },
+        ],
       }
-      
+
       popularSoftwareChartInstance.setOption(option)
-      
+
       // 响应式调整
       window.addEventListener('resize', () => {
         popularSoftwareChartInstance && popularSoftwareChartInstance.resize()
       })
     }
-    
+
     // 刷新数据
     const refreshData = async () => {
       await getOverviewData()
       await getTimelineData()
       await getDownloads()
       await getWebhooks()
-      
+
       // 等待DOM更新后渲染图表
       await nextTick()
       renderDownloadTimelineChart()
       renderPopularSoftwareChart()
     }
-    
+
     // 处理日期范围变化
     const handleDateRangeChange = () => {
       downloadsPage.value = 1
       getDownloads()
     }
-    
+
     // 处理时间线天数变化
     const handleTimelineDaysChange = () => {
       getTimelineData()
     }
-    
+
     // 处理软件空间变化
     const handleSpaceChange = () => {
       downloadsPage.value = 1
       getDownloads()
       getTimelineData()
     }
-    
+
     // 处理下载记录分页大小变化
-    const handleDownloadsSizeChange = (size) => {
+    const handleDownloadsSizeChange = size => {
       downloadsPageSize.value = size
       downloadsPage.value = 1
       getDownloads()
     }
-    
+
     // 处理下载记录当前页变化
-    const handleDownloadsCurrentChange = (page) => {
+    const handleDownloadsCurrentChange = page => {
       downloadsPage.value = page
       getDownloads()
     }
-    
+
     // 处理Webhook软件空间变化
     const handleWebhookSpaceChange = () => {
       webhooksPage.value = 1
       getWebhooks()
     }
-    
+
     // 处理Webhook分页大小变化
-    const handleWebhooksSizeChange = (size) => {
+    const handleWebhooksSizeChange = size => {
       webhooksPageSize.value = size
       webhooksPage.value = 1
       getWebhooks()
     }
-    
+
     // 处理Webhook当前页变化
-    const handleWebhooksCurrentChange = (page) => {
+    const handleWebhooksCurrentChange = page => {
       webhooksPage.value = page
       getWebhooks()
     }
-    
+
     // 查看Webhook详情
-    const viewWebhook = (webhook) => {
+    const viewWebhook = webhook => {
       currentWebhook.value = webhook
       webhookDetailVisible.value = true
     }
-    
+
     // 重试Webhook
-    const retryWebhook = async (webhook) => {
+    const retryWebhook = async webhook => {
       try {
         await store.dispatch('statistics/retryWebhook', webhook.id)
         getWebhooks()
@@ -609,25 +641,25 @@ export default defineComponent({
         console.error('重试Webhook失败:', error)
       }
     }
-    
+
     // 获取Webhook状态类型
-    const getWebhookStatusType = (status) => {
+    const getWebhookStatusType = status => {
       if (status >= 200 && status < 300) return 'success'
       if (status >= 400 && status < 500) return 'warning'
       return 'danger'
     }
-    
+
     // 获取Webhook状态文本
-    const getWebhookStatusText = (status) => {
+    const getWebhookStatusText = status => {
       if (!status) return '无响应'
       if (status >= 200 && status < 300) return '成功'
       if (status >= 400 && status < 500) return '客户端错误'
       if (status >= 500) return '服务器错误'
       return '未知错误'
     }
-    
+
     // 格式化JSON
-    const formatJson = (json) => {
+    const formatJson = json => {
       if (!json) return ''
       try {
         return JSON.stringify(JSON.parse(json), null, 2)
@@ -635,13 +667,13 @@ export default defineComponent({
         return json
       }
     }
-    
+
     onMounted(async () => {
       // 获取数据
       await getSpaces()
       await refreshData()
     })
-    
+
     return {
       overview,
       spaces,
@@ -678,9 +710,9 @@ export default defineComponent({
       getWebhookStatusType,
       getWebhookStatusText,
       formatJson,
-      formatDateTime
+      formatDateTime,
     }
-  }
+  },
 })
 </script>
 
@@ -726,7 +758,7 @@ export default defineComponent({
 
 .card-icon {
   font-size: 36px;
-  color: #409EFF;
+  color: #409eff;
   margin-bottom: 10px;
 }
 
@@ -790,27 +822,27 @@ export default defineComponent({
   .statistics-container {
     padding: 10px;
   }
-  
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .header-actions {
     margin-top: 10px;
     width: 100%;
     flex-wrap: wrap;
   }
-  
+
   .header-actions .el-date-picker {
     width: 100%;
     margin-bottom: 10px;
   }
-  
+
   .chart-content {
     height: 250px;
   }
-  
+
   .pagination-container {
     text-align: center;
   }

@@ -7,12 +7,12 @@
           <Expand v-else />
         </el-icon>
       </div>
-      
+
       <div class="logo" @click="goHome">
         <span class="logo-text">Forge</span>
       </div>
     </div>
-    
+
     <div class="header-right">
       <!-- 主题切换 -->
       <el-tooltip content="切换主题" placement="bottom" effect="light">
@@ -23,7 +23,7 @@
           </el-icon>
         </div>
       </el-tooltip>
-      
+
       <!-- 用户信息 -->
       <el-dropdown trigger="click" @command="handleCommand">
         <div class="user-info">
@@ -33,7 +33,7 @@
             <ArrowDown />
           </el-icon>
         </div>
-        
+
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="profile">
@@ -68,7 +68,7 @@ import {
   ArrowDown,
   User,
   Setting,
-  SwitchButton
+  SwitchButton,
 } from '@element-plus/icons-vue'
 
 export default defineComponent({
@@ -82,34 +82,34 @@ export default defineComponent({
     ArrowDown,
     User,
     Setting,
-    SwitchButton
+    SwitchButton,
   },
   setup() {
     const store = useStore()
     const router = useRouter()
-    
+
     // 计算属性
     const username = computed(() => store.state.auth.user?.username || '管理员')
     const sidebarCollapsed = computed(() => store.state.sidebarCollapsed)
     const isDarkTheme = computed(() => store.state.theme === 'dark')
-    
+
     // 切换侧边栏
     const toggleSidebar = () => {
       store.dispatch('toggleSidebar')
     }
-    
+
     // 切换主题
     const toggleTheme = () => {
       store.dispatch('setTheme', isDarkTheme.value ? 'light' : 'dark')
     }
-    
+
     // 返回首页
     const goHome = () => {
       router.push('/')
     }
-    
+
     // 处理下拉菜单命令
-    const handleCommand = (command) => {
+    const handleCommand = command => {
       switch (command) {
         case 'profile':
           router.push('/settings')
@@ -122,7 +122,7 @@ export default defineComponent({
           break
       }
     }
-    
+
     // 处理退出登录
     const handleLogout = async () => {
       try {
@@ -132,7 +132,7 @@ export default defineComponent({
         console.error('退出登录失败:', error)
       }
     }
-    
+
     return {
       username,
       sidebarCollapsed,
@@ -140,9 +140,9 @@ export default defineComponent({
       toggleSidebar,
       toggleTheme,
       goHome,
-      handleCommand
+      handleCommand,
     }
-  }
+  },
 })
 </script>
 
@@ -181,7 +181,7 @@ export default defineComponent({
 }
 
 .menu-toggle:hover {
-  color: #409EFF;
+  color: #409eff;
 }
 
 .dark-theme .menu-toggle {
@@ -201,7 +201,7 @@ export default defineComponent({
 .logo-text {
   font-size: 20px;
   font-weight: bold;
-  color: #409EFF;
+  color: #409eff;
   margin-left: 8px;
 }
 
@@ -222,7 +222,7 @@ export default defineComponent({
 }
 
 .theme-switch:hover {
-  color: #409EFF;
+  color: #409eff;
 }
 
 .dark-theme .theme-switch {
@@ -264,7 +264,7 @@ export default defineComponent({
   .app-header {
     padding: 0 10px;
   }
-  
+
   .username {
     display: none;
   }

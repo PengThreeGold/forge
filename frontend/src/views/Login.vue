@@ -5,7 +5,7 @@
         <h1>Forge</h1>
         <p>软件发布管理平台</p>
       </div>
-      
+
       <el-form
         ref="loginFormRef"
         :model="loginForm"
@@ -21,7 +21,7 @@
             size="large"
           />
         </el-form-item>
-        
+
         <el-form-item prop="password">
           <el-input
             v-model="loginForm.password"
@@ -32,7 +32,7 @@
             size="large"
           />
         </el-form-item>
-        
+
         <el-form-item>
           <el-button
             :loading="loading"
@@ -45,21 +45,15 @@
           </el-button>
         </el-form-item>
       </el-form>
-      
+
       <div class="login-footer">
-        <p v-if="initAdminRequired" class="init-admin-tip">
-          尚未初始化管理员账户，请先初始化
-        </p>
-        <el-button
-          v-if="initAdminRequired"
-          type="text"
-          @click="showInitAdminDialog"
-        >
+        <p v-if="initAdminRequired" class="init-admin-tip">尚未初始化管理员账户，请先初始化</p>
+        <el-button v-if="initAdminRequired" type="text" @click="showInitAdminDialog">
           初始化管理员账户
         </el-button>
       </div>
     </div>
-    
+
     <!-- 初始化管理员对话框 -->
     <el-dialog
       v-model="initAdminDialogVisible"
@@ -76,7 +70,7 @@
         <el-form-item label="用户名" prop="username">
           <el-input v-model="initAdminForm.username" placeholder="请输入管理员用户名" />
         </el-form-item>
-        
+
         <el-form-item label="密码" prop="password">
           <el-input
             v-model="initAdminForm.password"
@@ -85,7 +79,7 @@
             show-password
           />
         </el-form-item>
-        
+
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input
             v-model="initAdminForm.confirmPassword"
@@ -94,12 +88,12 @@
             show-password
           />
         </el-form-item>
-        
+
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="initAdminForm.email" placeholder="请输入邮箱（可选）" />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="initAdminDialogVisible = false">取消</el-button>
@@ -124,45 +118,41 @@ export default defineComponent({
     const store = useStore()
     const router = useRouter()
     const route = useRoute()
-    
+
     // 登录表单
     const loginForm = reactive({
       username: '',
-      password: ''
+      password: '',
     })
-    
+
     const loginRules = {
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' }
-      ],
+      username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
       password: [
         { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
-      ]
+        { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+      ],
     }
-    
+
     const loginFormRef = ref(null)
     const loading = ref(false)
-    
+
     // 初始化管理员表单
     const initAdminDialogVisible = ref(false)
     const initAdminLoading = ref(false)
     const initAdminRequired = ref(false)
-    
+
     const initAdminForm = reactive({
       username: 'admin',
       password: '',
       confirmPassword: '',
-      email: ''
+      email: '',
     })
-    
+
     const initAdminRules = {
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' }
-      ],
+      username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
       password: [
         { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+        { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
       ],
       confirmPassword: [
         { required: true, message: '请再次输入密码', trigger: 'blur' },
@@ -174,16 +164,14 @@ export default defineComponent({
               callback()
             }
           },
-          trigger: 'blur'
-        }
+          trigger: 'blur',
+        },
       ],
-      email: [
-        { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-      ]
+      email: [{ type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }],
     }
-    
+
     const initAdminFormRef = ref(null)
-    
+
     // 检查是否需要初始化管理员
     const checkInitAdmin = async () => {
       try {
@@ -203,22 +191,22 @@ export default defineComponent({
         }
       }
     }
-    
+
     // 处理登录
     const handleLogin = async () => {
       if (!loginFormRef.value) return
-      
+
       try {
         await loginFormRef.value.validate()
-        
+
         loading.value = true
         await store.dispatch('auth/login', {
           username: loginForm.username,
-          password: loginForm.password
+          password: loginForm.password,
         })
-        
+
         ElMessage.success('登录成功')
-        
+
         // 跳转到之前的页面或仪表盘
         const redirect = route.query.redirect || '/dashboard'
         router.push(redirect)
@@ -229,36 +217,36 @@ export default defineComponent({
         ElMessage({
           message: errorMsg,
           type: 'error',
-          duration: 5 * 1000
+          duration: 5 * 1000,
         })
       } finally {
         loading.value = false
       }
     }
-    
+
     // 显示初始化管理员对话框
     const showInitAdminDialog = () => {
       initAdminDialogVisible.value = true
     }
-    
+
     // 处理初始化管理员
     const handleInitAdmin = async () => {
       if (!initAdminFormRef.value) return
-      
+
       try {
         await initAdminFormRef.value.validate()
-        
+
         initAdminLoading.value = true
-        
+
         // 创建管理员账户
         await store.dispatch('auth/initAdmin', {
           username: initAdminForm.username,
           password: initAdminForm.password,
-          email: initAdminForm.email
+          email: initAdminForm.email,
         })
-        
+
         ElMessage.success('管理员账户创建成功，请使用新账户登录')
-        
+
         // 重置表单并关闭对话框
         initAdminFormRef.value.resetFields()
         initAdminDialogVisible.value = false
@@ -270,23 +258,23 @@ export default defineComponent({
         ElMessage({
           message: errorMsg,
           type: 'error',
-          duration: 5 * 1000
+          duration: 5 * 1000,
         })
       } finally {
         initAdminLoading.value = false
       }
     }
-    
+
     onMounted(() => {
       // 检查是否需要初始化管理员
       checkInitAdmin()
-      
+
       // 如果已经登录，直接跳转到仪表盘
       if (store.getters.isAuthenticated) {
         router.push('/dashboard')
       }
     })
-    
+
     return {
       loginForm,
       loginRules,
@@ -300,9 +288,9 @@ export default defineComponent({
       initAdminRules,
       initAdminFormRef,
       showInitAdminDialog,
-      handleInitAdmin
+      handleInitAdmin,
     }
-  }
+  },
 })
 </script>
 
@@ -347,7 +335,7 @@ export default defineComponent({
 .login-header h1 {
   font-size: 36px;
   font-weight: 700;
-  color: #409EFF;
+  color: #409eff;
   margin: 0 0 10px;
 }
 
@@ -371,7 +359,7 @@ export default defineComponent({
 }
 
 .init-admin-tip {
-  color: #F56C6C;
+  color: #f56c6c;
   font-size: 14px;
   margin: 0 0 10px;
 }
@@ -394,7 +382,7 @@ export default defineComponent({
     width: 90%;
     padding: 30px 20px;
   }
-  
+
   .login-header h1 {
     font-size: 30px;
   }

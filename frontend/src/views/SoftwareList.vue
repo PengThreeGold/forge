@@ -7,7 +7,7 @@
         创建软件空间
       </el-button>
     </div>
-    
+
     <div class="search-bar">
       <el-input
         v-model="searchKeyword"
@@ -23,7 +23,7 @@
         </template>
       </el-input>
     </div>
-    
+
     <el-table
       v-loading="loading"
       :data="filteredSpaces"
@@ -42,19 +42,13 @@
       </el-table-column>
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="viewSpace(scope.row)">
-            查看
-          </el-button>
-          <el-button type="warning" size="small" @click="editSpace(scope.row)">
-            编辑
-          </el-button>
-          <el-button type="danger" size="small" @click="confirmDelete(scope.row)">
-            删除
-          </el-button>
+          <el-button type="primary" size="small" @click="viewSpace(scope.row)"> 查看 </el-button>
+          <el-button type="warning" size="small" @click="editSpace(scope.row)"> 编辑 </el-button>
+          <el-button type="danger" size="small" @click="confirmDelete(scope.row)"> 删除 </el-button>
         </template>
       </el-table-column>
     </el-table>
-    
+
     <div class="pagination-container">
       <el-pagination
         v-model:current-page="currentPage"
@@ -66,7 +60,7 @@
         @current-change="handleCurrentChange"
       />
     </div>
-    
+
     <!-- 创建/编辑软件空间对话框 -->
     <el-dialog
       v-model="spaceDialogVisible"
@@ -75,20 +69,15 @@
       :close-on-click-modal="false"
       @close="handleDialogClose"
     >
-      <el-form
-        ref="spaceForm"
-        :model="spaceForm"
-        :rules="spaceRules"
-        label-width="100px"
-      >
+      <el-form ref="spaceForm" :model="spaceForm" :rules="spaceRules" label-width="100px">
         <el-form-item label="软件名称" prop="name">
           <el-input v-model="spaceForm.name" placeholder="请输入软件名称" />
         </el-form-item>
-        
+
         <el-form-item label="作者" prop="author">
           <el-input v-model="spaceForm.author" placeholder="请输入作者名称" />
         </el-form-item>
-        
+
         <el-form-item label="描述" prop="description">
           <el-input
             v-model="spaceForm.description"
@@ -97,12 +86,12 @@
             placeholder="请输入软件描述"
           />
         </el-form-item>
-        
+
         <el-form-item label="Webhook URL" prop="webhook_url">
           <el-input v-model="spaceForm.webhook_url" placeholder="请输入Webhook URL（可选）" />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="spaceDialogVisible = false">取消</el-button>
@@ -112,7 +101,7 @@
         </span>
       </template>
     </el-dialog>
-    
+
     <!-- API密钥对话框 -->
     <el-dialog
       v-model="apiKeyDialogVisible"
@@ -123,12 +112,7 @@
       <div class="api-key-container">
         <p class="api-key-desc">API密钥用于外部访问您的软件空间，请妥善保管：</p>
         <div class="api-key-box">
-          <el-input
-            v-model="currentApiKey"
-            type="textarea"
-            :rows="3"
-            readonly
-          />
+          <el-input v-model="currentApiKey" type="textarea" :rows="3" readonly />
           <el-button type="primary" @click="copyApiKey">
             <el-icon><CopyDocument /></el-icon>
             复制
@@ -157,72 +141,71 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const router = useRouter()
-    
+
     // 数据
     const spaces = ref([])
     const loading = ref(false)
     const searchKeyword = ref('')
     const sortProp = ref('')
     const sortOrder = ref('')
-    
+
     // 分页
     const currentPage = ref(1)
     const pageSize = ref(20)
     const total = ref(0)
-    
+
     // 对话框相关
     const spaceDialogVisible = ref(false)
     const dialogTitle = ref('创建软件空间')
     const dialogLoading = ref(false)
     const isEdit = ref(false)
     const currentSpaceId = ref(null)
-    
+
     // 表单
     const spaceForm = reactive({
       name: '',
       author: '',
       description: '',
-      webhook_url: ''
+      webhook_url: '',
     })
-    
+
     const spaceRules = {
-      name: [
-        { required: true, message: '请输入软件名称', trigger: 'blur' }
-      ]
+      name: [{ required: true, message: '请输入软件名称', trigger: 'blur' }],
     }
-    
+
     const spaceFormRef = ref(null)
-    
+
     // API密钥对话框
     const apiKeyDialogVisible = ref(false)
     const currentApiKey = ref('')
-    
+
     // 计算属性
     const filteredSpaces = computed(() => {
       let result = [...spaces.value]
-      
+
       // 搜索过滤
       if (searchKeyword.value) {
         const keyword = searchKeyword.value.toLowerCase()
-        result = result.filter(space => 
-          space.name.toLowerCase().includes(keyword) || 
-          space.author.toLowerCase().includes(keyword) ||
-          (space.description && space.description.toLowerCase().includes(keyword))
+        result = result.filter(
+          space =>
+            space.name.toLowerCase().includes(keyword) ||
+            space.author.toLowerCase().includes(keyword) ||
+            (space.description && space.description.toLowerCase().includes(keyword))
         )
       }
-      
+
       // 排序
       if (sortProp.value && sortOrder.value) {
         result.sort((a, b) => {
           let valueA = a[sortProp.value]
           let valueB = b[sortProp.value]
-          
+
           // 处理日期
           if (sortProp.value === 'created_at') {
             valueA = new Date(valueA).getTime()
             valueB = new Date(valueB).getTime()
           }
-          
+
           if (sortOrder.value === 'ascending') {
             return valueA > valueB ? 1 : -1
           } else {
@@ -230,18 +213,18 @@ export default defineComponent({
           }
         })
       }
-      
+
       // 分页
       const start = (currentPage.value - 1) * pageSize.value
       const end = start + pageSize.value
       return result.slice(start, end)
     })
-    
+
     // 获取软件空间列表
     const getSpaces = async () => {
       try {
         loading.value = true
-        
+
         const response = await store.dispatch('software/getSpaces')
         spaces.value = response.data
         total.value = response.data.length
@@ -251,30 +234,30 @@ export default defineComponent({
         loading.value = false
       }
     }
-    
+
     // 搜索
     const handleSearch = () => {
       currentPage.value = 1
     }
-    
+
     // 排序变化
     const handleSortChange = ({ prop, order }) => {
       sortProp.value = prop
       sortOrder.value = order
       currentPage.value = 1
     }
-    
+
     // 分页大小变化
-    const handleSizeChange = (size) => {
+    const handleSizeChange = size => {
       pageSize.value = size
       currentPage.value = 1
     }
-    
+
     // 当前页变化
-    const handleCurrentChange = (page) => {
+    const handleCurrentChange = page => {
       currentPage.value = page
     }
-    
+
     // 显示创建对话框
     const showCreateDialog = () => {
       dialogTitle.value = '创建软件空间'
@@ -283,76 +266,78 @@ export default defineComponent({
       resetForm()
       spaceDialogVisible.value = true
     }
-    
+
     // 编辑软件空间
-    const editSpace = (space) => {
+    const editSpace = space => {
       dialogTitle.value = '编辑软件空间'
       isEdit.value = true
       currentSpaceId.value = space.id
-      
+
       // 填充表单
       spaceForm.name = space.name
       spaceForm.author = space.author
       spaceForm.description = space.description
       spaceForm.webhook_url = space.webhook_url
-      
+
       spaceDialogVisible.value = true
     }
-    
+
     // 查看软件空间
-    const viewSpace = (space) => {
+    const viewSpace = space => {
       router.push(`/software/${space.id}`)
     }
-    
+
     // 确认删除
-    const confirmDelete = (space) => {
+    const confirmDelete = space => {
       ElMessageBox.confirm(
         `确定要删除软件空间"${space.name}"吗？此操作不可逆，所有相关数据将被删除。`,
         '删除确认',
         {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
-          type: 'warning'
+          type: 'warning',
         }
-      ).then(async () => {
-        try {
-          await store.dispatch('software/deleteSpace', space.id)
-          ElMessage.success('删除成功')
-          getSpaces()
-        } catch (error) {
-          console.error('删除软件空间失败:', error)
-        }
-      }).catch(() => {
-        // 用户取消删除
-      })
+      )
+        .then(async () => {
+          try {
+            await store.dispatch('software/deleteSpace', space.id)
+            ElMessage.success('删除成功')
+            getSpaces()
+          } catch (error) {
+            console.error('删除软件空间失败:', error)
+          }
+        })
+        .catch(() => {
+          // 用户取消删除
+        })
     }
-    
+
     // 提交表单
     const handleSpaceSubmit = async () => {
       if (!spaceFormRef.value) return
-      
+
       try {
         await spaceFormRef.value.validate()
-        
+
         dialogLoading.value = true
-        
+
         if (isEdit.value) {
           // 编辑软件空间
           await store.dispatch('software/updateSpace', {
             spaceId: currentSpaceId.value,
-            spaceData: spaceForm
+            spaceData: spaceForm,
           })
           ElMessage.success('更新成功')
         } else {
           // 创建软件空间
           const response = await store.dispatch('software/createSpace', spaceForm)
           ElMessage.success('创建成功')
-          
+
           // 创建成功后显示API密钥
           currentApiKey.value = response.data.api_key
           apiKeyDialogVisible.value = true
         }
-        
+
         spaceDialogVisible.value = false
         getSpaces()
       } catch (error) {
@@ -361,24 +346,24 @@ export default defineComponent({
         dialogLoading.value = false
       }
     }
-    
+
     // 重置表单
     const resetForm = () => {
       spaceForm.name = ''
       spaceForm.author = ''
       spaceForm.description = ''
       spaceForm.webhook_url = ''
-      
+
       if (spaceFormRef.value) {
         spaceFormRef.value.resetFields()
       }
     }
-    
+
     // 关闭对话框
     const handleDialogClose = () => {
       resetForm()
     }
-    
+
     // 复制API密钥
     const copyApiKey = async () => {
       try {
@@ -388,34 +373,32 @@ export default defineComponent({
         ElMessage.error('复制失败，请手动复制')
       }
     }
-    
+
     // 重新生成API密钥
     const regenerateApiKey = async () => {
       try {
-        ElMessageBox.confirm(
-          '确定要重新生成API密钥吗？旧的API密钥将立即失效。',
-          '确认操作',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        ).then(async () => {
-          const response = await store.dispatch('software/regenerateApiKey', currentSpaceId.value)
-          currentApiKey.value = response.data.api_key
-          ElMessage.success('API密钥已重新生成')
-        }).catch(() => {
-          // 用户取消操作
+        ElMessageBox.confirm('确定要重新生成API密钥吗？旧的API密钥将立即失效。', '确认操作', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
         })
+          .then(async () => {
+            const response = await store.dispatch('software/regenerateApiKey', currentSpaceId.value)
+            currentApiKey.value = response.data.api_key
+            ElMessage.success('API密钥已重新生成')
+          })
+          .catch(() => {
+            // 用户取消操作
+          })
       } catch (error) {
         console.error('重新生成API密钥失败:', error)
       }
     }
-    
+
     onMounted(() => {
       getSpaces()
     })
-    
+
     return {
       spaces,
       loading,
@@ -446,9 +429,9 @@ export default defineComponent({
       handleDialogClose,
       copyApiKey,
       regenerateApiKey,
-      formatDateTime
+      formatDateTime,
     }
-  }
+  },
 })
 </script>
 
@@ -507,33 +490,33 @@ export default defineComponent({
   .software-list-container {
     padding: 10px;
   }
-  
+
   .page-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .page-header .el-button {
     margin-top: 10px;
   }
-  
+
   .search-bar {
     width: 100%;
   }
-  
+
   .pagination-container {
     text-align: center;
   }
-  
+
   .api-key-box {
     flex-direction: column;
   }
-  
+
   .api-key-box .el-textarea {
     margin-right: 0;
     margin-bottom: 10px;
   }
-  
+
   .api-key-actions {
     text-align: center;
   }
