@@ -350,6 +350,67 @@ def download_version(version_id):
 
 
 # 公开API接口
+@software_bp.route('/public/spaces', methods=['GET'])
+def get_public_spaces():
+    """获取所有公开的软件空间列表（公开API）"""
+    # 获取所有有已发布版本的软件空间
+    spaces = SoftwareSpace.query.join(
+        SoftwareVersion,
+        SoftwareSpace.id == SoftwareVersion.space_id
+    ).filter(
+        SoftwareVersion.is_published == True
+    ).distinct().order_by(SoftwareSpace.created_at.desc()).all()
+    
+    spaces_data = []
+    for space in spaces:
+        space_dict = space.to_dict()
+        space_dict.pop('api_key', None)  # 不返回API密钥
+        
+        # 获取最新发布的版本
+        latest_version = SoftwareVersion.query.filter_by(
+            space_id=space.id,
+            is_published=True
+        ).order_by(SoftwareVersion.created_at.desc()).first()
+        
+        if latest_version:
+            space_dict['latest_version'] = latest_version.version
+            space_dict['latest_publish_date'] = latest_version.publish_date.isoformat() if latest_version.publish_date else None
+        
+        spaces_data.append(space_dict)
+    
+    return success_response(spaces_data)
+
+
+@software_bp.route('/public/space/<int:space_id>', methods=['GET'])
+def get_space_info_by_id(space_id):
+    """通过ID获取软件空间信息（公开API）"""
+    space = SoftwareSpace.query.get_or_404(space_id)
+    
+    # 检查是否有已发布的版本
+    has_published_versions = SoftwareVersion.query.filter_by(
+        space_id=space_id,
+        is_published=True
+    ).first() is not None
+    
+    if not has_published_versions:
+        return error_response("该软件空间没有已发布的版本", 404)
+    
+    space_data = space.to_dict()
+    space_data.pop('api_key', None)  # 不返回API密钥
+    
+    # 获取最新发布的版本
+    latest_version = SoftwareVersion.query.filter_by(
+        space_id=space_id,
+        is_published=True
+    ).order_by(SoftwareVersion.created_at.desc()).first()
+    
+    if latest_version:
+        space_data['latest_version'] = latest_version.version
+        space_data['latest_publish_date'] = latest_version.publish_date.isoformat() if latest_version.publish_date else None
+    
+    return success_response(space_data)
+
+
 @software_bp.route('/public/<api_key>', methods=['GET'])
 def get_space_info(api_key):
     """获取软件空间信息（公开API）"""

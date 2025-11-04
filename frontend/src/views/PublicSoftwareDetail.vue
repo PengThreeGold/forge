@@ -182,7 +182,12 @@ import { defineComponent, ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Download, Document, ArrowLeft } from '@element-plus/icons-vue'
-import { getSpaceInfo, getVersionsInfo, downloadVersionPublic } from '@/api/software'
+import {
+  getSpaceInfo,
+  getSpaceInfoById,
+  getVersionsInfo,
+  downloadVersionPublic,
+} from '@/api/software'
 import { formatDateTime } from '@/utils/common'
 
 export default defineComponent({
@@ -227,30 +232,25 @@ export default defineComponent({
       try {
         loading.value = true
 
-        // 这里需要根据软件ID获取软件信息
-        // 由于当前API设计，我们需要通过API密钥获取信息
-        // 在实际应用中，应该有专门的公共API通过软件ID获取信息
-        // 这里使用模拟数据
-        const mockSoftware = {
-          id: softwareId.value,
-          name: '示例软件',
-          author: '示例作者',
-          description:
-            '这是一个示例软件的描述，用于展示软件详情页面的功能。软件具有强大的功能和友好的用户界面。',
-          created_at: '2023-01-15T10:30:00Z',
-          downloads_count: 1250,
-          api_key: 'demo-api-key',
-        }
+        // 使用公共API通过ID获取软件信息
+        const response = await getSpaceInfoById(softwareId.value)
+        if (response && response.data) {
+          software.value = response.data
 
-        software.value = mockSoftware
-
-        // 获取版本列表
-        if (mockSoftware.api_key) {
-          await getVersions(mockSoftware.api_key)
+          // 获取版本列表
+          if (response.data.api_key) {
+            await getVersions(response.data.api_key)
+          }
+        } else {
+          ElMessage.error('获取软件信息失败')
+          // 返回上一页
+          router.push('/public')
         }
       } catch (error) {
         console.error('获取软件信息失败:', error)
         ElMessage.error('获取软件信息失败')
+        // 返回上一页
+        router.push('/public')
       } finally {
         loading.value = false
       }
@@ -272,47 +272,8 @@ export default defineComponent({
         }
       } catch (error) {
         console.error('获取版本列表失败:', error)
-        // 使用模拟数据
-        versions.value = [
-          {
-            id: '1',
-            version: 'v1.2.0',
-            release_note:
-              '这是v1.2.0版本的发布说明。\n\n主要更新：\n- 修复了一些已知问题\n- 提升了性能\n- 改进了用户界面\n\n感谢所有用户的反馈和支持！',
-            is_published: true,
-            is_prerelease: false,
-            is_latest: true,
-            publish_date: '2023-05-15T10:30:00Z',
-            created_at: '2023-05-15T10:30:00Z',
-            file_size_human: '25.3 MB',
-            download_count: 450,
-          },
-          {
-            id: '2',
-            version: 'v1.1.0',
-            release_note:
-              '这是v1.1.0版本的发布说明。\n\n主要更新：\n- 新增了一些功能\n- 修复了一些bug',
-            is_published: true,
-            is_prerelease: false,
-            is_latest: false,
-            publish_date: '2023-04-10T10:30:00Z',
-            created_at: '2023-04-10T10:30:00Z',
-            file_size_human: '24.8 MB',
-            download_count: 300,
-          },
-          {
-            id: '3',
-            version: 'v1.1.1-beta',
-            release_note: '这是一个预发布版本，用于测试新功能。',
-            is_published: true,
-            is_prerelease: true,
-            is_latest: false,
-            publish_date: '2023-05-10T10:30:00Z',
-            created_at: '2023-05-10T10:30:00Z',
-            file_size_human: '25.1 MB',
-            download_count: 50,
-          },
-        ]
+        ElMessage.error('获取版本列表失败')
+        versions.value = []
       }
     }
 

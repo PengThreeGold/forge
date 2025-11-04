@@ -192,7 +192,12 @@ import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { FolderOpened, Download, Document, Filter, Search } from '@element-plus/icons-vue'
-import { getSpaceInfo, getVersionsInfo, downloadVersionPublic } from '@/api/software'
+import {
+  getPublicSpaces,
+  getSpaceInfo,
+  getVersionsInfo,
+  downloadVersionPublic,
+} from '@/api/software'
 
 export default defineComponent({
   name: 'PublicSoftware',
@@ -217,6 +222,10 @@ export default defineComponent({
 
     // 计算属性
     const filteredSpaces = computed(() => {
+      if (!spaces.value || !Array.isArray(spaces.value)) {
+        return []
+      }
+
       let result = [...spaces.value]
 
       // 搜索过滤
@@ -224,9 +233,9 @@ export default defineComponent({
         const keyword = searchKeyword.value.toLowerCase()
         result = result.filter(
           space =>
-            space.name.toLowerCase().includes(keyword) ||
-            space.author?.toLowerCase().includes(keyword) ||
-            space.description?.toLowerCase().includes(keyword)
+            (space && space.name && space.name.toLowerCase().includes(keyword)) ||
+            (space.author && space.author.toLowerCase().includes(keyword)) ||
+            (space.description && space.description.toLowerCase().includes(keyword))
         )
       }
 
@@ -251,7 +260,6 @@ export default defineComponent({
           break
       }
 
-      // 将更新总数的逻辑移到副作用中，而不是在计算属性中
       return result
     })
 
@@ -265,14 +273,14 @@ export default defineComponent({
     const getSpaces = async () => {
       try {
         loading.value = true
-        // 这里使用公共API获取软件空间列表
-        // 由于当前API设计，我们需要使用管理员API获取列表，然后过滤
-        // 在实际应用中，应该有专门的公共API
-        const response = await getSpaceInfo('') // 这里需要一个公共API
-        if (response && response.data) {
-          spaces.value = Array.isArray(response.data) ? response.data : []
+        // 使用公共API获取所有软件空间列表
+        const response = await getPublicSpaces()
+        if (response && response.data && Array.isArray(response.data)) {
+          // 只显示有已发布版本的软件空间
+          spaces.value = response.data.filter(space => {
+            return space && space.versions_count && space.versions_count > 0
+          })
         } else {
-          // 如果API返回的不是数组，尝试使用其他方式获取
           spaces.value = []
         }
       } catch (error) {
@@ -415,7 +423,7 @@ export default defineComponent({
 
     // 监听 filteredSpaces 的变化，更新总数
     watch(filteredSpaces, newValue => {
-      total.value = newValue.length
+      total.value = newValue ? newValue.length : 0
     })
 
     onMounted(() => {
