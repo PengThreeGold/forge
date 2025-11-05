@@ -70,20 +70,12 @@ def read_versions(
 async def create_version(
     space_id: str,
     version: str = Form(...),
-    architectures: str = Form(...),
+    architecture: str = Form(...),  # 指定架构：x86_64 或 aarch64
     release_note: str = Form(None),
     documentation_url: str = Form(None),
     is_published: bool = Form(False),
-    file_x86: UploadFile = File(None),
-    file_x64: UploadFile = File(None),
-    file_arm64: UploadFile = File(None),
-    file_arm: UploadFile = File(None),
-    file_universal: UploadFile = File(None),
-    hash_x86: str = Form(None),
-    hash_x64: str = Form(None),
-    hash_arm64: str = Form(None),
-    hash_arm: str = Form(None),
-    hash_universal: str = Form(None),
+    file: UploadFile = File(...),  # 单文件上传，必填
+    file_hash: str = Form(None),   # 文件哈希值
     db: Session = Depends(get_current_db),
     current_user: models.User = Depends(get_current_user)
 ) -> Any:
@@ -121,47 +113,75 @@ async def create_version(
             detail="版本已存在"
         )
 
-    # 解析架构列表
-    try:
-        architecture_config = json.loads(architectures)
-    except json.JSONDecodeError:
+    # 验证架构参数
+    valid_architectures = ["x86_64", "aarch64"]  # 目前支持的架构
+    if architecture not in valid_architectures:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="架构配置格式无效，请使用有效的JSON格式"
+            detail=f"不支持的架构类型。支持的架构: {', '.join(valid_architectures)}"
         )
-
-    # 验证架构文件
-    file_map = {
-        "x86": (file_x86, hash_x86),
-        "x64": (file_x64, hash_x64),
-        "arm64": (file_arm64, hash_arm64),
-        "arm": (file_arm, hash_arm),
-        "universal": (file_universal, hash_universal)
+    
+    # 架构映射（用于文件存储和显示）
+    arch_mapping = {
+        "x86_64": "x86_64",
+        "aarch64": "aarch64"
     }
+    mapped_architecture = arch_mapping.get(architecture, architecture)
 
-    # 检查提供的架构是否与配置匹配
-    for arch in architecture_config:
-        if arch not in file_map or not file_map[arch][0]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"架构 {arch} 的文件未提供"
-            )
+    # 验证文件对象
+    if not file or not hasattr(file, 'filename') or not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="文件未提供或无效"
+        )
 
     # 创建上传目录
     upload_dir = os.path.join(settings.UPLOAD_DIR, space_id, version)
     ensure_directory_exists(upload_dir)
 
-    # 创建版本记录
+    # 验证文件名
+    if not is_safe_filename(file.filename):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"文件名不安全: {file.filename}"
+        )
+
+    # 清理文件名
+    safe_filename = sanitize_filename(file.filename)
+
+    # 读取文件内容
+    try:
+        file_content = file.file.read()
+        file_size = len(file_content)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"文件读取失败: {str(e)}"
+        )
+
+    # 验证文件大小
+    if not validate_file_size(file_size):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"文件大小超过限制（最大{format_file_size(settings.MAX_FILE_SIZE)}）"
+        )
+
     # 处理 documentation_url，确保是有效的 URL 或 None
     doc_url = None
-    if documentation_url:
+    if documentation_url and documentation_url.strip():
         try:
             from pydantic import HttpUrl
-            doc_url = HttpUrl(documentation_url)
+            # 验证URL格式
+            if documentation_url.startswith(('http://', 'https://')):
+                doc_url = HttpUrl(documentation_url)
+            else:
+                # 如果不是有效的URL格式，设置为None
+                doc_url = None
         except:
             # 如果 URL 无效，设置为 None
             doc_url = None
     
+    # 创建版本记录
     version_in = schemas.SoftwareVersionCreate(
         version=version,
         release_note=release_note,
@@ -176,46 +196,34 @@ async def create_version(
         created_by=getattr(current_user, 'id')
     )
 
-    # 处理每个架构的文件
-    for arch, file_info in file_map.items():
-        if arch in architecture_config and file_info[0]:
-            file = file_info[0]
-            hash_value = file_info[1]
+    # 创建上传目录（在版本记录创建后）
+    try:
+        upload_dir = os.path.join(settings.UPLOAD_DIR, space_id, version)
+        # 确保目录存在
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # 保存文件
+        file_path = os.path.join(upload_dir, safe_filename)
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+    except Exception as e:
+        # 如果文件保存失败，删除已创建的版本记录
+        crud.crud_software_version.remove(db, id=getattr(db_version, 'id'))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"文件保存失败: {str(e)}"
+        )
 
-            # 验证文件名
-            if file.filename and not is_safe_filename(file.filename):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"架构 {arch} 的文件名不安全"
-                )
-
-            # 清理文件名
-            safe_filename = sanitize_filename(file.filename) if file.filename else f"file_{arch}"
-
-            # 验证文件大小
-            file_content = file.file.read() if file.filename else b""
-            file_size = len(file_content)
-            if file.filename and not validate_file_size(file_size):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"架构 {arch} 的文件大小超过限制（最大{format_file_size(settings.MAX_FILE_SIZE)}）"
-                )
-
-            # 保存文件
-            file_path = os.path.join(upload_dir, safe_filename)
-            with open(file_path, "wb") as f:
-                f.write(file_content)
-
-            # 创建架构文件记录
-            from app.crud.software_architecture_file import crud_software_architecture_file
-            crud_software_architecture_file.create(
-                db=db,
-                version_id=getattr(db_version, 'id'),
-                architecture=arch,
-                file_path=file_path,
-                file_name=safe_filename,
-                file_hash=hash_value
-            )
+    # 创建架构文件记录
+    from app.crud.software_architecture_file import crud_software_architecture_file
+    crud_software_architecture_file.create(
+        db=db,
+        version_id=getattr(db_version, 'id'),
+        architecture=mapped_architecture,  # 使用映射后的架构名称
+        file_path=file_path,
+        file_name=safe_filename,
+        file_hash=file_hash
+    )
 
     # 重新加载版本信息（包含架构文件）
     db_version = crud.crud_software_version.get_with_download_count(db, version_id=getattr(db_version, 'id'))
