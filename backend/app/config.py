@@ -30,17 +30,20 @@ class BaseConfig:
     POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
     POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
     
-    # 根据环境变量选择数据库类型
-    if os.environ.get('USE_POSTGRES', 'false').lower() == 'true':
-        SQLALCHEMY_DATABASE_URI = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
-    
     # CORS配置
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', "*").split(",") if os.environ.get('CORS_ORIGINS') else ["*"]
+    
 
 
 class DevelopmentConfig(BaseConfig):
     """开发环境配置"""
     DEBUG = True
+    
+    def __init__(self):
+        super().__init__()
+        # 根据环境变量选择数据库类型
+        if os.environ.get('USE_POSTGRES', 'false').lower() == 'true':
+            self.SQLALCHEMY_DATABASE_URI = f'postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
 
 
 class ProductionConfig(BaseConfig):
@@ -56,21 +59,16 @@ class ProductionConfig(BaseConfig):
     # 生产环境CORS配置
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', "*").split(",") if os.environ.get('CORS_ORIGINS') else ["https://localhost:8080", "https://localhost:3000"]
     
-    # 数据库配置
-    USE_POSTGRES = os.environ.get('USE_POSTGRES', 'false').lower() == 'true'
-    
-    if USE_POSTGRES:
-        # 生产环境PostgreSQL配置
-        POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
-        POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'postgres')
-        POSTGRES_DB = os.environ.get('POSTGRES_DB', 'forge')
-        POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
-        POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
-        SQLALCHEMY_DATABASE_URI = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
-    else:
-        # 生产环境SQLite配置
-        DATABASE_PATH = os.environ.get('DATABASE_PATH', '/app/data/forge.db')
-        SQLALCHEMY_DATABASE_URI = f'sqlite:///{DATABASE_PATH}'
+    def __init__(self):
+        super().__init__()
+        # 数据库配置
+        if os.environ.get('USE_POSTGRES', 'false').lower() == 'true':
+            # 生产环境PostgreSQL配置
+            self.SQLALCHEMY_DATABASE_URI = f'postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
+        else:
+            # 生产环境SQLite配置
+            database_path = os.environ.get('DATABASE_PATH', '/app/data/forge.db')
+            self.SQLALCHEMY_DATABASE_URI = f'sqlite:///{database_path}'
 
 
 class TestingConfig(BaseConfig):

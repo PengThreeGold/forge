@@ -576,15 +576,16 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /versions/{version_id}:
+  /software/{space_id}/versions/{version_id}:
     get:
       tags:
         - 软件管理
       summary: 获取软件版本详情
-      description: 获取指定软件版本的详细信息
+      description: 获取指定软件空间的指定版本的详细信息
       security:
         - BearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/SpaceId'
         - $ref: '#/components/parameters/VersionId'
       responses:
         '200':
@@ -613,10 +614,11 @@ paths:
       tags:
         - 软件管理
       summary: 更新软件版本
-      description: 更新指定软件版本的信息
+      description: 更新指定软件空间的指定版本的信息
       security:
         - BearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/SpaceId'
         - $ref: '#/components/parameters/VersionId'
       requestBody:
         required: true
@@ -663,10 +665,11 @@ paths:
       tags:
         - 软件管理
       summary: 删除软件版本
-      description: 删除指定的软件版本及其文件
+      description: 删除指定软件空间的指定版本及其文件
       security:
         - BearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/SpaceId'
         - $ref: '#/components/parameters/VersionId'
       responses:
         '200':
@@ -682,15 +685,16 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /versions/{version_id}/publish:
+  /software/{space_id}/versions/{version_id}/publish:
     put:
       tags:
         - 软件管理
       summary: 发布/下架软件版本
-      description: 发布或下架指定的软件版本
+      description: 发布或下架指定软件空间的指定版本
       security:
         - BearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/SpaceId'
         - $ref: '#/components/parameters/VersionId'
       requestBody:
         required: true
@@ -730,15 +734,16 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /download/{version_id}:
+  /software/{space_id}/versions/{version_id}/download:
     get:
       tags:
         - 软件管理
       summary: 下载软件版本（管理员）
-      description: 下载指定的软件版本（仅限管理员）
+      description: 下载指定软件空间的指定版本（仅限管理员）
       security:
         - BearerAuth: []
       parameters:
+        - $ref: '#/components/parameters/SpaceId'
         - $ref: '#/components/parameters/VersionId'
       responses:
         '200':
@@ -756,15 +761,15 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # 公开API接口
-  /public/{api_key}:
+  /public/space/{space_id}:
     get:
       tags:
         - 公开API
       summary: 获取软件空间信息（公开API）
-      description: 通过API密钥获取软件空间的基本信息
+      description: 通过软件空间ID获取软件空间的基本信息
       security: []  # 无需认证
       parameters:
-        - $ref: '#/components/parameters/ApiKey'
+        - $ref: '#/components/parameters/SpaceId'
       responses:
         '200':
           description: 获取软件空间信息成功
@@ -784,15 +789,15 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /public/{api_key}/versions:
+  /public/space/{space_id}/versions:
     get:
       tags:
         - 公开API
       summary: 获取软件版本列表（公开API）
-      description: 通过API密钥获取软件空间的所有已发布版本
+      description: 通过软件空间ID获取软件空间的所有已发布版本
       security: []  # 无需认证
       parameters:
-        - $ref: '#/components/parameters/ApiKey'
+        - $ref: '#/components/parameters/SpaceId'
       responses:
         '200':
           description: 获取软件版本列表成功
@@ -814,15 +819,15 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /public/{api_key}/download/{version}:
+  /public/space/{space_id}/download/{version}:
     get:
       tags:
         - 公开API
       summary: 下载软件版本（公开API）
-      description: 通过API密钥下载指定版本的软件
+      description: 通过软件空间ID下载指定版本的软件
       security: []  # 无需认证
       parameters:
-        - $ref: '#/components/parameters/ApiKey'
+        - $ref: '#/components/parameters/SpaceId'
         - name: version
           in: path
           required: true

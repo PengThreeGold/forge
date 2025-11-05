@@ -1,4 +1,4 @@
-from app.utils.auth import authenticate_user, generate_token, verify_token
+from app.utils.auth import authenticate_user, verify_token
 from app.models.user import User
 from app import db
 
@@ -18,8 +18,10 @@ class AuthService:
             return None, "权限不足"
         
         # 生成令牌
-        access_token = generate_token(user.id)
-        refresh_token = generate_token(user.id, expires_in=86400)  # 24小时
+        from flask_jwt_extended import create_access_token, create_refresh_token
+        
+        access_token = create_access_token(identity=user.id)
+        refresh_token = create_refresh_token(identity=user.id)
         
         return {
             'user': user,

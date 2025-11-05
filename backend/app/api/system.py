@@ -142,9 +142,6 @@ def get_storage_info():
             # 在Windows系统上不使用statvfs
             if hasattr(os, 'statvfs'):
                 statvfs = os.statvfs('/')
-                total = statvfs.f_frsize * statvfs.f_blocks
-                available = statvfs.f_frsize * statvfs.f_bavail
-                used = total - available
             else:
                 # Windows系统使用其他方法获取磁盘信息
                 import ctypes
@@ -160,12 +157,6 @@ def get_storage_info():
             total = statvfs.f_frsize * statvfs.f_blocks
             available = statvfs.f_frsize * statvfs.f_bavail
             used = total - available
-            
-            return {
-                'total': total,
-                'used': used,
-                'available': available
-            }
         except:
             return {
                 'total': 0,
