@@ -49,19 +49,19 @@ MAX_CONTENT_LENGTH=1073741824
 ### 4. 初始化数据库
 
 ```bash
-python run.py db-init
+python run.py init-db
 ```
 
 ### 5. 创建管理员账户
 
 ```bash
-python run.py create-admin
+python run.py init-admin
 ```
 
 ### 6. 启动开发服务器
 
 ```bash
-python run.py run
+python run.py
 ```
 
 访问 [http://localhost:5000/api](http://localhost:5000/api) 查看后端 API。
@@ -245,7 +245,6 @@ Webhook 日志表，存储 Webhook 调用记录。
     sudo systemctl enable forge
     ```
 
-
 ### 数据库配置
 
 #### PostgreSQL
@@ -325,6 +324,48 @@ print(secrets.token_hex(32))
 ```text
 MAX_CONTENT_LENGTH=1073741824  # 1GB
 ```
+
+## 数据库管理命令
+
+项目提供了几个实用的数据库管理命令，可以通过 `python run.py` 执行：
+
+### 初始化数据库
+
+```bash
+python run.py init-db
+```
+
+创建所有数据库表结构，但不删除任何现有数据。
+
+### 重置数据库
+
+```bash
+python run.py reset-db
+```
+
+删除所有数据库表及其数据，然后重新创建表结构。系统会提示您确认此操作，因为这是危险操作。
+
+### 创建管理员账户
+
+```bash
+python run.py init-admin
+```
+
+引导您创建一个管理员账户。您需要提供用户名和密码，邮箱是可选的。
+
+### 升级数据库
+
+```bash
+python run.py upgrade-db
+```
+
+执行数据库迁移，升级数据库结构到最新版本。
+
+**注意事项**：
+
+- `reset-db` 是危险操作，会删除所有数据，请谨慎使用
+- 如果数据库表不存在，`init-admin` 命令会自动调用 `init-db` 来创建表结构
+- 命令可以使用下划线或连字符形式，例如 `init-db` 和 `init_db` 都可以
 
 ## 常见问题
 

@@ -8,6 +8,7 @@ from app.utils.auth import create_user
 from app.models.user import User
 from app.models.software import SoftwareSpace, SoftwareVersion
 from app.models.statistics import DownloadRecord, WebhookLog
+from app.database import init_db as init_database, reset_db as reset_database
 from sqlalchemy.exc import OperationalError
 
 
@@ -61,7 +62,7 @@ def init_admin(username, password, email):
 def init_db():
     """初始化数据库"""
     click.echo('正在初始化数据库...')
-    db.create_all()
+    init_database()
     click.echo('数据库初始化完成')
 
 
@@ -70,8 +71,7 @@ def reset_db():
     """重置数据库（谨慎使用）"""
     if click.confirm('确定要重置数据库吗？所有数据将被删除！'):
         click.echo('正在重置数据库...')
-        db.drop_all()
-        db.create_all()
+        reset_database()
         click.echo('数据库重置完成')
     else:
         click.echo('操作已取消')
