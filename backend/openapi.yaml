@@ -10,8 +10,6 @@ info:
 servers:
   - url: http://localhost:1110/api
     description: 开发服务器
-  - url: https://api.forge.com/api
-    description: 生产服务器
 
 # CORS 配置
 x-cors:
