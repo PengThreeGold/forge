@@ -9,7 +9,7 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 
 ## 特性
 
-- 🚀 **前后端分离架构**：使用 Vue 3.0+ 和 Flask 构建，实现完全的前后端分离
+- 🚀 **前后端分离架构**：使用 Vue 3.0+ 和 fastapi 构建，实现完全的前后端分离
 - 🔐 **安全认证**：基于 JWT 的认证系统，支持安全的用户登录和权限管理
 - 📦 **软件版本管理**：支持多版本软件管理，包括版本号、发布说明、文件上传等
 - 📊 **统计分析**：提供详细的下载统计、版本统计和系统整体统计
@@ -22,9 +22,9 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 
 - **后端**：
   - Python 3.8+
-  - Flask 2.0+
+  - fastapi
   - SQLAlchemy
-  - SQLite/PostgreSQL/MySQL
+  - SQLite
 
 - **前端**：
   - Node.js 16+
@@ -143,7 +143,6 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 感谢以下开源项目：
 
 - [Vue.js](https://vuejs.org/)
-- [Flask](https://flask.palletsprojects.com/)
 - [Element Plus](https://element-plus.org/)
 - [Docker](https://www.docker.com/)
 - [Nginx](https://nginx.org/)
