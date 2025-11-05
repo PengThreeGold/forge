@@ -21,15 +21,12 @@ class Settings(BaseSettings):
     SQLITE_DB_PATH: str = "forge.db"
     
     # CORS配置
-    CORS_ORIGINS: List[AnyHttpUrl] = []
+    CORS_ORIGINS: str = "*"
     
-    @validator("CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v):
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
+    def get_cors_origins(self) -> List[str]:
+        if self.CORS_ORIGINS == "*":
+            return ["*"]
+        return [i.strip() for i in self.CORS_ORIGINS.split(",")]
     
     # JWT配置
     SECRET_KEY: str = secrets.token_urlsafe(32)
