@@ -1,21 +1,17 @@
-from typing import Any, List
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 import os
-import tempfile
-import shutil
-from datetime import datetime
 
 from app import crud, models, schemas
 from app.api.deps import get_current_db
 from app.core.deps import get_current_user
 from app.core.config import settings
-from app.utils.file import format_file_size, calculate_file_hash, ensure_directory_exists, is_safe_filename, sanitize_filename
+from app.utils.file import format_file_size, ensure_directory_exists, is_safe_filename, sanitize_filename
 from app.utils.validation import validate_file_size, validate_version_format
 from app.utils.webhook import send_webhook, create_version_publish_webhook_data, create_version_update_webhook_data
 from app.crud.webhook_log import crud_webhook_log
-import json
 
 router = APIRouter()
 
@@ -82,7 +78,6 @@ async def create_version(
     """
     创建软件版本（支持多架构）
     """
-    import json
 
     # 检查软件空间是否存在和权限
     space = crud.crud_software_space.get(db, id=space_id)
