@@ -59,11 +59,9 @@ class CRUDSoftwareSpace(CRUDBase[SoftwareSpace, SoftwareSpaceCreate, SoftwareSpa
         if "webhook_events" in update_data and isinstance(update_data["webhook_events"], list):
             update_data["webhook_events"] = json.dumps(update_data["webhook_events"])
         
-        # 处理webhook_url - 将HttpUrl对象转换为字符串
+        # 处理 webhook_url - 直接确保写入的是字符串（无额外校验）
         if "webhook_url" in update_data and update_data["webhook_url"] is not None:
-            from pydantic import HttpUrl
-            if isinstance(update_data["webhook_url"], HttpUrl):
-                update_data["webhook_url"] = str(update_data["webhook_url"])
+            update_data["webhook_url"] = str(update_data["webhook_url"])
         
         # 如果提供了新的webhook_secret，则重新生成
         if update_data.get("webhook_secret") == "":

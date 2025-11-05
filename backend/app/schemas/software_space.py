@@ -1,6 +1,6 @@
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 
 class SoftwareSpaceBase(BaseModel):
@@ -19,7 +19,7 @@ class SoftwareSpaceUpdate(BaseModel):
     description: Optional[str] = Field(None, description="软件描述")
     author: Optional[str] = Field(None, max_length=100, description="作者")
     status: Optional[str] = Field(None, description="软件空间状态")
-    webhook_url: Optional[HttpUrl] = Field(None, description="Webhook URL")
+    webhook_url: Optional[str] = Field(None, description="Webhook URL")
 
 
 class SoftwareSpace(SoftwareSpaceBase):

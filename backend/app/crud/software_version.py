@@ -84,11 +84,18 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         """
         创建软件版本
         """
+        # 确保传入到 DB 的 documentation_url 是原生字符串或 None，
+        # 防止 pydantic 的 HttpUrl 等对象在 SQLite 绑定时报错
+        doc_url = None
+        if getattr(obj_in, "documentation_url", None) is not None:
+            # 使用 str() 可将 HttpUrl 或类似对象转换为字符串
+            doc_url = str(obj_in.documentation_url)
+
         db_obj = SoftwareVersion(
             space_id=space_id,
             version=obj_in.version,
             release_note=obj_in.release_note,
-            documentation_url=obj_in.documentation_url,
+            documentation_url=doc_url,
             is_published=obj_in.is_published or False,
             publish_date=datetime.utcnow() if obj_in.is_published else None,
             created_by=created_by,
@@ -108,6 +115,10 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
             update_data = obj_in
         else:
             update_data = obj_in.dict(exclude_unset=True)
+
+        # 如果 documentation_url 在更新数据里，确保它是字符串或 None，避免 pydantic HttpUrl 对象被直接写入 DB
+        if "documentation_url" in update_data and update_data["documentation_url"] is not None:
+            update_data["documentation_url"] = str(update_data["documentation_url"])
         
         # 如果发布状态改变，更新发布时间
         if "is_published" in update_data:

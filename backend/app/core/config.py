@@ -2,7 +2,7 @@ from typing import List, Optional
 import os
 import secrets
 from pydantic_settings import BaseSettings
-from pydantic import AnyHttpUrl, validator
+from pydantic import validator
 
 
 class Settings(BaseSettings):

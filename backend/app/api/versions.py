@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -161,22 +161,17 @@ async def create_version(
             detail=f"文件大小超过限制（最大{format_file_size(settings.MAX_FILE_SIZE)}）"
         )
 
-    # 处理 documentation_url，确保是有效的 URL 或 None
+    # 处理 documentation_url，确保是字符串或 None（避免将 pydantic HttpUrl 直接写入 DB）
     doc_url = None
     if documentation_url and documentation_url.strip():
-        try:
-            from pydantic import HttpUrl
-            # 验证URL格式
-            if documentation_url.startswith(('http://', 'https://')):
-                doc_url = HttpUrl(documentation_url)
-            else:
-                # 如果不是有效的URL格式，设置为None
-                doc_url = None
-        except:
-            # 如果 URL 无效，设置为 None
+        # 简单校验：以 http:// 或 https:// 开头则认为合法并使用其字符串形式
+        # 我们不直接把 pydantic 的 HttpUrl 对象传给 SQLAlchemy，因为它无法绑定该类型到 SQLite
+        if documentation_url.startswith(("http://", "https://")):
+            doc_url = documentation_url.strip()
+        else:
             doc_url = None
     
-    # 创建版本记录
+    # 创建版本记录（documentation_url 当作普通字符串）
     version_in = schemas.SoftwareVersionCreate(
         version=version,
         release_note=release_note,

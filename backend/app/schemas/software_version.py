@@ -1,13 +1,13 @@
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 from .software_architecture_file import SoftwareArchitectureFile, PublicSoftwareArchitectureFile
 
 
 class SoftwareVersionBase(BaseModel):
     version: str = Field(..., min_length=1, max_length=50, description="版本号")
     release_note: Optional[str] = Field(None, description="发布说明")
-    documentation_url: Optional[HttpUrl] = Field(None, description="文档链接")
+    documentation_url: Optional[str] = Field(None, description="文档链接")
     is_published: Optional[bool] = Field(False, description="是否已发布")
 
 
@@ -18,7 +18,7 @@ class SoftwareVersionCreate(SoftwareVersionBase):
 class SoftwareVersionUpdate(BaseModel):
     version: Optional[str] = Field(None, min_length=1, max_length=50, description="版本号")
     release_note: Optional[str] = Field(None, description="发布说明")
-    documentation_url: Optional[HttpUrl] = Field(None, description="文档链接")
+    documentation_url: Optional[str] = Field(None, description="文档链接")
     is_published: Optional[bool] = Field(None, description="是否已发布")
 
 
