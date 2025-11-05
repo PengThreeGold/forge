@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -132,6 +132,7 @@ async def forbidden_exception_handler(request: Request, exc):
 @app.exception_handler(400)
 async def bad_request_exception_handler(request: Request, exc):
     """400异常处理器"""
+    detail = exc.detail if isinstance(exc, HTTPException) else str(exc)
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content=ErrorResponse(
@@ -139,7 +140,7 @@ async def bad_request_exception_handler(request: Request, exc):
             message="请求参数错误",
             error={
                 "code": "BAD_REQUEST",
-                "message": "请求参数无效"
+                "message": detail
             }
         ).dict()
     )
