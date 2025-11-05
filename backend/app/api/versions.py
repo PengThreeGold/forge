@@ -20,7 +20,7 @@ import json
 router = APIRouter()
 
 
-@router.get("/{space_id}", response_model=schemas.PaginatedResponse[schemas.SoftwareVersion])
+@router.get("/{space_id}/versions", response_model=schemas.PaginatedResponse[schemas.SoftwareVersion])
 def read_versions(
     space_id: str,
     db: Session = Depends(get_current_db),
@@ -66,7 +66,7 @@ def read_versions(
     )
 
 
-@router.post("/{space_id}", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
+@router.post("/{space_id}/versions", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
 async def create_version(
     space_id: str,
     version: str = Form(...),
@@ -253,10 +253,10 @@ async def create_version(
     )
 
 
-@router.put("/{space_id}/{version_id}", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
+@router.put("/{space_id}/versions/{version}", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
 async def update_version(
     space_id: str,
-    version_id: int,
+    version: str,
     version_in: schemas.SoftwareVersionUpdate,
     db: Session = Depends(get_current_db),
     current_user: models.User = Depends(get_current_user)
@@ -279,15 +279,15 @@ async def update_version(
         )
 
     # 获取版本
-    version = crud.crud_software_version.get(db, id=version_id)
-    if not version or getattr(version, 'space_id') != space_id:
+    version_obj = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version)
+    if not version_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本不存在"
         )
 
     # 检查版本号是否已存在（如果更新了版本号）
-    if version_in.version and version_in.version != getattr(version, 'version'):
+    if version_in.version and version_in.version != getattr(version_obj, 'version'):
         existing_version = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version_in.version)
         if existing_version:
             raise HTTPException(
@@ -297,17 +297,17 @@ async def update_version(
 
     # 记录变更（用于Webhook）
     changes = {}
-    if version_in.version and version_in.version != getattr(version, 'version'):
-        changes["version"] = {"old": getattr(version, 'version'), "new": version_in.version}
-    if version_in.release_note and version_in.release_note != getattr(version, 'release_note'):
-        changes["release_note"] = {"old": getattr(version, 'release_note'), "new": version_in.release_note}
-    if version_in.documentation_url and version_in.documentation_url != getattr(version, 'documentation_url'):
+    if version_in.version and version_in.version != getattr(version_obj, 'version'):
+        changes["version"] = {"old": getattr(version_obj, 'version'), "new": version_in.version}
+    if version_in.release_note and version_in.release_note != getattr(version_obj, 'release_note'):
+        changes["release_note"] = {"old": getattr(version_obj, 'release_note'), "new": version_in.release_note}
+    if version_in.documentation_url and version_in.documentation_url != getattr(version_obj, 'documentation_url'):
         changes["documentation_url"] = {"old": getattr(
-            version, 'documentation_url'), "new": version_in.documentation_url}
-    if version_in.is_published is not None and version_in.is_published != getattr(version, 'is_published'):
-        changes["is_published"] = {"old": getattr(version, 'is_published'), "new": version_in.is_published}
+            version_obj, 'documentation_url'), "new": version_in.documentation_url}
+    if version_in.is_published is not None and version_in.is_published != getattr(version_obj, 'is_published'):
+        changes["is_published"] = {"old": getattr(version_obj, 'is_published'), "new": version_in.is_published}
 
-    db_version = crud.crud_software_version.update(db, db_obj=version, obj_in=version_in)
+    db_version = crud.crud_software_version.update(db, db_obj=version_obj, obj_in=version_in)
 
     # 添加人类可读的文件大小
     db_version.file_size_human = format_file_size(getattr(db_version, 'file_size'))
@@ -345,10 +345,10 @@ async def update_version(
     )
 
 
-@router.delete("/{space_id}/{version_id}", response_model=schemas.ResponseModel)
+@router.delete("/{space_id}/versions/{version}", response_model=schemas.ResponseModel)
 def delete_version(
     space_id: str,
-    version_id: int,
+    version: str,
     db: Session = Depends(get_current_db),
     current_user: models.User = Depends(get_current_user)
 ) -> Any:
@@ -370,19 +370,19 @@ def delete_version(
         )
 
     # 获取版本
-    version = crud.crud_software_version.get(db, id=version_id)
-    if not version or getattr(version, 'space_id') != space_id:
+    version_obj = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version)
+    if not version_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本不存在"
         )
 
     # 删除文件
-    if os.path.exists(getattr(version, 'file_path')):
-        os.remove(getattr(version, 'file_path'))
+    if os.path.exists(getattr(version_obj, 'file_path')):
+        os.remove(getattr(version_obj, 'file_path'))
 
     # 删除版本记录
-    crud.crud_software_version.remove(db, id=version_id)
+    crud.crud_software_version.remove(db, id=getattr(version_obj, 'id'))
 
     return schemas.ResponseModel(
         success=True,
@@ -391,10 +391,10 @@ def delete_version(
     )
 
 
-@router.post("/{space_id}/{version_id}/publish", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
+@router.post("/{space_id}/versions/{version}/publish", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
 async def publish_version(
     space_id: str,
-    version_id: int,
+    version: str,
     db: Session = Depends(get_current_db),
     current_user: models.User = Depends(get_current_user)
 ) -> Any:
@@ -416,21 +416,21 @@ async def publish_version(
         )
 
     # 获取版本
-    version = crud.crud_software_version.get(db, id=version_id)
-    if not version or getattr(version, 'space_id') != space_id:
+    version_obj = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version)
+    if not version_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本不存在"
         )
 
     # 发布版本
-    db_version = crud.crud_software_version.publish(db, db_obj=version)
+    db_version = crud.crud_software_version.publish(db, db_obj=version_obj)
 
     # 发送Webhook通知
     if getattr(space, 'webhook_url'):
         webhook_events = crud.crud_software_space.get_webhook_events(space)
         if "version_publish" in webhook_events:
-            webhook_data = create_version_publish_webhook_data(space_id, getattr(db_version, 'version'))
+            webhook_data = create_version_publish_webhook_data(space_id, version)
             success, response_status, response_body = await send_webhook(
                 getattr(space, 'webhook_url'),
                 "version_publish",
@@ -459,10 +459,10 @@ async def publish_version(
     )
 
 
-@router.post("/{space_id}/{version_id}/unpublish", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
+@router.post("/{space_id}/versions/{version}/unpublish", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
 def unpublish_version(
     space_id: str,
-    version_id: int,
+    version: str,
     db: Session = Depends(get_current_db),
     current_user: models.User = Depends(get_current_user)
 ) -> Any:
@@ -484,15 +484,15 @@ def unpublish_version(
         )
 
     # 获取版本
-    version = crud.crud_software_version.get(db, id=version_id)
-    if not version or getattr(version, 'space_id') != space_id:
+    version_obj = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version)
+    if not version_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本不存在"
         )
 
     # 取消发布版本
-    db_version = crud.crud_software_version.unpublish(db, db_obj=version)
+    db_version = crud.crud_software_version.unpublish(db, db_obj=version_obj)
 
     # 使用 Pydantic schema 序列化版本数据
     version_data = schemas.SoftwareVersion.from_orm(db_version)
