@@ -1367,6 +1367,585 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  # 软件空间状态管理接口
+  /spaces/{space_id}/status:
+    put:
+      tags:
+        - 软件管理
+      summary: 更新软件空间状态
+      description: 激活或停用软件空间
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - active
+              properties:
+                active:
+                  type: boolean
+                  description: 是否激活
+                  example: true
+      responses:
+        '200':
+          description: 软件空间状态更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 用户管理接口
+  /users:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户列表
+      description: 获取系统中所有用户的列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 20
+        - name: username
+          in: query
+          description: 用户名过滤
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取用户列表成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 获取用户列表成功
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      total:
+                        type: integer
+                        description: 总用户数
+                        example: 100
+                      pages:
+                        type: integer
+                        description: 总页数
+                        example: 5
+                      current_page:
+                        type: integer
+                        description: 当前页码
+                        example: 1
+                      per_page:
+                        type: integer
+                        description: 每页数量
+                        example: 20
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - 用户管理
+      summary: 创建用户
+      description: 创建新用户账户
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - role
+              properties:
+                username:
+                  type: string
+                  description: 用户名
+                  example: user123
+                password:
+                  type: string
+                  description: 密码
+                  example: password123
+                  format: password
+                email:
+                  type: string
+                  description: 邮箱
+                  example: user@example.com
+                  format: email
+                role:
+                  type: string
+                  description: 用户角色
+                  example: user
+                  enum: [admin, user]
+      responses:
+        '200':
+          description: 用户创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 用户创建成功
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 用户名已存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 用户名已存在
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: USER_EXISTS
+                      message:
+                        type: string
+                        example: 用户名已存在
+
+  /users/{user_id}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户详情
+      description: 获取指定用户的详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取用户详情成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 获取用户详情成功
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户信息
+      description: 更新指定用户的信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: 用户名
+                  example: new_username
+                email:
+                  type: string
+                  description: 邮箱
+                  example: new_email@example.com
+                  format: email
+                role:
+                  type: string
+                  description: 用户角色
+                  example: admin
+                  enum: [admin, user]
+      responses:
+        '200':
+          description: 用户信息更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 用户信息更新成功
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - 用户管理
+      summary: 删除用户
+      description: 删除指定的用户账户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 用户删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Webhook配置管理接口
+  /spaces/{space_id}/webhook/config:
+    get:
+      tags:
+        - Webhook
+      summary: 获取Webhook配置
+      description: 获取软件空间的Webhook配置信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      responses:
+        '200':
+          description: 获取Webhook配置成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 获取Webhook配置成功
+                  data:
+                    type: object
+                    properties:
+                      webhook_url:
+                        type: string
+                        description: Webhook URL
+                        example: https://example.com/webhook
+                        format: uri
+                      webhook_secret:
+                        type: string
+                        description: Webhook密钥（部分隐藏）
+                        example: "************abcd"
+                      webhook_events:
+                        type: array
+                        description: 启用的事件类型
+                        items:
+                          type: string
+                        example: ["download", "version_publish"]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Webhook
+      summary: 更新Webhook配置
+      description: 更新软件空间的Webhook配置
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                webhook_url:
+                  type: string
+                  description: Webhook URL
+                  example: https://example.com/webhook
+                  format: uri
+                webhook_secret:
+                  type: string
+                  description: Webhook密钥（留空则不更新）
+                  example: new_webhook_secret
+                webhook_events:
+                  type: array
+                  description: 启用的事件类型
+                  items:
+                    type: string
+                  example: ["download", "version_publish", "space_update"]
+      responses:
+        '200':
+          description: Webhook配置更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /spaces/{space_id}/webhook/regenerate-secret:
+    post:
+      tags:
+        - Webhook
+      summary: 重新生成Webhook密钥
+      description: 为软件空间重新生成Webhook密钥
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpaceId'
+      responses:
+        '200':
+          description: Webhook密钥重新生成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Webhook密钥重新生成成功
+                  data:
+                    type: object
+                    properties:
+                      webhook_secret:
+                        type: string
+                        description: 新的Webhook密钥
+                        example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 权限管理接口
+  /permissions:
+    get:
+      tags:
+        - 权限管理
+      summary: 获取权限列表
+      description: 获取系统中所有可用的权限列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取权限列表成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 获取权限列表成功
+                  data:
+                    type: object
+                    properties:
+                      permissions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: 权限ID
+                              example: software:create
+                            name:
+                              type: string
+                              description: 权限名称
+                              example: 创建软件
+                            description:
+                              type: string
+                              description: 权限描述
+                              example: 创建和管理软件空间
+                            category:
+                              type: string
+                              description: 权限分类
+                              example: 软件管理
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # 公开API接口优化
+  /public/spaces/search:
+    get:
+      tags:
+        - 公开API
+      summary: 搜索软件空间
+      description: 搜索公开的软件空间
+      security: []
+      parameters:
+        - name: q
+          in: query
+          description: 搜索关键词
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 搜索成功
+                  data:
+                    type: object
+                    properties:
+                      spaces:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SoftwareSpace'
+                      total:
+                        type: integer
+                        description: 总数量
+                        example: 100
+                      pages:
+                        type: integer
+                        description: 总页数
+                        example: 5
+                      current_page:
+                        type: integer
+                        description: 当前页码
+                        example: 1
+                      per_page:
+                        type: integer
+                        description: 每页数量
+                        example: 20
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1587,6 +2166,77 @@ components:
           format: date-time
           description: 尝试时间
           example: 2023-01-01T10:00:00Z
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 角色ID
+          example: 1
+        name:
+          type: string
+          description: 角色名称
+          example: 编辑者
+        description:
+          type: string
+          description: 角色描述
+          example: 可以编辑和管理软件内容
+        permissions:
+          type: array
+          description: 权限列表
+          items:
+            type: string
+          example: ["software:read", "software:edit", "version:create"]
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2023-01-01T00:00:00Z
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: 2023-01-01T00:00:00Z
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 权限ID
+          example: software:create
+        name:
+          type: string
+          description: 权限名称
+          example: 创建软件
+        description:
+          type: string
+          description: 权限描述
+          example: 创建和管理软件空间
+        category:
+          type: string
+          description: 权限分类
+          example: 软件管理
+
+    WebhookConfig:
+      type: object
+      properties:
+        webhook_url:
+          type: string
+          description: Webhook URL
+          example: https://example.com/webhook
+          format: uri
+        webhook_secret:
+          type: string
+          description: Webhook密钥（部分隐藏）
+          example: "************abcd"
+        webhook_events:
+          type: array
+          description: 启用的事件类型
+          items:
+            type: string
+          example: ["download", "version_publish"]
 
   parameters:
     SpaceId:

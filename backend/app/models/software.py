@@ -17,6 +17,8 @@ class SoftwareSpace(db.Model):
     api_key = db.Column(db.String(64), unique=True, nullable=False)
     webhook_url = db.Column(db.String(255), nullable=True)
     webhook_secret = db.Column(db.String(64), nullable=True)
+    webhook_events = db.Column(db.Text, nullable=True)  # 存储为JSON字符串
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -43,11 +45,45 @@ class SoftwareSpace(db.Model):
         self.api_key = self._generate_api_key()
         return self.api_key
     
+    def regenerate_webhook_secret(self):
+        """重新生成Webhook密钥"""
+        import secrets
+        self.webhook_secret = secrets.token_hex(32)
+        return self.webhook_secret
+    
+    def get_webhook_events(self):
+        """获取Webhook事件列表"""
+        import json
+        if self.webhook_events:
+            try:
+                return json.loads(self.webhook_events)
+            except:
+                return []
+        return []
+    
+    def set_webhook_events(self, events):
+        """设置Webhook事件列表"""
+        import json
+        if events and isinstance(events, list):
+            self.webhook_events = json.dumps(events)
+        else:
+            self.webhook_events = None
+    
     def get_latest_version(self):
         """获取最新版本"""
         return self.versions.order_by(SoftwareVersion.created_at.desc()).first()
     
-    def to_dict(self, include_api_key=False):
+    def activate(self):
+        """激活软件空间"""
+        self.is_active = True
+        return self.is_active
+    
+    def deactivate(self):
+        """停用软件空间"""
+        self.is_active = False
+        return self.is_active
+    
+    def to_dict(self, include_api_key=False, include_webhook_config=False):
         """转换为字典"""
         result = {
             'id': self.id,
@@ -55,6 +91,7 @@ class SoftwareSpace(db.Model):
             'description': self.description,
             'author': self.author,
             'webhook_url': self.webhook_url,
+            'is_active': self.is_active,
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
@@ -64,6 +101,9 @@ class SoftwareSpace(db.Model):
         
         if include_api_key:
             result['api_key'] = self.api_key
+            
+        if include_webhook_config:
+            result['webhook_events'] = self.get_webhook_events()
             
         return result
     

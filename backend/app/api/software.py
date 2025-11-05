@@ -147,6 +147,93 @@ def regenerate_api_key(space_id):
     return success_response({'api_key': new_api_key}, "API密钥重新生成成功")
 
 
+@software_bp.route('/software/<int:space_id>/status', methods=['PUT'])
+@jwt_required()
+@admin_required
+def update_space_status(space_id):
+    """更新软件空间状态"""
+    space = SoftwareSpace.query.get_or_404(space_id)
+    
+    data = request.get_json()
+    
+    if not data or 'active' not in data:
+        return error_response("请求参数不能为空", 400)
+    
+    active = data['active']
+    
+    if active:
+        space.activate()
+        message = "软件空间已激活"
+    else:
+        space.deactivate()
+        message = "软件空间已停用"
+    
+    session.commit()
+    
+    return success_response(space.to_dict(include_api_key=True), message)
+
+
+@software_bp.route('/software/<int:space_id>/webhook/config', methods=['GET'])
+@jwt_required()
+@admin_required
+def get_webhook_config(space_id):
+    """获取Webhook配置"""
+    space = SoftwareSpace.query.get_or_404(space_id)
+    
+    webhook_events = space.get_webhook_events()
+    
+    # 部分隐藏webhook密钥
+    webhook_secret = space.webhook_secret
+    if webhook_secret and len(webhook_secret) > 8:
+        webhook_secret = '*' * (len(webhook_secret) - 8) + webhook_secret[-8:]
+    
+    return success_response({
+        'webhook_url': space.webhook_url,
+        'webhook_secret': webhook_secret,
+        'webhook_events': webhook_events
+    }, "获取Webhook配置成功")
+
+
+@software_bp.route('/software/<int:space_id>/webhook/config', methods=['PUT'])
+@jwt_required()
+@admin_required
+def update_webhook_config(space_id):
+    """更新Webhook配置"""
+    space = SoftwareSpace.query.get_or_404(space_id)
+    
+    data = request.get_json()
+    
+    if not data:
+        return error_response("请求参数不能为空", 400)
+    
+    # 更新字段
+    if 'webhook_url' in data:
+        space.webhook_url = data['webhook_url']
+    
+    if 'webhook_secret' in data and data['webhook_secret']:
+        space.webhook_secret = data['webhook_secret']
+    
+    if 'webhook_events' in data:
+        space.set_webhook_events(data['webhook_events'])
+    
+    session.commit()
+    
+    return success_response(message="Webhook配置更新成功")
+
+
+@software_bp.route('/software/<int:space_id>/webhook/regenerate-secret', methods=['POST'])
+@jwt_required()
+@admin_required
+def regenerate_webhook_secret(space_id):
+    """重新生成Webhook密钥"""
+    space = SoftwareSpace.query.get_or_404(space_id)
+    
+    new_webhook_secret = space.regenerate_webhook_secret()
+    session.commit()
+    
+    return success_response({'webhook_secret': new_webhook_secret}, "Webhook密钥重新生成成功")
+
+
 @software_bp.route('/software/<int:space_id>/versions', methods=['GET'])
 @jwt_required()
 @admin_required
@@ -418,6 +505,76 @@ def get_space_info_by_id(space_id):
     return success_response(space_data)
 
 
+@software_bp.route('/public/spaces/search', methods=['GET'])
+def search_public_spaces():
+    """搜索公开的软件空间"""
+    from sqlalchemy import or_
+    
+    # 获取查询参数
+    query = request.args.get('q', type=str)
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    
+    # 构建查询
+    spaces_query = SoftwareSpace.query.join(
+        SoftwareVersion,
+        SoftwareSpace.id == SoftwareVersion.space_id
+    ).filter(
+        SoftwareVersion.is_published == True,
+        SoftwareSpace.is_active == True
+    ).distinct()
+    
+    # 如果有搜索关键词，添加搜索条件
+    if query:
+        spaces_query = spaces_query.filter(
+            or_(
+                SoftwareSpace.name.like(f'%{query}%'),
+                SoftwareSpace.description.like(f'%{query}%'),
+                SoftwareSpace.author.like(f'%{query}%')
+            )
+        )
+    
+    # 分页查询
+    pagination = spaces_query.order_by(
+        SoftwareSpace.created_at.desc()
+    ).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    # 格式化结果
+    spaces_data = []
+    for space in pagination.items:
+        space_dict = space.to_dict()
+        space_dict.pop('api_key', None)  # 不返回API密钥
+        
+        # 添加已发布版本计数
+        published_versions_count = SoftwareVersion.query.filter_by(
+            space_id=space.id,
+            is_published=True
+        ).count()
+        space_dict['versions_count'] = published_versions_count
+        
+        # 获取最新发布的版本
+        latest_version = SoftwareVersion.query.filter_by(
+            space_id=space.id,
+            is_published=True
+        ).order_by(SoftwareVersion.created_at.desc()).first()
+        
+        if latest_version:
+            space_dict['latest_version'] = latest_version.version
+            space_dict['latest_publish_date'] = latest_version.publish_date.isoformat() if latest_version.publish_date else None
+        
+        spaces_data.append(space_dict)
+    
+    return success_response({
+        'spaces': spaces_data,
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
+    }, "搜索成功")
+
+
 @software_bp.route('/public/<api_key>', methods=['GET'])
 def get_space_info(api_key):
     """获取软件空间信息（公开API）"""
@@ -495,3 +652,46 @@ def download_version_public(api_key, version):
         as_attachment=True,
         download_name=os.path.basename(software_version.file_path)
     )
+
+
+@software_bp.route('/public/space/<int:space_id>/versions/latest', methods=['GET'])
+def get_latest_version(space_id):
+    """获取软件空间最新版本"""
+    space = SoftwareSpace.query.get_or_404(space_id)
+    
+    # 检查软件空间是否激活
+    if not space.is_active:
+        return error_response("软件空间未激活", 404)
+    
+    # 获取最新已发布版本
+    latest_version = SoftwareVersion.query.filter_by(
+        space_id=space_id,
+        is_published=True
+    ).order_by(SoftwareVersion.publish_date.desc()).first()
+    
+    if not latest_version:
+        return error_response("该软件空间没有已发布的版本", 404)
+    
+    version_data = latest_version.to_dict()
+    version_data['file_size_human'] = get_file_size_human_readable(latest_version.file_size or 0)
+    
+    return success_response({
+        'version': version_data
+    }, "获取最新版本成功")
+
+
+@software_bp.route('/public/version/<int:version_id>/info', methods=['GET'])
+def get_public_version_info(version_id):
+    """获取版本信息"""
+    version = SoftwareVersion.query.get_or_404(version_id)
+    
+    # 检查版本是否已发布且空间已激活
+    if not version.is_published or not version.space.is_active:
+        return error_response("版本不存在或未发布", 404)
+    
+    version_data = version.to_dict()
+    version_data['file_size_human'] = get_file_size_human_readable(version.file_size or 0)
+    
+    return success_response({
+        'version': version_data
+    }, "获取版本信息成功")

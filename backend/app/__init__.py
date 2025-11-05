@@ -84,11 +84,17 @@ def create_app(config=None):
     from app.api.software import software_bp
     from app.api.statistics import statistics_bp
     from app.api.webhook import webhook_bp
+    from app.api.user_management import user_management_bp
+    from app.api.permission import permission_bp
+    from app.api.system import system_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(software_bp, url_prefix='/api')
     app.register_blueprint(statistics_bp, url_prefix='/api')
     app.register_blueprint(webhook_bp, url_prefix='/api')
+    app.register_blueprint(user_management_bp, url_prefix='/api')
+    app.register_blueprint(permission_bp, url_prefix='/api')
+    app.register_blueprint(system_bp, url_prefix='/api')
     
     # 注册错误处理
     from app.utils.response import register_error_handlers
