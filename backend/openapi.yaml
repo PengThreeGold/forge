@@ -4,8 +4,8 @@ info:
   description: 本文档提供了 Forge 软件发布管理平台的详细 API 文档，包括认证、软件管理、统计分析等各个模块的接口说明。
   version: 1.0.0
   contact:
-    name: Forge 开发团队
-    email: dev@forge.com
+    name: ThreeGold
+    email: peng_three_gold@outlook.com
 
 servers:
   - url: http://localhost:5000/api
@@ -17,7 +17,16 @@ servers:
 x-cors:
   origins: "*"
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-  headers: ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "X-Content-Type-Options", "X-Frame-Options", "X-XSS-Protection"]
+  headers:
+    [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "X-CSRF-Token",
+      "X-Content-Type-Options",
+      "X-Frame-Options",
+      "X-XSS-Protection",
+    ]
   credentials: true
   maxAge: 86400
   exposedHeaders: ["Content-Range", "X-Content-Range"]
@@ -33,7 +42,7 @@ paths:
         - 认证
       summary: 管理员登录
       description: 用户登录获取访问令牌
-      security: []  # 无需认证
+      security: [] # 无需认证
       requestBody:
         required: true
         content:
@@ -54,7 +63,7 @@ paths:
                   example: admin123
                   format: password
       responses:
-        '200':
+        "200":
           description: 登录成功
           content:
             application/json:
@@ -79,13 +88,13 @@ paths:
                         description: 刷新令牌
                         example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
                       user:
-                        $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                        $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /auth/refresh:
     post:
@@ -96,7 +105,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: 令牌刷新成功
           content:
             application/json:
@@ -116,8 +125,8 @@ paths:
                         type: string
                         description: 新的访问令牌
                         example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /auth/profile:
     get:
@@ -128,7 +137,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: 获取用户信息成功
           content:
             application/json:
@@ -142,14 +151,14 @@ paths:
                     type: string
                     example: 获取用户信息成功
                   data:
-                    $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
-  /auth/change-password:
-    post:
+  /auth/admin/password:
+    put:
       tags:
         - 认证
       summary: 修改密码
@@ -177,24 +186,24 @@ paths:
                   example: new_password
                   format: password
       responses:
-        '200':
+        "200":
           description: 密码修改成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
-  /auth/init-admin:
+  /auth/admin/init:
     post:
       tags:
         - 认证
       summary: 初始化管理员账户
       description: 首次使用时初始化管理员账户（仅当没有管理员时可用）
-      security: []  # 无需认证
+      security: [] # 无需认证
       requestBody:
         required: true
         content:
@@ -220,7 +229,7 @@ paths:
                   example: admin@example.com
                   format: email
       responses:
-        '200':
+        "200":
           description: 管理员创建成功
           content:
             application/json:
@@ -237,9 +246,9 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                        $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   # 软件管理相关接口
   /software:
@@ -247,11 +256,11 @@ paths:
       tags:
         - 软件管理
       summary: 获取软件空间列表
-      description: 获取所有软件空间的列表
+      description: 获取所有软件空间的列表（管理员专用，包含完整信息）
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: 获取软件空间列表成功
           content:
             application/json:
@@ -267,17 +276,17 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SoftwareSpace'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                      $ref: "#/components/schemas/SoftwareSpace"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     post:
       tags:
         - 软件管理
       summary: 创建软件空间
-      description: 创建一个新的软件空间
+      description: 创建一个新的软件空间（管理员专用，将自动生成8位随机space_id）
       security:
         - BearerAuth: []
       requestBody:
@@ -307,7 +316,7 @@ paths:
                   example: https://example.com/webhook
                   format: uri
       responses:
-        '201':
+        "201":
           description: 软件空间创建成功
           content:
             application/json:
@@ -321,26 +330,26 @@ paths:
                     type: string
                     example: 软件空间创建成功
                   data:
-                    $ref: '#/components/schemas/SoftwareSpace'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                    $ref: "#/components/schemas/SoftwareSpace"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /software/{space_id}:
     get:
       tags:
         - 软件管理
       summary: 获取软件空间详情
-      description: 获取指定软件空间的详细信息
+      description: 获取指定软件空间的详细信息（管理员专用，包含完整信息）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 获取软件空间详情成功
           content:
             application/json:
@@ -354,23 +363,23 @@ paths:
                     type: string
                     example: 获取软件空间详情成功
                   data:
-                    $ref: '#/components/schemas/SoftwareSpace'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/SoftwareSpace"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     put:
       tags:
         - 软件管理
       summary: 更新软件空间
-      description: 更新指定软件空间的信息
+      description: 更新指定软件空间的信息（管理员专用）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       requestBody:
         required: true
         content:
@@ -396,7 +405,7 @@ paths:
                   example: https://example.com/webhook
                   format: uri
       responses:
-        '200':
+        "200":
           description: 软件空间更新成功
           content:
             application/json:
@@ -410,51 +419,88 @@ paths:
                     type: string
                     example: 软件空间更新成功
                   data:
-                    $ref: '#/components/schemas/SoftwareSpace'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/SoftwareSpace"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     delete:
       tags:
         - 软件管理
       summary: 删除软件空间
-      description: 删除指定的软件空间及其所有相关数据
+      description: 删除指定的软件空间及其所有相关数据（管理员专用）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 软件空间删除成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
-  /software/{space_id}/regenerate-api-key:
+  /software/{space_id}/api-key:
+    get:
+      tags:
+        - 软件管理
+      summary: 获取API密钥
+      description: 获取指定软件空间的API密钥（仅显示部分内容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SpaceId"
+      responses:
+        "200":
+          description: 获取API密钥成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 获取API密钥成功
+                  data:
+                    type: object
+                    properties:
+                      api_key:
+                        type: string
+                        description: API密钥（部分隐藏）
+                        example: "a1b2c3d4************y5z6"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
     post:
       tags:
         - 软件管理
       summary: 重新生成API密钥
-      description: 为指定软件空间重新生成API密钥
+      description: 为指定软件空间重新生成API密钥（一个软件空间只存储一个API密钥）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: API密钥重新生成成功
           content:
             application/json:
@@ -472,27 +518,27 @@ paths:
                     properties:
                       api_key:
                         type: string
-                        description: 新的API密钥
+                        description: 新的API密钥（完整显示，仅此一次）
                         example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /software/{space_id}/versions:
     get:
       tags:
         - 软件管理
       summary: 获取软件版本列表
-      description: 获取指定软件空间的所有版本
+      description: 获取指定软件空间的所有版本（管理员专用，包含完整信息）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 获取软件版本列表成功
           content:
             application/json:
@@ -508,23 +554,23 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SoftwareVersion'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                      $ref: "#/components/schemas/SoftwareVersion"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     post:
       tags:
         - 软件管理
       summary: 创建软件版本
-      description: 为指定软件空间创建一个新版本
+      description: 为指定软件空间创建一个新版本（管理员专用）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       requestBody:
         content:
           multipart/form-data:
@@ -552,7 +598,7 @@ paths:
                   example: https://example.com/docs
                   format: uri
       responses:
-        '201':
+        "201":
           description: 软件版本创建成功
           content:
             application/json:
@@ -566,29 +612,29 @@ paths:
                     type: string
                     example: 软件版本创建成功
                   data:
-                    $ref: '#/components/schemas/SoftwareVersion'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/SoftwareVersion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /software/{space_id}/versions/{version_id}:
     get:
       tags:
         - 软件管理
       summary: 获取软件版本详情
-      description: 获取指定软件空间的指定版本的详细信息
+      description: 获取指定软件空间的指定版本的详细信息（管理员专用，包含完整信息）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
-        - $ref: '#/components/parameters/VersionId'
+        - $ref: "#/components/parameters/SpaceId"
+        - $ref: "#/components/parameters/VersionId"
       responses:
-        '200':
+        "200":
           description: 获取软件版本详情成功
           content:
             application/json:
@@ -602,24 +648,24 @@ paths:
                     type: string
                     example: 获取软件版本详情成功
                   data:
-                    $ref: '#/components/schemas/SoftwareVersion'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/SoftwareVersion"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     put:
       tags:
         - 软件管理
       summary: 更新软件版本
-      description: 更新指定软件空间的指定版本的信息
+      description: 更新指定软件空间的指定版本的信息（管理员专用）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
-        - $ref: '#/components/parameters/VersionId'
+        - $ref: "#/components/parameters/SpaceId"
+        - $ref: "#/components/parameters/VersionId"
       requestBody:
         required: true
         content:
@@ -637,7 +683,7 @@ paths:
                   example: https://example.com/docs
                   format: uri
       responses:
-        '200':
+        "200":
           description: 软件版本更新成功
           content:
             application/json:
@@ -651,39 +697,39 @@ paths:
                     type: string
                     example: 软件版本更新成功
                   data:
-                    $ref: '#/components/schemas/SoftwareVersion'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/SoftwareVersion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     delete:
       tags:
         - 软件管理
       summary: 删除软件版本
-      description: 删除指定软件空间的指定版本及其文件
+      description: 删除指定软件空间的指定版本及其文件（管理员专用）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
-        - $ref: '#/components/parameters/VersionId'
+        - $ref: "#/components/parameters/SpaceId"
+        - $ref: "#/components/parameters/VersionId"
       responses:
-        '200':
+        "200":
           description: 软件版本删除成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /software/{space_id}/versions/{version_id}/publish:
     put:
@@ -694,8 +740,8 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
-        - $ref: '#/components/parameters/VersionId'
+        - $ref: "#/components/parameters/SpaceId"
+        - $ref: "#/components/parameters/VersionId"
       requestBody:
         required: true
         content:
@@ -710,7 +756,7 @@ paths:
                   description: 是否发布
                   example: true
       responses:
-        '200':
+        "200":
           description: 操作成功
           content:
             application/json:
@@ -724,41 +770,41 @@ paths:
                     type: string
                     example: 软件版本发布成功
                   data:
-                    $ref: '#/components/schemas/SoftwareVersion'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/SoftwareVersion"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /software/{space_id}/versions/{version_id}/download:
     get:
       tags:
         - 软件管理
       summary: 下载软件版本（管理员）
-      description: 下载指定软件空间的指定版本（仅限管理员）
+      description: 下载指定软件空间的指定版本（仅限管理员，不需要API密钥）
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
-        - $ref: '#/components/parameters/VersionId'
+        - $ref: "#/components/parameters/SpaceId"
+        - $ref: "#/components/parameters/VersionId"
       responses:
-        '200':
+        "200":
           description: 下载成功
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # 公开API接口
   /public/space/{space_id}:
@@ -766,12 +812,12 @@ paths:
       tags:
         - 公开API
       summary: 获取软件空间信息（公开API）
-      description: 通过软件空间ID获取软件空间的基本信息
-      security: []  # 无需认证
+      description: 通过软件空间ID获取软件空间的基本信息，不包含敏感信息
+      security: [] # 无需认证
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 获取软件空间信息成功
           content:
             application/json:
@@ -785,21 +831,21 @@ paths:
                     type: string
                     example: 获取软件空间信息成功
                   data:
-                    $ref: '#/components/schemas/SoftwareSpace'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/PublicSoftwareSpace"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /public/space/{space_id}/versions:
     get:
       tags:
         - 公开API
       summary: 获取软件版本列表（公开API）
-      description: 通过软件空间ID获取软件空间的所有已发布版本
-      security: []  # 无需认证
+      description: 通过软件空间ID获取软件空间的所有已发布版本，不包含敏感信息
+      security: [] # 无需认证
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 获取软件版本列表成功
           content:
             application/json:
@@ -815,19 +861,114 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SoftwareVersion'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                      $ref: "#/components/schemas/PublicSoftwareVersion"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /public/space/{space_id}/detailed:
+    get:
+      tags:
+        - 公开API
+      summary: 获取软件空间详细信息（带API密钥）
+      description: 通过软件空间ID和API密钥获取软件空间的详细信息，包含更多内容
+      security: [] # 无需JWT认证，但需要API密钥
+      parameters:
+        - $ref: "#/components/parameters/SpaceId"
+        - $ref: "#/components/parameters/ApiKeyOptional"
+      responses:
+        "200":
+          description: 获取软件空间信息成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 获取软件空间信息成功
+                  data:
+                    $ref: "#/components/schemas/PublicSoftwareSpace"
+        "401":
+          description: API密钥无效或已过期
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: API密钥无效或已过期
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: INVALID_API_KEY
+                      message:
+                        type: string
+                        example: 提供的API密钥无效
+        "403":
+          description: API密钥无权限访问该资源
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: API密钥无权限访问该资源
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: FORBIDDEN_ACCESS
+                      message:
+                        type: string
+                        example: 当前API密钥无权限访问该软件空间
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          description: 软件空间已停用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 软件空间已停用
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: SPACE_INACTIVE
+                      message:
+                        type: string
+                        example: 该软件空间已停用，无法访问
 
   /public/space/{space_id}/download/{version}:
     get:
       tags:
         - 公开API
-      summary: 下载软件版本（公开API）
-      description: 通过软件空间ID下载指定版本的软件
-      security: []  # 无需认证
+      summary: 下载软件版本（带API密钥）
+      description: 通过软件空间ID下载指定版本的软件，需要提供API密钥进行验证
+      security: [] # 无需JWT认证，但需要API密钥
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
         - name: version
           in: path
           required: true
@@ -835,16 +976,148 @@ paths:
           schema:
             type: string
             example: 1.0.0
+        - $ref: "#/components/parameters/ApiKey"
       responses:
-        '200':
+        "200":
           description: 下载成功
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          description: API密钥无效或已过期
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: API密钥无效或已过期
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: INVALID_API_KEY
+                      message:
+                        type: string
+                        example: 提供的API密钥无效
+        "403":
+          description: API密钥无权限访问该资源
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: API密钥无权限访问该资源
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: FORBIDDEN_ACCESS
+                      message:
+                        type: string
+                        example: 当前API密钥无权限访问该软件空间
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          description: 软件空间已停用
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 软件空间已停用
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: SPACE_INACTIVE
+                      message:
+                        type: string
+                        example: 该软件空间已停用，无法下载
+
+  /public/spaces/search:
+    get:
+      tags:
+        - 公开API
+      summary: 搜索软件空间（公开API）
+      description: 搜索公开的软件空间，仅返回不包含敏感信息的基本数据
+      security: []
+      parameters:
+        - name: q
+          in: query
+          description: 搜索关键词
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 页码
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 搜索成功
+                  data:
+                    type: object
+                    properties:
+                      spaces:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PublicSoftwareSpace"
+                      total:
+                        type: integer
+                        description: 总数量
+                        example: 100
+                      pages:
+                        type: integer
+                        description: 总页数
+                        example: 5
+                      current_page:
+                        type: integer
+                        description: 当前页码
+                        example: 1
+                      per_page:
+                        type: integer
+                        description: 每页数量
+                        example: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   # 统计分析相关接口
   /statistics/overview:
@@ -856,7 +1129,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: 获取统计概览成功
           content:
             application/json:
@@ -936,11 +1209,11 @@ paths:
                         type: array
                         description: 最近下载记录
                         items:
-                          $ref: '#/components/schemas/DownloadRecord'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                          $ref: "#/components/schemas/DownloadRecord"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /statistics/downloads:
     get:
@@ -965,9 +1238,10 @@ paths:
             default: 20
         - name: space_id
           in: query
-          description: 软件空间ID
+          description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
           schema:
-            type: integer
+            type: string
+            pattern: "^[a-z0-9]{8}$"
         - name: version_id
           in: query
           description: 版本ID
@@ -986,7 +1260,7 @@ paths:
             type: string
             format: date
       responses:
-        '200':
+        "200":
           description: 获取下载统计成功
           content:
             application/json:
@@ -1006,7 +1280,7 @@ paths:
                         type: array
                         description: 下载记录列表
                         items:
-                          $ref: '#/components/schemas/DownloadRecord'
+                          $ref: "#/components/schemas/DownloadRecord"
                       total:
                         type: integer
                         description: 总记录数
@@ -1023,12 +1297,12 @@ paths:
                         type: integer
                         description: 每页数量
                         example: 20
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /statistics/downloads/timeline:
     get:
@@ -1048,11 +1322,12 @@ paths:
             maximum: 365
         - name: space_id
           in: query
-          description: 软件空间ID
+          description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
           schema:
-            type: integer
+            type: string
+            pattern: "^[a-z0-9]{8}$"
       responses:
-        '200':
+        "200":
           description: 获取下载时间线统计成功
           content:
             application/json:
@@ -1093,10 +1368,10 @@ paths:
                         format: date
                         description: 结束日期
                         example: 2023-01-30
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /statistics/spaces/{space_id}:
     get:
@@ -1107,9 +1382,9 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 获取软件空间统计信息成功
           content:
             application/json:
@@ -1130,9 +1405,9 @@ paths:
                         description: 软件空间基本信息
                         properties:
                           id:
-                            type: integer
-                            description: 软件空间ID
-                            example: 1
+                            type: string
+                            description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
+                            example: "abc12345"
                           name:
                             type: string
                             description: 软件名称
@@ -1180,7 +1455,7 @@ paths:
                         type: array
                         description: 最近下载记录
                         items:
-                          $ref: '#/components/schemas/DownloadRecord'
+                          $ref: "#/components/schemas/DownloadRecord"
                       timeline:
                         type: array
                         description: 最近30天下载趋势
@@ -1196,12 +1471,12 @@ paths:
                               type: integer
                               description: 下载次数
                               example: 50
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # Webhook相关接口
   /webhooks:
@@ -1227,11 +1502,12 @@ paths:
             default: 20
         - name: space_id
           in: query
-          description: 软件空间ID
+          description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
           schema:
-            type: integer
+            type: string
+            pattern: "^[a-z0-9]{8}$"
       responses:
-        '200':
+        "200":
           description: 获取Webhook日志列表成功
           content:
             application/json:
@@ -1251,7 +1527,7 @@ paths:
                         type: array
                         description: Webhook日志列表
                         items:
-                          $ref: '#/components/schemas/WebhookLog'
+                          $ref: "#/components/schemas/WebhookLog"
                       total:
                         type: integer
                         description: 总记录数
@@ -1268,10 +1544,10 @@ paths:
                         type: integer
                         description: 每页数量
                         example: 20
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /webhooks/{log_id}:
     get:
@@ -1289,7 +1565,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: 获取Webhook日志详情成功
           content:
             application/json:
@@ -1303,13 +1579,13 @@ paths:
                     type: string
                     example: 获取Webhook日志详情成功
                   data:
-                    $ref: '#/components/schemas/WebhookLog'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    $ref: "#/components/schemas/WebhookLog"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /webhooks/retry/{log_id}:
     post:
@@ -1327,22 +1603,22 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: 重试成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
+                $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 
   /webhooks/test/{space_id}:
     post:
@@ -1353,24 +1629,24 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 测试成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
+                $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
 
   # 软件空间状态管理接口
   /spaces/{space_id}/status:
@@ -1382,7 +1658,7 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       requestBody:
         required: true
         content:
@@ -1397,20 +1673,20 @@ paths:
                   description: 是否激活
                   example: true
       responses:
-        '200':
+        "200":
           description: 软件空间状态更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # 用户管理接口
   /users:
@@ -1440,7 +1716,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: 获取用户列表成功
           content:
             application/json:
@@ -1459,7 +1735,7 @@ paths:
                       users:
                         type: array
                         items:
-                          $ref: '#/components/schemas/User'
+                          $ref: "#/components/schemas/User"
                       total:
                         type: integer
                         description: 总用户数
@@ -1476,10 +1752,10 @@ paths:
                         type: integer
                         description: 每页数量
                         example: 20
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
     post:
       tags:
@@ -1519,7 +1795,7 @@ paths:
                   example: user
                   enum: [admin, user]
       responses:
-        '200':
+        "200":
           description: 用户创建成功
           content:
             application/json:
@@ -1536,14 +1812,14 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
+                        $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
           description: 用户名已存在
           content:
             application/json:
@@ -1582,7 +1858,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: 获取用户详情成功
           content:
             application/json:
@@ -1599,13 +1875,13 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                        $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     put:
       tags:
@@ -1643,7 +1919,7 @@ paths:
                   example: admin
                   enum: [admin, user]
       responses:
-        '200':
+        "200":
           description: 用户信息更新成功
           content:
             application/json:
@@ -1660,15 +1936,15 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                        $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     delete:
       tags:
@@ -1685,18 +1961,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: 用户删除成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/responses/Success"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # Webhook配置管理接口
   /spaces/{space_id}/webhook/config:
@@ -1708,9 +1984,9 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: 获取Webhook配置成功
           content:
             application/json:
@@ -1741,12 +2017,12 @@ paths:
                         items:
                           type: string
                         example: ["download", "version_publish"]
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     put:
       tags:
@@ -1756,7 +2032,7 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       requestBody:
         required: true
         content:
@@ -1780,20 +2056,20 @@ paths:
                     type: string
                   example: ["download", "version_publish", "space_update"]
       responses:
-        '200':
+        "200":
           description: Webhook配置更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /spaces/{space_id}/webhook/regenerate-secret:
     post:
@@ -1804,9 +2080,9 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/SpaceId'
+        - $ref: "#/components/parameters/SpaceId"
       responses:
-        '200':
+        "200":
           description: Webhook密钥重新生成成功
           content:
             application/json:
@@ -1826,12 +2102,12 @@ paths:
                         type: string
                         description: 新的Webhook密钥
                         example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # 权限管理接口
   /permissions:
@@ -1843,7 +2119,7 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: 获取权限列表成功
           content:
             application/json:
@@ -1880,76 +2156,10 @@ paths:
                               type: string
                               description: 权限分类
                               example: 软件管理
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  # 公开API接口优化
-  /public/spaces/search:
-    get:
-      tags:
-        - 公开API
-      summary: 搜索软件空间
-      description: 搜索公开的软件空间
-      security: []
-      parameters:
-        - name: q
-          in: query
-          description: 搜索关键词
-          schema:
-            type: string
-        - name: page
-          in: query
-          description: 页码
-          schema:
-            type: integer
-            default: 1
-        - name: per_page
-          in: query
-          description: 每页数量
-          schema:
-            type: integer
-            default: 20
-      responses:
-        '200':
-          description: 搜索成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: 搜索成功
-                  data:
-                    type: object
-                    properties:
-                      spaces:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/SoftwareSpace'
-                      total:
-                        type: integer
-                        description: 总数量
-                        example: 100
-                      pages:
-                        type: integer
-                        description: 总页数
-                        example: 5
-                      current_page:
-                        type: integer
-                        description: 当前页码
-                        example: 1
-                      per_page:
-                        type: integer
-                        description: 每页数量
-                        example: 20
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
 components:
   securitySchemes:
@@ -1991,13 +2201,14 @@ components:
           description: 更新时间
           example: 2023-01-01T00:00:00Z
 
+    # 管理员使用的完整软件空间模型
     SoftwareSpace:
       type: object
       properties:
         id:
-          type: integer
-          description: 软件空间ID
-          example: 1
+          type: string
+          description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
+          example: "abc12345"
         name:
           type: string
           description: 软件名称
@@ -2039,9 +2250,52 @@ components:
           example: 1000
         api_key:
           type: string
-          description: API密钥（仅部分接口返回）
+          description: API密钥（仅管理员接口返回）
           example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+        status:
+          type: string
+          description: 软件空间状态（active/inactive）
+          example: active
 
+    # 公共API使用的软件空间模型，不包含敏感信息
+    PublicSoftwareSpace:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
+          example: "abc12345"
+        name:
+          type: string
+          description: 软件名称
+          example: Forge
+        description:
+          type: string
+          description: 软件描述
+          example: 一个强大的软件发布管理平台
+        author:
+          type: string
+          description: 作者
+          example: Forge Team
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2023-01-01T00:00:00Z
+        versions_count:
+          type: integer
+          description: 版本数量
+          example: 5
+        latest_version:
+          type: string
+          description: 最新版本号
+          example: 1.0.0
+        total_downloads:
+          type: integer
+          description: 总下载次数
+          example: 1000
+
+    # 管理员使用的完整软件版本模型
     SoftwareVersion:
       type: object
       properties:
@@ -2050,17 +2304,17 @@ components:
           description: 版本ID
           example: 1
         space_id:
-          type: integer
-          description: 软件空间ID
-          example: 1
+          type: string
+          description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
+          example: "abc12345"
         version:
           type: string
           description: 版本号
           example: 1.0.0
         file_path:
           type: string
-          description: 文件路径（仅部分接口返回）
-          example: /storage/software/1/v1.0.0_file.exe
+          description: 文件路径（仅管理员接口返回）
+          example: /storage/software/abc12345/v1.0.0_file.exe
         file_size:
           type: integer
           description: 文件大小（字节）
@@ -2104,6 +2358,41 @@ components:
           type: string
           format: date-time
           description: 更新时间
+          example: 2023-01-01T00:00:00Z
+        download_count:
+          type: integer
+          description: 下载次数
+          example: 100
+
+    # 公共API使用的软件版本模型，不包含敏感信息
+    PublicSoftwareVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 版本ID
+          example: 1
+        version:
+          type: string
+          description: 版本号
+          example: 1.0.0
+        file_size_human:
+          type: string
+          description: 人类可读的文件大小
+          example: 1.00MB
+        release_note:
+          type: string
+          description: 发布说明
+          example: 初始版本发布
+        documentation_url:
+          type: string
+          description: 文档链接
+          example: https://example.com/docs
+          format: uri
+        publish_date:
+          type: string
+          format: date-time
+          description: 发布时间
           example: 2023-01-01T00:00:00Z
         download_count:
           type: integer
@@ -2248,9 +2537,11 @@ components:
       name: space_id
       in: path
       required: true
-      description: 软件空间ID
+      description: 软件空间唯一标识符（8位随机字符，只包含数字与小写字母）
       schema:
-        type: integer
+        type: string
+        pattern: "^[a-z0-9]{8}$"
+        example: "abc12345"
 
     VersionId:
       name: version_id
@@ -2262,11 +2553,23 @@ components:
 
     ApiKey:
       name: api_key
-      in: path
+      in: query
       required: true
-      description: API密钥
+      description: API密钥（与软件空间绑定的外部访问凭据，仅在下载接口中需要）
       schema:
         type: string
+        pattern: "^[a-zA-Z0-9]{40,60}$"
+        example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
+
+    ApiKeyOptional:
+      name: api_key
+      in: query
+      required: false
+      description: API密钥（可选，用于获取更多信息的公共接口）
+      schema:
+        type: string
+        pattern: "^[a-zA-Z0-9]{40,60}$"
+        example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
 
   responses:
     Success:
