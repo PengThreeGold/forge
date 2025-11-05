@@ -20,8 +20,8 @@ def read_users(
     """
     获取用户列表（管理员权限）
     """
-    users = crud.user.get_multi(db, skip=skip, limit=limit)
-    total = crud.user.count(db)
+    users = crud.crud_user.get_multi(db, skip=skip, limit=limit)
+    total = crud.crud_user.count(db)
     
     return schemas.PaginatedResponse(
         items=users,
@@ -43,7 +43,7 @@ def create_user(
     创建新用户（管理员权限）
     """
     # 检查用户名是否已存在
-    user = crud.user.get_by_username(db, username=user_in.username)
+    user = crud.crud_user.get_by_username(db, username=user_in.username)
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -52,14 +52,14 @@ def create_user(
     
     # 检查邮箱是否已存在
     if user_in.email:
-        user = crud.user.get_by_email(db, email=user_in.email)
+        user = crud.crud_user.get_by_email(db, email=user_in.email)
         if user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="邮箱已存在"
             )
     
-    user = crud.user.create(db, obj_in=user_in)
+    user = crud.crud_user.create(db, obj_in=user_in)
     return schemas.ResponseModel(
         success=True,
         message="用户创建成功",
@@ -76,7 +76,7 @@ def read_user(
     """
     获取用户详情（管理员权限）
     """
-    user = crud.user.get(db, id=user_id)
+    user = crud.crud_user.get(db, id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -100,7 +100,7 @@ def update_user(
     """
     更新用户信息（管理员权限）
     """
-    user = crud.user.get(db, id=user_id)
+    user = crud.crud_user.get(db, id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -108,8 +108,8 @@ def update_user(
         )
     
     # 如果更新用户名，检查是否已存在
-    if user_in.username and user_in.username != user.username:
-        existing_user = crud.user.get_by_username(db, username=user_in.username)
+    if user_in.username and user_in.username != getattr(user, 'username'):
+        existing_user = crud.crud_user.get_by_username(db, username=user_in.username)
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -117,15 +117,15 @@ def update_user(
             )
     
     # 如果更新邮箱，检查是否已存在
-    if user_in.email and user_in.email != user.email:
-        existing_user = crud.user.get_by_email(db, email=user_in.email)
+    if user_in.email and user_in.email != getattr(user, 'email'):
+        existing_user = crud.crud_user.get_by_email(db, email=user_in.email)
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="邮箱已存在"
             )
     
-    user = crud.user.update(db, db_obj=user, obj_in=user_in)
+    user = crud.crud_user.update(db, db_obj=user, obj_in=user_in)
     return schemas.ResponseModel(
         success=True,
         message="用户信息更新成功",
@@ -142,7 +142,7 @@ def delete_user(
     """
     删除用户（管理员权限）
     """
-    user = crud.user.get(db, id=user_id)
+    user = crud.crud_user.get(db, id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -150,13 +150,13 @@ def delete_user(
         )
     
     # 不能删除自己
-    if user.id == current_user.id:
+    if getattr(user, 'id') == getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="不能删除自己的账户"
         )
     
-    crud.user.remove(db, id=user_id)
+    crud.crud_user.remove(db, id=user_id)
     return schemas.ResponseModel(
         success=True,
         message="用户删除成功",

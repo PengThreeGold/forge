@@ -23,12 +23,12 @@ def read_spaces(
     获取软件空间列表
     """
     # 管理员可以查看所有空间，普通用户只能查看自己创建的空间
-    if current_user.role == "admin":
-        spaces = crud.software_space.get_multi_with_stats(db, skip=skip, limit=limit)
-        total = crud.software_space.count(db)
+    if getattr(current_user, 'role') == "admin":
+        spaces = crud.crud_software_space.get_multi_with_stats(db, skip=skip, limit=limit)
+        total = crud.crud_software_space.count(db)
     else:
-        spaces = crud.software_space.get_multi_with_stats(db, skip=skip, limit=limit, created_by=current_user.id)
-        total = crud.software_space.count(db, created_by=current_user.id)
+        spaces = crud.crud_software_space.get_multi_with_stats(db, skip=skip, limit=limit, created_by=getattr(current_user, 'id'))
+        total = crud.crud_software_space.count(db, created_by=getattr(current_user, 'id'))
     
     return schemas.PaginatedResponse(
         items=spaces,
@@ -50,14 +50,14 @@ def create_space(
     创建软件空间
     """
     # 检查名称是否已存在
-    existing_space = crud.software_space.get_by_name(db, name=space_in.name)
+    existing_space = crud.crud_software_space.get_by_name(db, name=space_in.name)
     if existing_space:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="软件名称已存在"
         )
     
-    space = crud.software_space.create(db, obj_in=space_in, created_by=current_user.id)
+    space = crud.crud_software_space.create(db, obj_in=space_in, created_by=getattr(current_user, 'id'))
     
     return schemas.ResponseModel(
         success=True,
@@ -75,7 +75,7 @@ def read_space(
     """
     获取软件空间详情
     """
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -83,18 +83,18 @@ def read_space(
         )
     
     # 检查权限：管理员可以查看所有空间，普通用户只能查看自己创建的空间
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取统计信息
-    space_with_stats = crud.software_space.get_multi_with_stats(
-        db, skip=0, limit=1, created_by=current_user.id if current_user.role != "admin" else None
+    space_with_stats = crud.crud_software_space.get_multi_with_stats(
+        db, skip=0, limit=1, created_by=getattr(current_user, 'id') if getattr(current_user, 'role') != "admin" else None
     )
     for s in space_with_stats:
-        if s.id == space_id:
+        if getattr(s, 'id') == space_id:
             space = s
             break
     
@@ -115,7 +115,7 @@ def update_space(
     """
     更新软件空间
     """
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -123,7 +123,7 @@ def update_space(
         )
     
     # 检查权限：管理员可以更新所有空间，普通用户只能更新自己创建的空间
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
@@ -131,7 +131,7 @@ def update_space(
     
     # 检查名称是否已存在（如果更新了名称）
     if space_in.name and space_in.name != space.name:
-        existing_space = crud.software_space.get_by_name(db, name=space_in.name)
+        existing_space = crud.crud_software_space.get_by_name(db, name=space_in.name)
         if existing_space:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -149,26 +149,26 @@ def update_space(
     if space_in.status and space_in.status != space.status:
         changes["status"] = {"old": space.status, "new": space_in.status}
     
-    space = crud.software_space.update(db, db_obj=space, obj_in=space_in)
+    space = crud.crud_software_space.update(db, db_obj=space, obj_in=space_in)
     
     # 发送Webhook通知
-    if space.webhook_url and changes:
-        webhook_events = crud.software_space.get_webhook_events(space)
+    if getattr(space, 'webhook_url') and changes:
+        webhook_events = crud.crud_software_space.get_webhook_events(space)
         if "space_update" in webhook_events:
-            webhook_data = create_space_update_webhook_data(space.id, changes)
+            webhook_data = create_space_update_webhook_data(getattr(space, 'id'), changes)
             success, response_status, response_body = await send_webhook(
-                space.webhook_url,
+                getattr(space, 'webhook_url'),
                 "space_update",
                 webhook_data,
-                space.webhook_secret
+                getattr(space, 'webhook_secret')
             )
             
             # 记录Webhook日志
             crud_webhook_log.create(
                 db=db,
-                space_id=space.id,
+                space_id=getattr(space, 'id'),
                 event_type="space_update",
-                webhook_url=space.webhook_url,
+                webhook_url=getattr(space, 'webhook_url'),
                 payload=str(webhook_data),
                 response_status=response_status,
                 response_body=response_body
@@ -190,7 +190,7 @@ def delete_space(
     """
     删除软件空间
     """
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -198,13 +198,13 @@ def delete_space(
         )
     
     # 检查权限：管理员可以删除所有空间，普通用户只能删除自己创建的空间
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
-    crud.software_space.remove(db, id=space_id)
+    crud.crud_software_space.remove(db, id=space_id)
     
     return schemas.ResponseModel(
         success=True,
@@ -222,7 +222,7 @@ def get_space_stats(
     """
     获取软件空间统计信息
     """
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -230,23 +230,23 @@ def get_space_stats(
         )
     
     # 检查权限
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取统计信息
-    total_downloads = crud.download_record.get_total_downloads(db, space_id=space_id)
-    versions_count = crud.software_version.count(db, space_id=space_id)
+    total_downloads = crud.crud_download_record.get_total_downloads(db, space_id=space_id)
+    versions_count = crud.crud_software_version.count(db, space_id=space_id)
     
     # 获取最新版本
-    latest_version_obj = crud.software_version.get_latest_published(db, space_id=space_id)
-    latest_version = latest_version_obj.version if latest_version_obj else None
+    latest_version_obj = crud.crud_software_version.get_latest_published(db, space_id=space_id)
+    latest_version = getattr(latest_version_obj, 'version') if latest_version_obj else None
     
     stats = schemas.SpaceStats(
-        space_id=space.id,
-        space_name=space.name,
+        space_id=getattr(space, 'id'),
+        space_name=getattr(space, 'name'),
         total_downloads=total_downloads,
         versions_count=versions_count,
         latest_version=latest_version

@@ -8,6 +8,8 @@ from datetime import datetime
 from app.crud.base import CRUDBase
 from app.models.software_version import SoftwareVersion
 from app.schemas.software_version import SoftwareVersionCreate, SoftwareVersionUpdate
+from app.crud.software_architecture_file import crud_software_architecture_file
+from app.utils.file import format_file_size
 
 
 class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, SoftwareVersionUpdate]):
@@ -72,29 +74,19 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         )
 
     def create(
-        self, 
-        db: Session, 
-        *, 
-        obj_in: SoftwareVersionCreate, 
-        space_id: str, 
-        file_path: str, 
-        file_name: str,
+        self,
+        db: Session,
+        *,
+        obj_in: SoftwareVersionCreate,
+        space_id: str,
         created_by: int
     ) -> SoftwareVersion:
         """
         创建软件版本
         """
-        # 计算文件哈希和大小
-        file_hash = self._calculate_file_hash(file_path)
-        file_size = os.path.getsize(file_path)
-        
         db_obj = SoftwareVersion(
             space_id=space_id,
             version=obj_in.version,
-            file_path=file_path,
-            file_name=file_name,
-            file_size=file_size,
-            file_hash=file_hash,
             release_note=obj_in.release_note,
             documentation_url=obj_in.documentation_url,
             is_published=obj_in.is_published or False,
@@ -151,40 +143,45 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         self, db: Session, *, version_id: int
     ) -> Optional[SoftwareVersion]:
         """
-        获取版本（包含下载次数）
+        获取版本（包含下载次数和架构文件）
         """
-        from app.models.download_record import DownloadRecord
-        
-        download_subquery = db.query(
-            DownloadRecord.version_id,
-            func.count(DownloadRecord.id).label("download_count")
-        ).filter(
-            DownloadRecord.version_id == version_id
-        ).group_by(DownloadRecord.version_id).subquery()
-        
-        result = (
-            db.query(self.model, download_subquery.c.download_count)
-            .outerjoin(download_subquery, SoftwareVersion.id == download_subquery.c.version_id)
-            .filter(SoftwareVersion.id == version_id)
-            .first()
-        )
-        
-        if not result:
+        # 获取版本信息
+        version = self.get(db, id=version_id)
+        if not version:
             return None
         
-        version, download_count = result
-        version.download_count = download_count or 0
+        # 获取架构文件
+        architecture_files = crud_software_architecture_file.get_by_version_id(db, version_id=version_id)
+        
+        # 计算总大小和总下载次数
+        total_size = sum(af.file_size for af in architecture_files)
+        total_downloads = sum(af.download_count for af in architecture_files)
+        
+        # 添加架构文件信息
+        version.architecture_files = architecture_files
+        version.total_size = total_size
+        version.total_size_human = format_file_size(total_size)
+        version.total_downloads = total_downloads
+        
         return version
 
-    def _calculate_file_hash(self, file_path: str) -> str:
+    def delete_version_files(self, db: Session, *, version_id: int) -> bool:
         """
-        计算文件的SHA-256哈希值
+        删除版本关联的所有架构文件
         """
-        hash_sha256 = hashlib.sha256()
-        with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_sha256.update(chunk)
-        return hash_sha256.hexdigest()
+        architecture_files = crud_software_architecture_file.get_by_version_id(db, version_id=version_id)
+        success = True
+        for af in architecture_files:
+            file_path = af.file_path
+            if os.path.exists(str(file_path)):
+                try:
+                    os.remove(str(file_path))
+                except Exception:
+                    success = False
+            db.delete(af)
+        
+        db.commit()
+        return success
 
 
 # 创建CRUD实例

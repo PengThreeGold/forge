@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.db.database import engine
 from app.db.init_db import create_tables, init_permissions, init_roles
-from app.api import auth_router, users_router, spaces_router, versions_router, public_router, stats_router, webhooks_router
+from app.api import auth_router, users_router, spaces_router, versions_router, public_router, stats_router, webhooks_router, permissions_router
 from app.schemas.common import ErrorResponse
 
 
@@ -17,18 +17,18 @@ async def lifespan(app: FastAPI):
     # 启动时执行
     # 创建数据库表
     create_tables()
-    
+
     # 初始化权限和角色数据
     init_permissions()
     init_roles()
-    
+
     # 确保上传目录存在
     upload_dir = settings.UPLOAD_DIR
     if upload_dir and not os.path.exists(upload_dir):
         os.makedirs(upload_dir, exist_ok=True)
-    
+
     yield
-    
+
     # 关闭时执行
     pass
 
@@ -81,8 +81,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-@app.exception_handler(status.HTTP_404_NOT_FOUND)
-async def not_found_exception_handler(request: Request, exc: status.HTTP_404_NOT_FOUND):
+@app.exception_handler(404)
+async def not_found_exception_handler(request: Request, exc):
     """404异常处理器"""
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -97,8 +97,8 @@ async def not_found_exception_handler(request: Request, exc: status.HTTP_404_NOT
     )
 
 
-@app.exception_handler(status.HTTP_401_UNAUTHORIZED)
-async def unauthorized_exception_handler(request: Request, exc: status.HTTP_401_UNAUTHORIZED):
+@app.exception_handler(401)
+async def unauthorized_exception_handler(request: Request, exc):
     """401异常处理器"""
     return JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -113,8 +113,8 @@ async def unauthorized_exception_handler(request: Request, exc: status.HTTP_401_
     )
 
 
-@app.exception_handler(status.HTTP_403_FORBIDDEN)
-async def forbidden_exception_handler(request: Request, exc: status.HTTP_403_FORBIDDEN):
+@app.exception_handler(403)
+async def forbidden_exception_handler(request: Request, exc):
     """403异常处理器"""
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -129,8 +129,8 @@ async def forbidden_exception_handler(request: Request, exc: status.HTTP_403_FOR
     )
 
 
-@app.exception_handler(status.HTTP_400_BAD_REQUEST)
-async def bad_request_exception_handler(request: Request, exc: status.HTTP_400_BAD_REQUEST):
+@app.exception_handler(400)
+async def bad_request_exception_handler(request: Request, exc):
     """400异常处理器"""
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -208,6 +208,12 @@ app.include_router(
     webhooks_router,
     prefix=f"{settings.API_V1_STR}/spaces",
     tags=["Webhook"]
+)
+
+app.include_router(
+    permissions_router,
+    prefix=f"{settings.API_V1_STR}/permissions",
+    tags=["权限管理"]
 )
 
 

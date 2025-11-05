@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Optional, Union, Any
 from jose import jwt, JWTError
-from passlib.context import CryptContext
-from fastapi import HTTPException, status
+import bcrypt
 
 from app.core.config import settings
 
-# 密码加密上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 直接使用原生bcrypt库，避免passlib的版本检测问题
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -18,7 +16,7 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
@@ -42,7 +40,7 @@ def verify_token(token: str, token_type: str = "access") -> Optional[str]:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: str = payload.get("sub")
         token_type_in_payload: str = payload.get("type")
-        
+
         if user_id is None or token_type_in_payload != token_type:
             return None
         return user_id
@@ -54,14 +52,27 @@ def get_password_hash(password: str) -> str:
     """
     生成密码哈希
     """
-    return pwd_context.hash(password)
+    # bcrypt密码长度限制为72字节，超长密码需要截断
+    if len(password.encode('utf-8')) > 72:
+        password = password[:72]
+    
+    # 使用原生bcrypt库，避免passlib的版本检测警告
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     验证密码
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # bcrypt密码长度限制为72字节，超长密码需要截断
+    if len(plain_password.encode('utf-8')) > 72:
+        plain_password = plain_password[:72]
+    
+    # 使用原生bcrypt库，避免passlib的版本检测警告
+    try:
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
 
 def generate_api_key() -> str:

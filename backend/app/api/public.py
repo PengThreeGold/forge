@@ -46,19 +46,19 @@ def read_public_spaces(
         ).count()
         
         # 获取总下载次数
-        total_downloads = crud.download_record.get_total_downloads(db, space_id=space.id)
+        total_downloads = crud.crud_download_record.get_total_downloads(db, space_id=getattr(space, 'id'))
         
         # 获取最新版本
-        latest_version = crud.software_version.get_latest_published(db, space_id=space.id)
+        latest_version = crud.crud_software_version.get_latest_published(db, space_id=getattr(space, 'id'))
         
         public_space = schemas.PublicSoftwareSpace(
-            id=space.id,
-            name=space.name,
-            description=space.description,
-            author=space.author,
-            created_at=space.created_at,
+            id=str(getattr(space, 'id')),
+            name=str(getattr(space, 'name')),
+            description=str(getattr(space, 'description')) if getattr(space, 'description') else None,
+            author=str(getattr(space, 'author')) if getattr(space, 'author') else None,
+            created_at=getattr(space, 'created_at'),
             versions_count=versions_count,
-            latest_version=latest_version.version if latest_version else None,
+            latest_version=getattr(latest_version, 'version') if latest_version else None,
             total_downloads=total_downloads
         )
         public_spaces.append(public_space)
@@ -80,8 +80,8 @@ def read_public_space(
     """
     获取公共软件空间详情
     """
-    space = crud.software_space.get(db, id=space_id)
-    if not space or space.status != "active":
+    space = crud.crud_software_space.get(db, id=space_id)
+    if not space or getattr(space, 'status') != "active":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在或未激活"
@@ -94,19 +94,19 @@ def read_public_space(
     ).count()
     
     # 获取总下载次数
-    total_downloads = crud.download_record.get_total_downloads(db, space_id=space.id)
+    total_downloads = crud.crud_download_record.get_total_downloads(db, space_id=getattr(space, 'id'))
     
     # 获取最新版本
-    latest_version = crud.software_version.get_latest_published(db, space_id=space.id)
+    latest_version = crud.crud_software_version.get_latest_published(db, space_id=getattr(space, 'id'))
     
     public_space = schemas.PublicSoftwareSpace(
-        id=space.id,
-        name=space.name,
-        description=space.description,
-        author=space.author,
-        created_at=space.created_at,
+        id=str(getattr(space, 'id')),
+        name=str(getattr(space, 'name')),
+        description=str(getattr(space, 'description')) if getattr(space, 'description') else None,
+        author=str(getattr(space, 'author')) if getattr(space, 'author') else None,
+        created_at=getattr(space, 'created_at'),
         versions_count=versions_count,
-        latest_version=latest_version.version if latest_version else None,
+        latest_version=getattr(latest_version, 'version') if latest_version else None,
         total_downloads=total_downloads
     )
     
@@ -127,14 +127,14 @@ def read_public_versions(
     """
     获取软件空间的已发布版本列表
     """
-    space = crud.software_space.get(db, id=space_id)
-    if not space or space.status != "active":
+    space = crud.crud_software_space.get(db, id=space_id)
+    if not space or getattr(space, 'status') != "active":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在或未激活"
         )
     
-    versions = crud.software_version.get_published_by_space_id(
+    versions = crud.crud_software_version.get_published_by_space_id(
         db, space_id=space_id, skip=skip, limit=limit
     )
     total = db.query(models.SoftwareVersion).filter(
@@ -145,19 +145,19 @@ def read_public_versions(
     # 转换为公共版本格式
     public_versions = []
     for version in versions:
-        version_with_stats = crud.software_version.get_with_download_count(db, version_id=version.id)
+        version_with_stats = crud.crud_software_version.get_with_download_count(db, version_id=getattr(version, 'id'))
         if version_with_stats:
             from app.utils.file import format_file_size
             version_with_stats.file_size_human = format_file_size(version_with_stats.file_size)
         
         public_version = schemas.PublicSoftwareVersion(
-            id=version.id,
-            version=version.version,
-            file_size_human=version_with_stats.file_size_human if version_with_stats else format_file_size(version.file_size),
-            release_note=version.release_note,
-            documentation_url=version.documentation_url,
-            publish_date=version.publish_date,
-            download_count=version_with_stats.download_count if version_with_stats else 0
+            id=getattr(version, 'id'),
+            version=getattr(version, 'version'),
+            file_size_human=getattr(version_with_stats, 'file_size_human') if version_with_stats else format_file_size(getattr(version, 'file_size')),
+            release_note=getattr(version, 'release_note'),
+            documentation_url=getattr(version, 'documentation_url'),
+            publish_date=getattr(version, 'publish_date'),
+            download_count=getattr(version_with_stats, 'download_count') if version_with_stats else 0
         )
         public_versions.append(public_version)
     
@@ -184,43 +184,43 @@ async def download_version(
     # 验证API密钥
     space = None
     if api_key:
-        space = crud.software_space.get_by_api_key(db, api_key=api_key)
+        space = crud.crud_software_space.get_by_api_key(db, api_key=api_key)
     
-    if not space or space.id != space_id:
+    if not space or getattr(space, 'id') != space_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="无效的API密钥"
         )
     
-    if space.status != "active":
+    if getattr(space, 'status') != "active":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在或未激活"
         )
     
     # 获取版本信息
-    version = crud.software_version.get(db, id=version_id)
-    if not version or version.space_id != space_id:
+    version = crud.crud_software_version.get(db, id=version_id)
+    if not version or getattr(version, 'space_id') != space_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本不存在"
         )
     
-    if not version.is_published:
+    if not getattr(version, 'is_published'):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本未发布"
         )
     
     # 检查文件是否存在
-    if not os.path.exists(version.file_path):
+    if not os.path.exists(getattr(version, 'file_path')):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文件不存在"
         )
     
     # 获取客户端IP
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else "127.0.0.1"
     if "x-forwarded-for" in request.headers:
         client_ip = request.headers["x-forwarded-for"].split(",")[0].strip()
     
@@ -231,7 +231,7 @@ async def download_version(
     referer = request.headers.get("referer", "")
     
     # 记录下载
-    download_record = crud.download_record.create(
+    download_record = crud.crud_download_record.create(
         db=db,
         space_id=space_id,
         version_id=version_id,
@@ -241,23 +241,23 @@ async def download_version(
     )
     
     # 发送Webhook通知
-    if space.webhook_url:
-        webhook_events = crud.software_space.get_webhook_events(space)
+    if getattr(space, 'webhook_url'):
+        webhook_events = crud.crud_software_space.get_webhook_events(space)
         if "download" in webhook_events:
-            webhook_data = create_download_webhook_data(space_id, version.version, client_ip)
+            webhook_data = create_download_webhook_data(space_id, getattr(version, 'version'), client_ip)
             success, response_status, response_body = await send_webhook(
-                space.webhook_url,
+                getattr(space, 'webhook_url'),
                 "download",
                 webhook_data,
-                space.webhook_secret
+                getattr(space, 'webhook_secret')
             )
             
             # 记录Webhook日志
             crud_webhook_log.create(
                 db=db,
-                space_id=space.id,
+                space_id=getattr(space, 'id'),
                 event_type="download",
-                webhook_url=space.webhook_url,
+                webhook_url=getattr(space, 'webhook_url'),
                 payload=str(webhook_data),
                 response_status=response_status,
                 response_body=response_body
@@ -274,8 +274,8 @@ async def download_version(
 @router.get("/spaces/{space_id}/latest")
 def download_latest_version(
     space_id: str,
-    api_key: Optional[str] = Query(None, description="API密钥"),
     request: Request,
+    api_key: Optional[str] = Query(None, description="API密钥"),
     db: Session = Depends(get_current_db)
 ) -> Any:
     """
@@ -284,22 +284,22 @@ def download_latest_version(
     # 验证API密钥
     space = None
     if api_key:
-        space = crud.software_space.get_by_api_key(db, api_key=api_key)
+        space = crud.crud_software_space.get_by_api_key(db, api_key=api_key)
     
-    if not space or space.id != space_id:
+    if not space or getattr(space, 'id') != space_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="无效的API密钥"
         )
     
-    if space.status != "active":
+    if getattr(space, 'status') != "active":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在或未激活"
         )
     
     # 获取最新版本
-    latest_version = crud.software_version.get_latest_published(db, space_id=space_id)
+    latest_version = crud.crud_software_version.get_latest_published(db, space_id=space_id)
     if not latest_version:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -22,29 +22,29 @@ def read_webhook_config(
     获取Webhook配置
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取Webhook事件列表
-    webhook_events = crud.software_space.get_webhook_events(space)
+    webhook_events = crud.crud_software_space.get_webhook_events(space)
     
     # 隐藏部分Webhook密钥
     webhook_secret = None
-    if space.webhook_secret:
-        webhook_secret = space.webhook_secret[:4] + "****" + space.webhook_secret[-4:]
+    if getattr(space, 'webhook_secret'):
+        webhook_secret = getattr(space, 'webhook_secret')[:4] + "****" + getattr(space, 'webhook_secret')[-4:]
     
     webhook_config = schemas.WebhookConfig(
-        webhook_url=space.webhook_url,
+        webhook_url=getattr(space, 'webhook_url'),
         webhook_secret=webhook_secret,
         webhook_events=webhook_events
     )
@@ -67,14 +67,14 @@ def update_webhook_config(
     更新Webhook配置
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
@@ -97,7 +97,7 @@ def update_webhook_config(
         update_data["webhook_events"] = webhook_config.webhook_events
     
     # 更新软件空间
-    space = crud.software_space.update(db, db_obj=space, obj_in=update_data)
+    space = crud.crud_software_space.update(db, db_obj=space, obj_in=update_data)
     
     return schemas.ResponseModel(
         success=True,
@@ -106,7 +106,7 @@ def update_webhook_config(
     )
 
 
-@router.post("/{space_id}/regenerate-secret", response_model=schemas.ResponseModel[schemas.WebhookSecretResponse])
+@router.post("/{space_id}/regenerate-secret", response_model=schemas.ResponseModel[dict])
 def regenerate_webhook_secret(
     space_id: str,
     db: Session = Depends(get_current_db),
@@ -116,14 +116,14 @@ def regenerate_webhook_secret(
     重新生成Webhook密钥
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
@@ -133,16 +133,16 @@ def regenerate_webhook_secret(
     new_secret = generate_webhook_secret()
     
     # 更新软件空间
-    space = crud.software_space.update(
-        db, 
-        db_obj=space, 
+    space = crud.crud_software_space.update(
+        db,
+        db_obj=space,
         obj_in={"webhook_secret": new_secret}
     )
     
     return schemas.ResponseModel(
         success=True,
         message="Webhook密钥重新生成成功",
-        data=schemas.WebhookSecretResponse(webhook_secret=new_secret)
+        data={"webhook_secret": new_secret}
     )
 
 
@@ -158,36 +158,36 @@ def read_webhook_logs(
     获取Webhook日志
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取Webhook日志
-    logs = crud.webhook_log.get_by_space_id(
+    logs = crud.crud_webhook_log.get_by_space_id(
         db, space_id=space_id, skip=skip, limit=limit
     )
-    total = crud.webhook_log.count(db, space_id=space_id)
+    total = crud.crud_webhook_log.count(db, space_id=space_id)
     
     # 添加软件空间名称
     logs_with_space_name = []
     for log in logs:
         log_with_space_name = schemas.WebhookLog(
-            id=log.id,
-            space_name=space.name,
-            event_type=log.event_type,
-            payload=log.payload,
-            response_status=log.response_status,
-            response_body=log.response_body,
-            attempt_time=log.attempt_time
+            id=getattr(log, 'id'),
+            space_name=getattr(space, 'name'),
+            event_type=getattr(log, 'event_type'),
+            payload=getattr(log, 'payload'),
+            response_status=getattr(log, 'response_status'),
+            response_body=getattr(log, 'response_body'),
+            attempt_time=getattr(log, 'attempt_time')
         )
         logs_with_space_name.append(log_with_space_name)
     
@@ -212,21 +212,21 @@ def read_failed_webhook_logs(
     获取失败的Webhook日志
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取失败的Webhook日志
-    logs = crud.webhook_log.get_failed_logs(
+    logs = crud.crud_webhook_log.get_failed_logs(
         db, space_id=space_id, skip=skip, limit=limit
     )
     
@@ -273,28 +273,28 @@ def read_webhook_logs_by_event_type(
     根据事件类型获取Webhook日志
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取指定事件类型的Webhook日志
-    logs = crud.webhook_log.get_by_event_type(
+    logs = crud.crud_webhook_log.get_by_event_type(
         db, event_type=event_type, skip=skip, limit=limit
     )
     
     # 过滤出属于当前空间的日志
     filtered_logs = []
     for log in logs:
-        if log.space_id == space_id:
+        if str(getattr(log, 'space_id')) == space_id:
             filtered_logs.append(log)
     
     # 限制数量
@@ -305,13 +305,13 @@ def read_webhook_logs_by_event_type(
     logs_with_space_name = []
     for log in logs:
         log_with_space_name = schemas.WebhookLog(
-            id=log.id,
-            space_name=space.name,
-            event_type=log.event_type,
-            payload=log.payload,
-            response_status=log.response_status,
-            response_body=log.response_body,
-            attempt_time=log.attempt_time
+            id=getattr(log, 'id'),
+            space_name=getattr(space, 'name'),
+            event_type=getattr(log, 'event_type'),
+            payload=getattr(log, 'payload'),
+            response_status=getattr(log, 'response_status'),
+            response_body=getattr(log, 'response_body'),
+            attempt_time=getattr(log, 'attempt_time')
         )
         logs_with_space_name.append(log_with_space_name)
     

@@ -9,10 +9,10 @@ Forge 软件发布管理平台 - 运行脚本
     python run.py init-data    # 初始化基础数据
 """
 
-from app.core.security import get_password_hash
 from app.crud.user import crud_user
 from app.db.init_db import create_tables, init_permissions, init_roles
-from app.db.database import engine, SessionLocal
+from app.db.database import SessionLocal
+from app.db.init_db import create_tables as init_create_tables
 from app.core.config import settings
 import sys
 import os
@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 def create_tables():
     """创建数据库表"""
     print("正在创建数据库表...")
-    create_tables()
+    init_create_tables()
     print("数据库表创建完成")
 
 

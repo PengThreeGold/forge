@@ -14,7 +14,7 @@ from app.core.deps import get_current_user
 router = APIRouter()
 
 
-@router.post("/login", response_model=schemas.Token)
+@router.post("/login")
 def login_for_access_token(
     db: Session = Depends(get_current_db),
     form_data: OAuth2PasswordRequestForm = Depends()
@@ -22,7 +22,7 @@ def login_for_access_token(
     """
     用户登录获取访问令牌
     """
-    user = crud.user.authenticate(
+    user = crud.crud_user.authenticate(
         db, username=form_data.username, password=form_data.password
     )
     if not user:
@@ -31,7 +31,7 @@ def login_for_access_token(
             detail="用户名或密码错误",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    elif not crud.user.is_active(user):
+    elif not crud.crud_user.is_active(user):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="用户账户已被禁用"
@@ -43,15 +43,18 @@ def login_for_access_token(
     )
     refresh_token = create_refresh_token(subject=user.id)
     
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user": user
-    }
+    return schemas.ResponseModel(
+        success=True,
+        message="登录成功",
+        data={
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": user
+        }
+    )
 
 
-@router.post("/refresh", response_model=schemas.Token)
+@router.post("/refresh")
 def refresh_access_token(
     refresh_data: schemas.TokenRefresh,
     db: Session = Depends(get_current_db)
@@ -67,8 +70,8 @@ def refresh_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    user = crud.user.get(db, id=user_id)
-    if not user or not crud.user.is_active(user):
+    user = crud.crud_user.get(db, id=user_id)
+    if not user or not crud.crud_user.is_active(user):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户不存在或已被禁用",
@@ -81,22 +84,28 @@ def refresh_access_token(
     )
     refresh_token = create_refresh_token(subject=user.id)
     
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "user": user
-    }
+    return schemas.ResponseModel(
+        success=True,
+        message="令牌刷新成功",
+        data={
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
+    )
 
 
-@router.get("/profile", response_model=schemas.User)
+@router.get("/profile")
 def read_current_user(
     current_user: models.User = Depends(get_current_user)
 ) -> Any:
     """
     获取当前用户信息
     """
-    return current_user
+    return schemas.ResponseModel(
+        success=True,
+        message="获取用户信息成功",
+        data=current_user
+    )
 
 
 @router.put("/admin/password", response_model=schemas.ResponseModel)
@@ -109,8 +118,8 @@ def change_password(
     修改当前用户密码
     """
     # 验证原密码
-    user = crud.user.authenticate(
-        db, username=current_user.username, password=password_data.old_password
+    user = crud.crud_user.authenticate(
+        db, username=str(current_user.username), password=password_data.old_password
     )
     if not user:
         raise HTTPException(
@@ -119,10 +128,10 @@ def change_password(
         )
     
     # 更新密码
-    user_in = schemas.UserUpdate(password=password_data.new_password)
-    crud.user.update(db, db_obj=current_user, obj_in=user_in)
+    user_in = {"password": password_data.new_password}
+    crud.crud_user.update(db, db_obj=current_user, obj_in=user_in)
     
-    return schemas.ResponseModel(success=True, message="密码修改成功")
+    return schemas.ResponseModel(success=True, message="密码修改成功", data=None)
 
 
 @router.post("/admin/init", response_model=schemas.ResponseModel)
@@ -145,7 +154,7 @@ def init_admin(
         )
     
     # 检查用户名是否已存在
-    existing_user = crud.user.get_by_username(db, username=user_data.username)
+    existing_user = crud.crud_user.get_by_username(db, username=user_data.username)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -160,6 +169,6 @@ def init_admin(
         role="admin"
     )
     
-    crud.user.create(db, obj_in=user_in)
+    created_user = crud.crud_user.create(db, obj_in=user_in)
     
-    return schemas.ResponseModel(success=True, message="管理员账户创建成功")
+    return schemas.ResponseModel(success=True, message="管理员账户创建成功", data=created_user)

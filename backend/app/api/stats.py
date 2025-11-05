@@ -19,20 +19,20 @@ def read_system_stats(
     """
     获取系统统计信息（管理员权限）
     """
-    if current_user.role != "admin":
+    if getattr(current_user, 'role') != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取总空间数
-    total_spaces = crud.software_space.count(db)
+    total_spaces = crud.crud_software_space.count(db)
     
     # 获取总版本数
-    total_versions = crud.software_version.count(db)
+    total_versions = crud.crud_software_version.count(db)
     
     # 获取总下载次数
-    total_downloads = crud.download_record.get_total_downloads(db)
+    total_downloads = crud.crud_download_record.get_total_downloads(db)
     
     # 获取活跃用户数（最近30天有活动的用户）
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
@@ -41,27 +41,27 @@ def read_system_stats(
     ).count()
     
     # 获取最近的空间
-    recent_spaces_data = crud.software_space.get_multi_with_stats(
+    recent_spaces_data = crud.crud_software_space.get_multi_with_stats(
         db, skip=0, limit=5
     )
     recent_spaces = []
     for space in recent_spaces_data:
         recent_spaces.append(schemas.SpaceStats(
-            space_id=space.id,
-            space_name=space.name,
-            total_downloads=space.downloads_count or 0,
-            versions_count=space.versions_count or 0,
+            space_id=str(getattr(space, 'id')),
+            space_name=str(getattr(space, 'name')),
+            total_downloads=getattr(space, 'downloads_count') or 0,
+            versions_count=getattr(space, 'versions_count') or 0,
             latest_version=None
         ))
     
     # 获取每日下载统计（最近30天）
-    daily_downloads_data = crud.download_record.get_daily_stats(db, days=30)
+    daily_downloads_data = crud.crud_download_record.get_daily_stats(db, days=30)
     daily_downloads = []
     for date, downloads in daily_downloads_data:
-        daily_downloads.append(schemas.DailyDownloadStats(
-            date=date.strftime("%Y-%m-%d"),
-            downloads=downloads
-        ))
+        daily_downloads.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "downloads": downloads
+        })
     
     system_stats = schemas.SystemStats(
         total_spaces=total_spaces,
@@ -89,30 +89,30 @@ def read_space_stats(
     获取软件空间统计信息
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取统计信息
-    total_downloads = crud.download_record.get_total_downloads(db, space_id=space_id)
-    versions_count = crud.software_version.count(db, space_id=space_id)
+    total_downloads = crud.crud_download_record.get_total_downloads(db, space_id=space_id)
+    versions_count = crud.crud_software_version.count(db, space_id=space_id)
     
     # 获取最新版本
-    latest_version_obj = crud.software_version.get_latest_published(db, space_id=space_id)
-    latest_version = latest_version_obj.version if latest_version_obj else None
+    latest_version_obj = crud.crud_software_version.get_latest_published(db, space_id=space_id)
+    latest_version = getattr(latest_version_obj, 'version') if latest_version_obj else None
     
     space_stats = schemas.SpaceStats(
-        space_id=space.id,
-        space_name=space.name,
+        space_id=str(getattr(space, 'id')),
+        space_name=str(getattr(space, 'name')),
         total_downloads=total_downloads,
         versions_count=versions_count,
         latest_version=latest_version
@@ -136,27 +136,27 @@ def read_space_daily_downloads(
     获取软件空间每日下载统计
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取每日下载统计
-    daily_downloads_data = crud.download_record.get_daily_stats(db, space_id=space_id, days=days)
+    daily_downloads_data = crud.crud_download_record.get_daily_stats(db, space_id=space_id, days=days)
     daily_downloads = []
     for date, downloads in daily_downloads_data:
-        daily_downloads.append(schemas.DailyDownloadStats(
-            date=date.strftime("%Y-%m-%d"),
-            downloads=downloads
-        ))
+        daily_downloads.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "downloads": downloads
+        })
     
     return schemas.ResponseModel(
         success=True,
@@ -175,27 +175,27 @@ def read_space_version_downloads(
     获取软件空间版本下载统计
     """
     # 检查软件空间是否存在和权限
-    space = crud.software_space.get(db, id=space_id)
+    space = crud.crud_software_space.get(db, id=space_id)
     if not space:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在"
         )
     
-    if current_user.role != "admin" and space.created_by != current_user.id:
+    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取版本下载统计
-    version_downloads_data = crud.download_record.get_version_stats(db, space_id=space_id)
+    version_downloads_data = crud.crud_download_record.get_version_stats(db, space_id=space_id)
     version_downloads = []
     for version, downloads in version_downloads_data:
-        version_downloads.append(schemas.VersionDownloadStats(
-            version=version,
-            downloads=downloads
-        ))
+        version_downloads.append({
+            "version": version,
+            "downloads": downloads
+        })
     
     return schemas.ResponseModel(
         success=True,
