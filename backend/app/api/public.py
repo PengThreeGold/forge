@@ -174,8 +174,8 @@ def read_public_versions(
 async def download_version(
     space_id: str,
     version_id: int,
-    api_key: Optional[str] = Query(None, description="API密钥"),
     request: Request,
+    api_key: Optional[str] = Query(None, description="API密钥"),
     db: Session = Depends(get_current_db)
 ) -> Any:
     """

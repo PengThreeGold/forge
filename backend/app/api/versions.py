@@ -54,8 +54,11 @@ def read_versions(
         version_with_stats = crud.crud_software_version.get_with_download_count(db, version_id=getattr(version, 'id'))
         versions_with_stats.append(version_with_stats)
 
+    # 使用 Pydantic schema 序列化版本数据列表
+    version_data_list = [schemas.SoftwareVersion.from_orm(version) for version in versions_with_stats]
+    
     return schemas.PaginatedResponse(
-        items=versions_with_stats,
+        items=version_data_list,
         total=total,
         page=skip // limit + 1,
         size=limit,
@@ -64,7 +67,7 @@ def read_versions(
 
 
 @router.post("/{space_id}", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
-def create_version(
+async def create_version(
     space_id: str,
     version: str = Form(...),
     architectures: str = Form(...),
@@ -149,10 +152,20 @@ def create_version(
     ensure_directory_exists(upload_dir)
 
     # 创建版本记录
+    # 处理 documentation_url，确保是有效的 URL 或 None
+    doc_url = None
+    if documentation_url:
+        try:
+            from pydantic import HttpUrl
+            doc_url = HttpUrl(documentation_url)
+        except:
+            # 如果 URL 无效，设置为 None
+            doc_url = None
+    
     version_in = schemas.SoftwareVersionCreate(
         version=version,
         release_note=release_note,
-        documentation_url=documentation_url,
+        documentation_url=doc_url,
         is_published=is_published
     )
 
@@ -230,15 +243,18 @@ def create_version(
                 response_body=response_body
             )
 
+    # 使用 Pydantic schema 序列化版本数据
+    version_data = schemas.SoftwareVersion.from_orm(db_version)
+    
     return schemas.ResponseModel(
         success=True,
         message="版本上传成功",
-        data=db_version
+        data=version_data
     )
 
 
 @router.put("/{space_id}/{version_id}", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
-def update_version(
+async def update_version(
     space_id: str,
     version_id: int,
     version_in: schemas.SoftwareVersionUpdate,
@@ -319,10 +335,13 @@ def update_version(
                 response_body=response_body
             )
 
+    # 使用 Pydantic schema 序列化版本数据
+    version_data = schemas.SoftwareVersion.from_orm(db_version)
+    
     return schemas.ResponseModel(
         success=True,
         message="版本更新成功",
-        data=db_version
+        data=version_data
     )
 
 
@@ -373,7 +392,7 @@ def delete_version(
 
 
 @router.post("/{space_id}/{version_id}/publish", response_model=schemas.ResponseModel[schemas.SoftwareVersion])
-def publish_version(
+async def publish_version(
     space_id: str,
     version_id: int,
     db: Session = Depends(get_current_db),
@@ -430,10 +449,13 @@ def publish_version(
                 response_body=response_body
             )
 
+    # 使用 Pydantic schema 序列化版本数据
+    version_data = schemas.SoftwareVersion.from_orm(db_version)
+    
     return schemas.ResponseModel(
         success=True,
         message="版本发布成功",
-        data=db_version
+        data=version_data
     )
 
 
@@ -472,8 +494,11 @@ def unpublish_version(
     # 取消发布版本
     db_version = crud.crud_software_version.unpublish(db, db_obj=version)
 
+    # 使用 Pydantic schema 序列化版本数据
+    version_data = schemas.SoftwareVersion.from_orm(db_version)
+    
     return schemas.ResponseModel(
         success=True,
         message="版本取消发布成功",
-        data=db_version
+        data=version_data
     )

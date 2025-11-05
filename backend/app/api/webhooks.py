@@ -180,6 +180,7 @@ def read_webhook_logs(
     # 添加软件空间名称
     logs_with_space_name = []
     for log in logs:
+        # 使用 Pydantic schema 序列化日志数据，手动创建对象
         log_with_space_name = schemas.WebhookLog(
             id=getattr(log, 'id'),
             space_name=getattr(space, 'name'),
@@ -240,14 +241,15 @@ def read_failed_webhook_logs(
     # 添加软件空间名称
     logs_with_space_name = []
     for log in logs:
+        # 使用 Pydantic schema 序列化日志数据，手动创建对象
         log_with_space_name = schemas.WebhookLog(
-            id=log.id,
-            space_name=space.name,
-            event_type=log.event_type,
-            payload=log.payload,
-            response_status=log.response_status,
-            response_body=log.response_body,
-            attempt_time=log.attempt_time
+            id=getattr(log, 'id'),
+            space_name=getattr(space, 'name'),
+            event_type=getattr(log, 'event_type'),
+            payload=getattr(log, 'payload'),
+            response_status=getattr(log, 'response_status'),
+            response_body=getattr(log, 'response_body'),
+            attempt_time=getattr(log, 'attempt_time')
         )
         logs_with_space_name.append(log_with_space_name)
     
@@ -304,6 +306,7 @@ def read_webhook_logs_by_event_type(
     # 添加软件空间名称
     logs_with_space_name = []
     for log in logs:
+        # 使用 Pydantic schema 序列化日志数据，手动创建对象
         log_with_space_name = schemas.WebhookLog(
             id=getattr(log, 'id'),
             space_name=getattr(space, 'name'),

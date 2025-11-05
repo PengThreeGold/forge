@@ -4,7 +4,7 @@ from .software_version import SoftwareVersion, SoftwareVersionCreate, SoftwareVe
 from .download_record import DownloadRecord
 from .webhook_log import WebhookLog
 from .webhook import WebhookConfig, WebhookConfigUpdate
-from .stats import SpaceStats, SystemStats
+from .stats import SpaceStats, SystemStats, DailyDownloadStats, VersionDownloadStats
 from .common import ResponseModel, PaginatedResponse
 
 __all__ = [
@@ -19,7 +19,7 @@ __all__ = [
     
     # 其他模型
     "DownloadRecord", "WebhookLog", "WebhookConfig", "WebhookConfigUpdate", 
-    "SpaceStats", "SystemStats",
+    "SpaceStats", "SystemStats", "DailyDownloadStats", "VersionDownloadStats",
     
     # 通用模型
     "ResponseModel", "PaginatedResponse"

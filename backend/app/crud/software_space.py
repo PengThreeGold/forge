@@ -59,6 +59,12 @@ class CRUDSoftwareSpace(CRUDBase[SoftwareSpace, SoftwareSpaceCreate, SoftwareSpa
         if "webhook_events" in update_data and isinstance(update_data["webhook_events"], list):
             update_data["webhook_events"] = json.dumps(update_data["webhook_events"])
         
+        # 处理webhook_url - 将HttpUrl对象转换为字符串
+        if "webhook_url" in update_data and update_data["webhook_url"] is not None:
+            from pydantic import HttpUrl
+            if isinstance(update_data["webhook_url"], HttpUrl):
+                update_data["webhook_url"] = str(update_data["webhook_url"])
+        
         # 如果提供了新的webhook_secret，则重新生成
         if update_data.get("webhook_secret") == "":
             update_data["webhook_secret"] = generate_webhook_secret()
@@ -134,10 +140,11 @@ class CRUDSoftwareSpace(CRUDBase[SoftwareSpace, SoftwareSpaceCreate, SoftwareSpa
         """
         获取软件空间的Webhook事件列表
         """
-        if not space.webhook_events:
+        webhook_events_value = getattr(space, 'webhook_events', None)
+        if not webhook_events_value:
             return []
         try:
-            return json.loads(space.webhook_events)
+            return json.loads(webhook_events_value)
         except:
             return []
 
@@ -151,6 +158,17 @@ class CRUDSoftwareSpace(CRUDBase[SoftwareSpace, SoftwareSpaceCreate, SoftwareSpa
             space_id = generate_space_id()
             if not db.query(SoftwareSpace).filter(SoftwareSpace.id == space_id).first():
                 return space_id
+
+    def remove(self, db: Session, *, id: str) -> Optional[SoftwareSpace]:
+        """
+        删除软件空间（支持字符串ID）
+        """
+        obj = db.query(SoftwareSpace).filter(SoftwareSpace.id == id).first()
+        if not obj:
+            return None
+        db.delete(obj)
+        db.commit()
+        return obj
 
 
 # 创建CRUD实例

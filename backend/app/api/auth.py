@@ -16,14 +16,14 @@ router = APIRouter()
 
 @router.post("/login")
 def login_for_access_token(
-    db: Session = Depends(get_current_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
+    login_data: schemas.UserLogin,
+    db: Session = Depends(get_current_db)
 ) -> Any:
     """
     用户登录获取访问令牌
     """
     user = crud.crud_user.authenticate(
-        db, username=form_data.username, password=form_data.password
+        db, username=login_data.username, password=login_data.password
     )
     if not user:
         raise HTTPException(
@@ -43,13 +43,15 @@ def login_for_access_token(
     )
     refresh_token = create_refresh_token(subject=user.id)
     
+    # 使用 Pydantic schema 序列化用户数据
+    user_data = schemas.User.from_orm(user)
     return schemas.ResponseModel(
         success=True,
         message="登录成功",
         data={
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "user": user
+            "user": user_data
         }
     )
 
@@ -82,14 +84,15 @@ def refresh_access_token(
     access_token = create_access_token(
         subject=user.id, expires_delta=access_token_expires
     )
-    refresh_token = create_refresh_token(subject=user.id)
+    # 标准实践：刷新时只返回新的 access_token，不生成新的 refresh_token
+    # refresh_token 保持不变，直到它过期
     
     return schemas.ResponseModel(
         success=True,
         message="令牌刷新成功",
         data={
-            "access_token": access_token,
-            "refresh_token": refresh_token
+            "access_token": access_token
+            # 不返回新的 refresh_token，使用原来的
         }
     )
 
@@ -101,10 +104,12 @@ def read_current_user(
     """
     获取当前用户信息
     """
+    # 使用 Pydantic schema 序列化用户数据
+    user_data = schemas.User.from_orm(current_user)
     return schemas.ResponseModel(
         success=True,
         message="获取用户信息成功",
-        data=current_user
+        data=user_data
     )
 
 

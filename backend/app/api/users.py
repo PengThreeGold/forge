@@ -23,8 +23,11 @@ def read_users(
     users = crud.crud_user.get_multi(db, skip=skip, limit=limit)
     total = crud.crud_user.count(db)
     
+    # 使用 Pydantic schema 序列化用户数据列表
+    user_data_list = [schemas.User.from_orm(user) for user in users]
+    
     return schemas.PaginatedResponse(
-        items=users,
+        items=user_data_list,
         total=total,
         page=skip // limit + 1,
         size=limit,
@@ -60,10 +63,12 @@ def create_user(
             )
     
     user = crud.crud_user.create(db, obj_in=user_in)
+    # 使用 Pydantic schema 序列化用户数据
+    user_data = schemas.User.from_orm(user)
     return schemas.ResponseModel(
         success=True,
         message="用户创建成功",
-        data=user
+        data=user_data
     )
 
 
@@ -83,10 +88,12 @@ def read_user(
             detail="用户不存在"
         )
     
+    # 使用 Pydantic schema 序列化用户数据
+    user_data = schemas.User.from_orm(user)
     return schemas.ResponseModel(
         success=True,
         message="获取用户详情成功",
-        data=user
+        data=user_data
     )
 
 
@@ -126,10 +133,12 @@ def update_user(
             )
     
     user = crud.crud_user.update(db, db_obj=user, obj_in=user_in)
+    # 使用 Pydantic schema 序列化用户数据
+    user_data = schemas.User.from_orm(user)
     return schemas.ResponseModel(
         success=True,
         message="用户信息更新成功",
-        data=user
+        data=user_data
     )
 
 

@@ -30,8 +30,11 @@ def read_spaces(
         spaces = crud.crud_software_space.get_multi_with_stats(db, skip=skip, limit=limit, created_by=getattr(current_user, 'id'))
         total = crud.crud_software_space.count(db, created_by=getattr(current_user, 'id'))
     
+    # 使用 Pydantic schema 序列化空间数据列表
+    space_data_list = [schemas.SoftwareSpace.from_orm(space) for space in spaces]
+    
     return schemas.PaginatedResponse(
-        items=spaces,
+        items=space_data_list,
         total=total,
         page=skip // limit + 1,
         size=limit,
@@ -59,10 +62,13 @@ def create_space(
     
     space = crud.crud_software_space.create(db, obj_in=space_in, created_by=getattr(current_user, 'id'))
     
+    # 使用 Pydantic schema 序列化空间数据
+    space_data = schemas.SoftwareSpace.from_orm(space)
+    
     return schemas.ResponseModel(
         success=True,
         message="软件空间创建成功",
-        data=space
+        data=space_data
     )
 
 
@@ -98,15 +104,18 @@ def read_space(
             space = s
             break
     
+    # 使用 Pydantic schema 序列化空间数据
+    space_data = schemas.SoftwareSpace.from_orm(space)
+    
     return schemas.ResponseModel(
         success=True,
         message="获取软件空间详情成功",
-        data=space
+        data=space_data
     )
 
 
 @router.put("/{space_id}", response_model=schemas.ResponseModel[schemas.SoftwareSpace])
-def update_space(
+async def update_space(
     space_id: str,
     space_in: schemas.SoftwareSpaceUpdate,
     db: Session = Depends(get_current_db),
@@ -174,10 +183,13 @@ def update_space(
                 response_body=response_body
             )
     
+    # 使用 Pydantic schema 序列化空间数据
+    space_data = schemas.SoftwareSpace.from_orm(space)
+    
     return schemas.ResponseModel(
         success=True,
         message="软件空间更新成功",
-        data=space
+        data=space_data
     )
 
 
