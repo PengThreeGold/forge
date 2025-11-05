@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Forge 软件发布管理平台 API
-  description: 本文档提供了 Forge 软件发布管理平台的详细 API 文档，包括认证、软件管理、统计分析等各个模块的接口说明。
+  description: 本文档提供了 Forge 软件发布管理平台的详细 API 文档，包括认证、软件管理、统计分析等各个模块的接口说明。平台支持软件版本管理、多架构支持和完整性校验，每个上传的软件版本都会存储MD5哈希值，支持同时上传多种架构（x86、x64、arm64等）的软件包，第三方下载后可使用该值进行文件完整性校验。
   version: 1.0.0
   contact:
     name: ThreeGold
@@ -564,7 +564,7 @@ paths:
       tags:
         - 软件管理
       summary: 创建软件版本
-      description: 为指定软件空间创建一个新版本（管理员专用）
+      description: 为指定软件空间创建一个新版本（管理员专用）。支持多架构文件上传，每个文件将自动计算MD5哈希值用于完整性校验，客户端也可以预先计算并在请求中提供。
       security:
         - BearerAuth: []
       parameters:
@@ -575,18 +575,63 @@ paths:
             schema:
               type: object
               required:
-                - file
                 - version
+                - architectures
               properties:
-                file:
-                  type: string
-                  format: binary
-                  description: 软件文件
                 version:
                   type: string
                   description: 版本号
                   example: 1.0.0
                   pattern: '^\d+\.\d+\.\d+$'
+                architectures:
+                  type: string
+                  description: 架构列表（JSON格式字符串，如：{"x86":"file_x86.exe","x64":"file_x64.exe"}）
+                  example: '{"x86":"file_x86.exe","x64":"file_x64.exe","arm64":"file_arm64.exe"}'
+                file_x86:
+                  type: string
+                  format: binary
+                  description: x86架构软件文件（当architectures包含x86时必需）
+                file_x64:
+                  type: string
+                  format: binary
+                  description: x64架构软件文件（当architectures包含x64时必需）
+                file_arm64:
+                  type: string
+                  format: binary
+                  description: arm64架构软件文件（当architectures包含arm64时必需）
+                file_arm:
+                  type: string
+                  format: binary
+                  description: arm架构软件文件（当architectures包含arm时必需）
+                file_universal:
+                  type: string
+                  format: binary
+                  description: 通用架构软件文件（当architectures包含universal时必需）
+                hash_x86:
+                  type: string
+                  description: x86文件MD5哈希值（可选，如未提供服务器将自动计算）
+                  example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+                  pattern: "^[a-fA-F0-9]{32}$"
+                hash_x64:
+                  type: string
+                  description: x64文件MD5哈希值（可选，如未提供服务器将自动计算）
+                  example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+                  pattern: "^[a-fA-F0-9]{32}$"
+                hash_arm64:
+                  type: string
+                  description: arm64文件MD5哈希值（可选，如未提供服务器将自动计算）
+                  example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+                  pattern: "^[a-fA-F0-9]{32}$"
+                hash_arm:
+                  type: string
+                  description: arm文件MD5哈希值（可选，如未提供服务器将自动计算）
+                  example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+                  pattern: "^[a-fA-F0-9]{32}$"
+                hash_universal:
+                  type: string
+                  description: universal文件MD5哈希值（可选，如未提供服务器将自动计算）
+                  example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+                  pattern: "^[a-fA-F0-9]{32}$"
                 release_note:
                   type: string
                   description: 发布说明
@@ -810,7 +855,7 @@ paths:
       tags:
         - 软件管理
       summary: 下载软件版本（管理员）
-      description: 下载指定软件空间的指定版本（仅限管理员，不需要API密钥）
+      description: 下载指定软件空间的指定版本（仅限管理员，不需要API密钥）。下载后可以使用返回的MD5哈希值进行文件完整性校验。
       security:
         - BearerAuth: []
       parameters:
@@ -819,6 +864,12 @@ paths:
       responses:
         "200":
           description: 下载成功
+          headers:
+            X-File-MD5:
+              description: 文件MD5哈希值，用于完整性校验
+              schema:
+                type: string
+                example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
           content:
             application/octet-stream:
               schema:
@@ -990,7 +1041,7 @@ paths:
       tags:
         - 公开API
       summary: 下载软件版本（带API密钥）
-      description: 通过软件空间ID下载指定版本的软件，需要提供API密钥进行验证
+      description: 通过软件空间ID下载指定版本的指定架构软件，需要提供API密钥进行验证。下载后可以使用返回的MD5哈希值进行文件完整性校验。
       security: [] # 无需JWT认证，但需要API密钥
       parameters:
         - $ref: "#/components/parameters/SpaceId"
@@ -1001,15 +1052,56 @@ paths:
           schema:
             type: string
             example: 1.0.0
+        - name: architecture
+          in: query
+          required: false
+          description: 要下载的架构（不指定时默认为第一个可用架构）
+          schema:
+            type: string
+            enum: [x86, x64, arm64, arm, universal]
+            example: x64
         - $ref: "#/components/parameters/ApiKey"
       responses:
         "200":
           description: 下载成功
+          headers:
+            X-File-MD5:
+              description: 文件MD5哈希值，用于完整性校验
+              schema:
+                type: string
+                example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+            X-File-Architecture:
+              description: 文件架构
+              schema:
+                type: string
+                example: x64
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
+        "400":
+          description: 不支持的架构或架构文件不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 不支持的架构或架构文件不存在
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: INVALID_ARCHITECTURE
+                      message:
+                        type: string
+                        example: 指定的架构不存在或未上传对应文件
         "401":
           description: API密钥无效或已过期
           content:
@@ -2429,22 +2521,19 @@ components:
           type: string
           description: 版本号
           example: 1.0.0
-        file_path:
-          type: string
-          description: 文件路径（仅管理员接口返回）
-          example: /storage/software/abc12345/v1.0.0_file.exe
-        file_size:
+        architecture_files:
+          type: array
+          description: 架构文件列表
+          items:
+            $ref: "#/components/schemas/SoftwareArchitectureFile"
+        total_size:
           type: integer
-          description: 文件大小（字节）
-          example: 1048576
-        file_hash:
+          description: 所有架构文件总大小（字节）
+          example: 3145728
+        total_size_human:
           type: string
-          description: 文件哈希值
-          example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
-        file_size_human:
-          type: string
-          description: 人类可读的文件大小
-          example: 1.00MB
+          description: 所有架构文件总大小（人类可读）
+          example: 3.00MB
         release_note:
           type: string
           description: 发布说明
@@ -2477,10 +2566,78 @@ components:
           format: date-time
           description: 更新时间
           example: 2023-01-01T00:00:00Z
+        total_downloads:
+          type: integer
+          description: 所有架构文件总下载次数
+          example: 150
+
+    # 软件架构文件模型
+    SoftwareArchitectureFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 架构文件ID
+          example: 1
+        architecture:
+          type: string
+          description: 系统架构
+          example: x64
+          enum: [x86, x64, arm64, arm, universal]
+        file_name:
+          type: string
+          description: 文件名
+          example: myapp-x64.exe
+        file_path:
+          type: string
+          description: 文件路径（仅管理员接口返回）
+          example: /storage/software/abc12345/v1.0.0/myapp-x64.exe
+        file_size:
+          type: integer
+          description: 文件大小（字节）
+          example: 1048576
+        file_size_human:
+          type: string
+          description: 人类可读的文件大小
+          example: 1.00MB
+        file_hash:
+          type: string
+          description: 文件MD5哈希值，用于完整性校验
+          example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
         download_count:
           type: integer
           description: 下载次数
-          example: 100
+          example: 50
+
+    # 公共API使用的软件架构文件模型，不包含敏感信息
+    PublicSoftwareArchitectureFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 架构文件ID
+          example: 1
+        architecture:
+          type: string
+          description: 系统架构
+          example: x64
+          enum: [x86, x64, arm64, arm, universal]
+        file_name:
+          type: string
+          description: 文件名
+          example: myapp-x64.exe
+        file_size_human:
+          type: string
+          description: 人类可读的文件大小
+          example: 1.00MB
+        file_hash:
+          type: string
+          description: 文件MD5哈希值，用于完整性校验
+          example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+        download_count:
+          type: integer
+          description: 下载次数
+          example: 50
 
     # 公共API使用的软件版本模型，不包含敏感信息
     PublicSoftwareVersion:
@@ -2494,10 +2651,15 @@ components:
           type: string
           description: 版本号
           example: 1.0.0
-        file_size_human:
+        architecture_files:
+          type: array
+          description: 架构文件列表
+          items:
+            $ref: "#/components/schemas/PublicSoftwareArchitectureFile"
+        total_size_human:
           type: string
-          description: 人类可读的文件大小
-          example: 1.00MB
+          description: 所有架构文件总大小（人类可读）
+          example: 3.00MB
         release_note:
           type: string
           description: 发布说明
@@ -2507,15 +2669,19 @@ components:
           description: 文档链接
           example: https://example.com/docs
           format: uri
+        is_published:
+          type: boolean
+          description: 是否已发布
+          example: true
         publish_date:
           type: string
           format: date-time
           description: 发布时间
           example: 2023-01-01T00:00:00Z
-        download_count:
+        total_downloads:
           type: integer
-          description: 下载次数
-          example: 100
+          description: 所有架构文件总下载次数
+          example: 150
 
     DownloadRecord:
       type: object
