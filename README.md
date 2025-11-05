@@ -21,8 +21,8 @@ Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队�
 ## 系统要求
 
 - **后端**：
-  - Python 3.8+
-  - fastapi
+  - Python
+  - FastAPI
   - SQLAlchemy
   - SQLite
 
