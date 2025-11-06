@@ -1,0 +1,4066 @@
+{
+    "openapi": "3.1.0",
+    "servers": [
+        {
+            "url": "http://localhost:1110/"
+        }
+    ],
+    "info": {
+        "title": "Forge 软件发布管理平台",
+        "description": "Forge 是一个现代化的软件发布管理平台，旨在帮助开发团队更高效地管理和发布软件版本。",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "健康检查",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/": {
+            "get": {
+                "summary": "Root",
+                "description": "根路径",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "认证"
+                ],
+                "summary": "Login For Access Token",
+                "description": "用户登录获取访问令牌",
+                "operationId": "login_for_access_token_api_auth_login_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserLogin"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Login For Access Token Api Auth Login Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/refresh": {
+            "post": {
+                "tags": [
+                    "认证"
+                ],
+                "summary": "Refresh Access Token",
+                "description": "使用刷新令牌获取新的访问令牌",
+                "operationId": "refresh_access_token_api_auth_refresh_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenRefresh"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Refresh Access Token Api Auth Refresh Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/profile": {
+            "get": {
+                "tags": [
+                    "认证"
+                ],
+                "summary": "Read Current User",
+                "description": "获取当前用户信息",
+                "operationId": "read_current_user_api_auth_profile_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Read Current User Api Auth Profile Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/admin/password": {
+            "put": {
+                "tags": [
+                    "认证"
+                ],
+                "summary": "Change Password",
+                "description": "修改当前用户密码",
+                "operationId": "change_password_api_auth_admin_password_put",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordChange"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/admin/init": {
+            "post": {
+                "tags": [
+                    "认证"
+                ],
+                "summary": "Init Admin",
+                "description": "初始化管理员账户（仅当没有管理员时可用）",
+                "operationId": "init_admin_api_auth_admin_init_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserCreate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/": {
+            "get": {
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "Read Users",
+                "description": "获取用户列表（管理员权限）",
+                "operationId": "read_users_api_users__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_User_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "Create User",
+                "description": "创建新用户（管理员权限）",
+                "operationId": "create_user_api_users__post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserCreate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_User_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{user_id}": {
+            "get": {
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "Read User",
+                "description": "获取用户详情（管理员权限）",
+                "operationId": "read_user_api_users__user_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_User_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "Update User",
+                "description": "更新用户信息（管理员权限）",
+                "operationId": "update_user_api_users__user_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_User_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "Delete User",
+                "description": "删除用户（管理员权限）",
+                "operationId": "delete_user_api_users__user_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "User Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/": {
+            "get": {
+                "tags": [
+                    "软件管理"
+                ],
+                "summary": "Read Spaces",
+                "description": "获取软件空间列表",
+                "operationId": "read_spaces_api_spaces__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_SoftwareSpace_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "软件管理"
+                ],
+                "summary": "Create Space",
+                "description": "创建软件空间",
+                "operationId": "create_space_api_spaces__post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SoftwareSpaceCreate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareSpace_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}": {
+            "get": {
+                "tags": [
+                    "软件管理"
+                ],
+                "summary": "Read Space",
+                "description": "获取软件空间详情",
+                "operationId": "read_space_api_spaces__space_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareSpace_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "软件管理"
+                ],
+                "summary": "Update Space",
+                "description": "更新软件空间",
+                "operationId": "update_space_api_spaces__space_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SoftwareSpaceUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareSpace_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "软件管理"
+                ],
+                "summary": "Delete Space",
+                "description": "删除软件空间",
+                "operationId": "delete_space_api_spaces__space_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/stats": {
+            "get": {
+                "tags": [
+                    "软件管理"
+                ],
+                "summary": "Get Space Stats",
+                "description": "获取软件空间统计信息",
+                "operationId": "get_space_stats_api_spaces__space_id__stats_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SpaceStats_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/versions": {
+            "get": {
+                "tags": [
+                    "版本管理"
+                ],
+                "summary": "Read Versions",
+                "description": "获取软件版本列表",
+                "operationId": "read_versions_api_spaces__space_id__versions_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_SoftwareVersion_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "版本管理"
+                ],
+                "summary": "Create Version",
+                "description": "创建软件版本（支持多架构）\n如果版本已存在，则添加架构文件到现有版本\n当所有架构文件都上传完成后，设置 is_ready=true",
+                "operationId": "create_version_api_spaces__space_id__versions_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_create_version_api_spaces__space_id__versions_post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareVersion_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/versions/{version}": {
+            "put": {
+                "tags": [
+                    "版本管理"
+                ],
+                "summary": "Update Version",
+                "description": "更新软件版本\n支持更新元数据和替换文件\n如果提供了文件，则会替换指定架构的文件",
+                "operationId": "update_version_api_spaces__space_id__versions__version__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Version"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_update_version_api_spaces__space_id__versions__version__put"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareVersion_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "版本管理"
+                ],
+                "summary": "Delete Version",
+                "description": "删除软件版本",
+                "operationId": "delete_version_api_spaces__space_id__versions__version__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Version"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/versions/{version}/publish": {
+            "post": {
+                "tags": [
+                    "版本管理"
+                ],
+                "summary": "Publish Version",
+                "description": "发布软件版本",
+                "operationId": "publish_version_api_spaces__space_id__versions__version__publish_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Version"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareVersion_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/versions/{version}/unpublish": {
+            "post": {
+                "tags": [
+                    "版本管理"
+                ],
+                "summary": "Unpublish Version",
+                "description": "取消发布软件版本",
+                "operationId": "unpublish_version_api_spaces__space_id__versions__version__unpublish_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Version"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SoftwareVersion_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/spaces": {
+            "get": {
+                "tags": [
+                    "公共API"
+                ],
+                "summary": "Read Public Spaces",
+                "description": "获取公共软件空间列表",
+                "operationId": "read_public_spaces_api_public_spaces_get",
+                "parameters": [
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "搜索关键词",
+                            "title": "Search"
+                        },
+                        "description": "搜索关键词"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_PublicSoftwareSpace_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/spaces/{space_id}": {
+            "get": {
+                "tags": [
+                    "公共API"
+                ],
+                "summary": "Read Public Space",
+                "description": "获取公共软件空间详情",
+                "operationId": "read_public_space_api_public_spaces__space_id__get",
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_PublicSoftwareSpace_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/spaces/{space_id}/versions": {
+            "get": {
+                "tags": [
+                    "公共API"
+                ],
+                "summary": "Read Public Versions",
+                "description": "获取软件空间的已发布版本列表",
+                "operationId": "read_public_versions_api_public_spaces__space_id__versions_get",
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_PublicSoftwareVersion_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/download/{space_id}/{version_or_latest}": {
+            "get": {
+                "tags": [
+                    "公共API"
+                ],
+                "summary": "Download Version",
+                "description": "下载软件版本（支持指定版本号或latest）\n版本号如：1.0.0，或使用 'latest' 下载最新版本",
+                "operationId": "download_version_api_public_download__space_id___version_or_latest__get",
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "version_or_latest",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Version Or Latest"
+                        }
+                    },
+                    {
+                        "name": "architecture",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "架构类型（支持：x86_64, aarch64；别名 x86/x64 -\u003E x86_64, arm/arm64/arm -\u003E aarch64）",
+                            "title": "Architecture"
+                        },
+                        "description": "架构类型（支持：x86_64, aarch64；别名 x86/x64 -\u003E x86_64, arm/arm64/arm -\u003E aarch64）"
+                    },
+                    {
+                        "name": "api_key",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "API密钥",
+                            "title": "Api Key"
+                        },
+                        "description": "API密钥"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Download Version Api Public Download  Space Id   Version Or Latest  Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/stats/system": {
+            "get": {
+                "tags": [
+                    "统计分析"
+                ],
+                "summary": "Read System Stats",
+                "description": "获取系统统计信息（管理员权限）",
+                "operationId": "read_system_stats_api_stats_system_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SystemStats_"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/stats/spaces/{space_id}": {
+            "get": {
+                "tags": [
+                    "统计分析"
+                ],
+                "summary": "Read Space Stats",
+                "description": "获取软件空间统计信息",
+                "operationId": "read_space_stats_api_stats_spaces__space_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_SpaceStats_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/stats/spaces/{space_id}/downloads/daily": {
+            "get": {
+                "tags": [
+                    "统计分析"
+                ],
+                "summary": "Read Space Daily Downloads",
+                "description": "获取软件空间每日下载统计",
+                "operationId": "read_space_daily_downloads_api_stats_spaces__space_id__downloads_daily_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 90,
+                            "description": "统计天数",
+                            "default": 30,
+                            "title": "Days"
+                        },
+                        "description": "统计天数"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_List_DailyDownloadStats__"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/stats/spaces/{space_id}/downloads/versions": {
+            "get": {
+                "tags": [
+                    "统计分析"
+                ],
+                "summary": "Read Space Version Downloads",
+                "description": "获取软件空间版本下载统计",
+                "operationId": "read_space_version_downloads_api_stats_spaces__space_id__downloads_versions_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_List_VersionDownloadStats__"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/config": {
+            "get": {
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Read Webhook Config",
+                "description": "获取Webhook配置",
+                "operationId": "read_webhook_config_api_spaces__space_id__config_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_WebhookConfig_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Update Webhook Config",
+                "description": "更新Webhook配置",
+                "operationId": "update_webhook_config_api_spaces__space_id__config_put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WebhookConfigUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/regenerate-secret": {
+            "post": {
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Regenerate Webhook Secret",
+                "description": "重新生成Webhook密钥",
+                "operationId": "regenerate_webhook_secret_api_spaces__space_id__regenerate_secret_post",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_dict_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/logs": {
+            "get": {
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Read Webhook Logs",
+                "description": "获取Webhook日志",
+                "operationId": "read_webhook_logs_api_spaces__space_id__logs_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_WebhookLog_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/logs/failed": {
+            "get": {
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Read Failed Webhook Logs",
+                "description": "获取失败的Webhook日志",
+                "operationId": "read_failed_webhook_logs_api_spaces__space_id__logs_failed_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_WebhookLog_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/spaces/{space_id}/logs/events/{event_type}": {
+            "get": {
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Read Webhook Logs By Event Type",
+                "description": "根据事件类型获取Webhook日志",
+                "operationId": "read_webhook_logs_by_event_type_api_spaces__space_id__logs_events__event_type__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "space_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Space Id"
+                        }
+                    },
+                    {
+                        "name": "event_type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Event Type"
+                        }
+                    },
+                    {
+                        "name": "skip",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "title": "Skip"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_WebhookLog_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permissions/": {
+            "get": {
+                "tags": [
+                    "权限管理"
+                ],
+                "summary": "Read Permissions",
+                "description": "获取系统中所有可用的权限列表",
+                "operationId": "read_permissions_api_permissions__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseModel_List_dict__"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Body_create_version_api_spaces__space_id__versions_post": {
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "title": "Version"
+                    },
+                    "architecture": {
+                        "type": "string",
+                        "title": "Architecture"
+                    },
+                    "release_note": {
+                        "type": "string",
+                        "title": "Release Note"
+                    },
+                    "documentation_url": {
+                        "type": "string",
+                        "title": "Documentation Url"
+                    },
+                    "is_published": {
+                        "type": "boolean",
+                        "title": "Is Published",
+                        "default": false
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "File"
+                    },
+                    "file_hash": {
+                        "type": "string",
+                        "title": "File Hash"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "version",
+                    "architecture",
+                    "file"
+                ],
+                "title": "Body_create_version_api_spaces__space_id__versions_post"
+            },
+            "Body_update_version_api_spaces__space_id__versions__version__put": {
+                "properties": {
+                    "version_new": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Version New",
+                        "description": "新版本号"
+                    },
+                    "release_note": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Release Note",
+                        "description": "发布说明"
+                    },
+                    "documentation_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Documentation Url",
+                        "description": "文档链接"
+                    },
+                    "is_published": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Is Published",
+                        "description": "是否已发布"
+                    },
+                    "is_ready": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Is Ready",
+                        "description": "是否已完成"
+                    },
+                    "architecture": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Architecture",
+                        "description": "架构类型"
+                    },
+                    "file_hash": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "File Hash",
+                        "description": "文件哈希值"
+                    }
+                },
+                "type": "object",
+                "title": "Body_update_version_api_spaces__space_id__versions__version__put"
+            },
+            "DailyDownloadStats": {
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "title": "Date",
+                        "description": "日期"
+                    },
+                    "downloads": {
+                        "type": "integer",
+                        "title": "Downloads",
+                        "description": "下载次数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "date",
+                    "downloads"
+                ],
+                "title": "DailyDownloadStats"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "PaginatedResponse_PublicSoftwareSpace_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/PublicSoftwareSpace"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "数据列表"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "总数据量"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "当前页码"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "title": "Size",
+                        "description": "每页大小"
+                    },
+                    "pages": {
+                        "type": "integer",
+                        "title": "Pages",
+                        "description": "总页数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "size",
+                    "pages"
+                ],
+                "title": "PaginatedResponse[PublicSoftwareSpace]"
+            },
+            "PaginatedResponse_PublicSoftwareVersion_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/PublicSoftwareVersion"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "数据列表"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "总数据量"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "当前页码"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "title": "Size",
+                        "description": "每页大小"
+                    },
+                    "pages": {
+                        "type": "integer",
+                        "title": "Pages",
+                        "description": "总页数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "size",
+                    "pages"
+                ],
+                "title": "PaginatedResponse[PublicSoftwareVersion]"
+            },
+            "PaginatedResponse_SoftwareSpace_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/SoftwareSpace"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "数据列表"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "总数据量"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "当前页码"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "title": "Size",
+                        "description": "每页大小"
+                    },
+                    "pages": {
+                        "type": "integer",
+                        "title": "Pages",
+                        "description": "总页数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "size",
+                    "pages"
+                ],
+                "title": "PaginatedResponse[SoftwareSpace]"
+            },
+            "PaginatedResponse_SoftwareVersion_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/SoftwareVersion"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "数据列表"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "总数据量"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "当前页码"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "title": "Size",
+                        "description": "每页大小"
+                    },
+                    "pages": {
+                        "type": "integer",
+                        "title": "Pages",
+                        "description": "总页数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "size",
+                    "pages"
+                ],
+                "title": "PaginatedResponse[SoftwareVersion]"
+            },
+            "PaginatedResponse_User_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/User"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "数据列表"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "总数据量"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "当前页码"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "title": "Size",
+                        "description": "每页大小"
+                    },
+                    "pages": {
+                        "type": "integer",
+                        "title": "Pages",
+                        "description": "总页数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "size",
+                    "pages"
+                ],
+                "title": "PaginatedResponse[User]"
+            },
+            "PaginatedResponse_WebhookLog_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/WebhookLog"
+                        },
+                        "type": "array",
+                        "title": "Items",
+                        "description": "数据列表"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total",
+                        "description": "总数据量"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page",
+                        "description": "当前页码"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "title": "Size",
+                        "description": "每页大小"
+                    },
+                    "pages": {
+                        "type": "integer",
+                        "title": "Pages",
+                        "description": "总页数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "size",
+                    "pages"
+                ],
+                "title": "PaginatedResponse[WebhookLog]"
+            },
+            "PasswordChange": {
+                "properties": {
+                    "old_password": {
+                        "type": "string",
+                        "title": "Old Password",
+                        "description": "原密码"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 6,
+                        "title": "New Password",
+                        "description": "新密码"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "old_password",
+                    "new_password"
+                ],
+                "title": "PasswordChange"
+            },
+            "PublicSoftwareArchitectureFile": {
+                "properties": {
+                    "architecture": {
+                        "type": "string",
+                        "title": "Architecture",
+                        "description": "系统架构"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "title": "File Name",
+                        "description": "文件名"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "title": "Id",
+                        "description": "架构文件ID"
+                    },
+                    "file_size_human": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "File Size Human",
+                        "description": "人类可读的文件大小"
+                    },
+                    "file_hash": {
+                        "type": "string",
+                        "title": "File Hash",
+                        "description": "文件MD5哈希值，用于完整性校验"
+                    },
+                    "download_count": {
+                        "type": "integer",
+                        "title": "Download Count",
+                        "description": "下载次数",
+                        "default": 0
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "architecture",
+                    "file_name",
+                    "id",
+                    "file_hash"
+                ],
+                "title": "PublicSoftwareArchitectureFile"
+            },
+            "PublicSoftwareSpace": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "软件空间ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "软件名称"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "软件描述"
+                    },
+                    "author": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Author",
+                        "description": "作者"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "创建时间"
+                    },
+                    "versions_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Versions Count",
+                        "description": "版本数量",
+                        "default": 0
+                    },
+                    "latest_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Latest Version",
+                        "description": "最新版本号"
+                    },
+                    "total_downloads": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Total Downloads",
+                        "description": "总下载次数",
+                        "default": 0
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "created_at"
+                ],
+                "title": "PublicSoftwareSpace"
+            },
+            "PublicSoftwareVersion": {
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "description": "版本号"
+                    },
+                    "release_note": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Release Note",
+                        "description": "发布说明"
+                    },
+                    "documentation_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Documentation Url",
+                        "description": "文档链接"
+                    },
+                    "is_published": {
+                        "type": "boolean",
+                        "title": "Is Published",
+                        "description": "是否已发布"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "title": "Id",
+                        "description": "版本ID"
+                    },
+                    "architecture_files": {
+                        "items": {
+                            "$ref": "#/components/schemas/PublicSoftwareArchitectureFile"
+                        },
+                        "type": "array",
+                        "title": "Architecture Files",
+                        "description": "架构文件列表",
+                        "default": []
+                    },
+                    "total_size_human": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Total Size Human",
+                        "description": "所有架构文件总大小（人类可读）"
+                    },
+                    "publish_date": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Publish Date",
+                        "description": "发布时间"
+                    },
+                    "total_downloads": {
+                        "type": "integer",
+                        "title": "Total Downloads",
+                        "description": "所有架构文件总下载次数",
+                        "default": 0
+                    },
+                    "is_ready": {
+                        "type": "boolean",
+                        "title": "Is Ready",
+                        "description": "是否已完成（所有架构文件已上传）",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "version",
+                    "is_published",
+                    "id"
+                ],
+                "title": "PublicSoftwareVersion"
+            },
+            "ResponseModel": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data",
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel",
+                "description": "通用API响应模型"
+            },
+            "ResponseModel_List_DailyDownloadStats__": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/DailyDownloadStats"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data",
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[List[DailyDownloadStats]]"
+            },
+            "ResponseModel_List_VersionDownloadStats__": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/VersionDownloadStats"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data",
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[List[VersionDownloadStats]]"
+            },
+            "ResponseModel_List_dict__": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": true,
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data",
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[List[dict]]"
+            },
+            "ResponseModel_PublicSoftwareSpace_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/PublicSoftwareSpace"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[PublicSoftwareSpace]"
+            },
+            "ResponseModel_SoftwareSpace_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SoftwareSpace"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[SoftwareSpace]"
+            },
+            "ResponseModel_SoftwareVersion_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SoftwareVersion"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[SoftwareVersion]"
+            },
+            "ResponseModel_SpaceStats_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SpaceStats"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[SpaceStats]"
+            },
+            "ResponseModel_SystemStats_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SystemStats"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[SystemStats]"
+            },
+            "ResponseModel_User_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[User]"
+            },
+            "ResponseModel_WebhookConfig_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/WebhookConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[WebhookConfig]"
+            },
+            "ResponseModel_dict_": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "description": "操作是否成功"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Data",
+                        "description": "响应数据"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message"
+                ],
+                "title": "ResponseModel[dict]"
+            },
+            "SoftwareArchitectureFile": {
+                "properties": {
+                    "architecture": {
+                        "type": "string",
+                        "title": "Architecture",
+                        "description": "系统架构"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "title": "File Name",
+                        "description": "文件名"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "title": "Id",
+                        "description": "架构文件ID"
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "title": "File Path",
+                        "description": "文件路径（仅管理员接口返回）"
+                    },
+                    "file_size": {
+                        "type": "integer",
+                        "title": "File Size",
+                        "description": "文件大小（字节）"
+                    },
+                    "file_size_human": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "File Size Human",
+                        "description": "人类可读的文件大小"
+                    },
+                    "file_hash": {
+                        "type": "string",
+                        "title": "File Hash",
+                        "description": "文件MD5哈希值，用于完整性校验"
+                    },
+                    "download_count": {
+                        "type": "integer",
+                        "title": "Download Count",
+                        "description": "下载次数",
+                        "default": 0
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "architecture",
+                    "file_name",
+                    "id",
+                    "file_path",
+                    "file_size",
+                    "file_hash"
+                ],
+                "title": "SoftwareArchitectureFile"
+            },
+            "SoftwareSpace": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "软件名称"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "软件描述"
+                    },
+                    "author": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 100
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Author",
+                        "description": "作者"
+                    },
+                    "status": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Status",
+                        "description": "软件空间状态",
+                        "default": "active"
+                    },
+                    "id": {
+                        "type": "string",
+                        "title": "Id",
+                        "description": "软件空间ID"
+                    },
+                    "api_key": {
+                        "type": "string",
+                        "title": "Api Key",
+                        "description": "API密钥"
+                    },
+                    "webhook_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Url",
+                        "description": "Webhook URL"
+                    },
+                    "webhook_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Secret",
+                        "description": "Webhook密钥"
+                    },
+                    "webhook_events": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Events",
+                        "description": "Webhook事件列表"
+                    },
+                    "created_by": {
+                        "type": "integer",
+                        "title": "Created By",
+                        "description": "创建者ID"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "创建时间"
+                    },
+                    "updated_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Updated At",
+                        "description": "更新时间"
+                    },
+                    "versions_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Versions Count",
+                        "description": "版本数量",
+                        "default": 0
+                    },
+                    "downloads_count": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Downloads Count",
+                        "description": "下载次数",
+                        "default": 0
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "id",
+                    "api_key",
+                    "created_by",
+                    "created_at"
+                ],
+                "title": "SoftwareSpace"
+            },
+            "SoftwareSpaceCreate": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "title": "Name",
+                        "description": "软件名称"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "软件描述"
+                    },
+                    "author": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 100
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Author",
+                        "description": "作者"
+                    },
+                    "status": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Status",
+                        "description": "软件空间状态",
+                        "default": "active"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "title": "SoftwareSpaceCreate"
+            },
+            "SoftwareSpaceUpdate": {
+                "properties": {
+                    "name": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 100,
+                                "minLength": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Name",
+                        "description": "软件名称"
+                    },
+                    "description": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Description",
+                        "description": "软件描述"
+                    },
+                    "author": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 100
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Author",
+                        "description": "作者"
+                    },
+                    "status": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Status",
+                        "description": "软件空间状态"
+                    },
+                    "webhook_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Url",
+                        "description": "Webhook URL"
+                    }
+                },
+                "type": "object",
+                "title": "SoftwareSpaceUpdate"
+            },
+            "SoftwareVersion": {
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 1,
+                        "title": "Version",
+                        "description": "版本号"
+                    },
+                    "release_note": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Release Note",
+                        "description": "发布说明"
+                    },
+                    "documentation_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Documentation Url",
+                        "description": "文档链接"
+                    },
+                    "is_published": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Is Published",
+                        "description": "是否已发布",
+                        "default": false
+                    },
+                    "id": {
+                        "type": "integer",
+                        "title": "Id",
+                        "description": "版本ID"
+                    },
+                    "space_id": {
+                        "type": "string",
+                        "title": "Space Id",
+                        "description": "软件空间ID"
+                    },
+                    "architecture_files": {
+                        "items": {
+                            "$ref": "#/components/schemas/SoftwareArchitectureFile"
+                        },
+                        "type": "array",
+                        "title": "Architecture Files",
+                        "description": "架构文件列表",
+                        "default": []
+                    },
+                    "total_size": {
+                        "type": "integer",
+                        "title": "Total Size",
+                        "description": "所有架构文件总大小（字节）",
+                        "default": 0
+                    },
+                    "total_size_human": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Total Size Human",
+                        "description": "所有架构文件总大小（人类可读）"
+                    },
+                    "publish_date": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Publish Date",
+                        "description": "发布时间"
+                    },
+                    "created_by": {
+                        "type": "integer",
+                        "title": "Created By",
+                        "description": "创建者ID"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "创建时间"
+                    },
+                    "updated_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Updated At",
+                        "description": "更新时间"
+                    },
+                    "total_downloads": {
+                        "type": "integer",
+                        "title": "Total Downloads",
+                        "description": "所有架构文件总下载次数",
+                        "default": 0
+                    },
+                    "is_ready": {
+                        "type": "boolean",
+                        "title": "Is Ready",
+                        "description": "是否已完成（所有架构文件已上传）",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "version",
+                    "id",
+                    "space_id",
+                    "created_by",
+                    "created_at"
+                ],
+                "title": "SoftwareVersion"
+            },
+            "SpaceStats": {
+                "properties": {
+                    "space_id": {
+                        "type": "string",
+                        "title": "Space Id",
+                        "description": "软件空间ID"
+                    },
+                    "space_name": {
+                        "type": "string",
+                        "title": "Space Name",
+                        "description": "软件空间名称"
+                    },
+                    "total_downloads": {
+                        "type": "integer",
+                        "title": "Total Downloads",
+                        "description": "总下载次数"
+                    },
+                    "versions_count": {
+                        "type": "integer",
+                        "title": "Versions Count",
+                        "description": "版本数量"
+                    },
+                    "latest_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Latest Version",
+                        "description": "最新版本号"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "space_id",
+                    "space_name",
+                    "total_downloads",
+                    "versions_count"
+                ],
+                "title": "SpaceStats"
+            },
+            "SystemStats": {
+                "properties": {
+                    "total_spaces": {
+                        "type": "integer",
+                        "title": "Total Spaces",
+                        "description": "总软件空间数"
+                    },
+                    "total_versions": {
+                        "type": "integer",
+                        "title": "Total Versions",
+                        "description": "总版本数"
+                    },
+                    "total_downloads": {
+                        "type": "integer",
+                        "title": "Total Downloads",
+                        "description": "总下载次数"
+                    },
+                    "active_users": {
+                        "type": "integer",
+                        "title": "Active Users",
+                        "description": "活跃用户数"
+                    },
+                    "recent_spaces": {
+                        "items": {
+                            "$ref": "#/components/schemas/SpaceStats"
+                        },
+                        "type": "array",
+                        "title": "Recent Spaces",
+                        "description": "最近的软件空间"
+                    },
+                    "daily_downloads": {
+                        "items": {
+                            "$ref": "#/components/schemas/DailyDownloadStats"
+                        },
+                        "type": "array",
+                        "title": "Daily Downloads",
+                        "description": "每日下载统计"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "total_spaces",
+                    "total_versions",
+                    "total_downloads",
+                    "active_users",
+                    "recent_spaces",
+                    "daily_downloads"
+                ],
+                "title": "SystemStats"
+            },
+            "TokenRefresh": {
+                "properties": {
+                    "refresh_token": {
+                        "type": "string",
+                        "title": "Refresh Token",
+                        "description": "刷新令牌"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "refresh_token"
+                ],
+                "title": "TokenRefresh"
+            },
+            "User": {
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 3,
+                        "title": "Username",
+                        "description": "用户名"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "email"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Email",
+                        "description": "邮箱地址"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "title": "Id",
+                        "description": "用户ID"
+                    },
+                    "role": {
+                        "type": "string",
+                        "title": "Role",
+                        "description": "用户角色"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "Is Active",
+                        "description": "是否激活"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At",
+                        "description": "创建时间"
+                    },
+                    "updated_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Updated At",
+                        "description": "更新时间"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "id",
+                    "role",
+                    "is_active",
+                    "created_at"
+                ],
+                "title": "User"
+            },
+            "UserCreate": {
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 3,
+                        "title": "Username",
+                        "description": "用户名"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "email"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Email",
+                        "description": "邮箱地址"
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 6,
+                        "title": "Password",
+                        "description": "密码"
+                    },
+                    "role": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Role",
+                        "description": "用户角色",
+                        "default": "user"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "title": "UserCreate"
+            },
+            "UserLogin": {
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "title": "Username",
+                        "description": "用户名"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password",
+                        "description": "密码"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "title": "UserLogin"
+            },
+            "UserUpdate": {
+                "properties": {
+                    "username": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 50,
+                                "minLength": 3
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Username",
+                        "description": "用户名"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "email"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Email",
+                        "description": "邮箱地址"
+                    },
+                    "role": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Role",
+                        "description": "用户角色"
+                    },
+                    "is_active": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Is Active",
+                        "description": "是否激活"
+                    }
+                },
+                "type": "object",
+                "title": "UserUpdate"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            },
+            "VersionDownloadStats": {
+                "properties": {
+                    "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "description": "版本号"
+                    },
+                    "downloads": {
+                        "type": "integer",
+                        "title": "Downloads",
+                        "description": "下载次数"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "version",
+                    "downloads"
+                ],
+                "title": "VersionDownloadStats"
+            },
+            "WebhookConfig": {
+                "properties": {
+                    "webhook_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Url",
+                        "description": "Webhook URL"
+                    },
+                    "webhook_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Secret",
+                        "description": "Webhook密钥"
+                    },
+                    "webhook_events": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Events",
+                        "description": "启用的事件类型"
+                    }
+                },
+                "type": "object",
+                "title": "WebhookConfig"
+            },
+            "WebhookConfigUpdate": {
+                "properties": {
+                    "webhook_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Url",
+                        "description": "Webhook URL"
+                    },
+                    "webhook_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Secret",
+                        "description": "Webhook密钥"
+                    },
+                    "webhook_events": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Webhook Events",
+                        "description": "启用的事件类型"
+                    }
+                },
+                "type": "object",
+                "title": "WebhookConfigUpdate"
+            },
+            "WebhookLog": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id",
+                        "description": "日志ID"
+                    },
+                    "space_name": {
+                        "type": "string",
+                        "title": "Space Name",
+                        "description": "软件空间名称"
+                    },
+                    "event_type": {
+                        "type": "string",
+                        "title": "Event Type",
+                        "description": "事件类型"
+                    },
+                    "payload": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Payload",
+                        "description": "请求数据"
+                    },
+                    "response_status": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Response Status",
+                        "description": "响应状态码"
+                    },
+                    "response_body": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Response Body",
+                        "description": "响应体"
+                    },
+                    "attempt_time": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Attempt Time",
+                        "description": "尝试时间"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "space_name",
+                    "event_type",
+                    "attempt_time"
+                ],
+                "title": "WebhookLog"
+            }
+        },
+        "securitySchemes": {
+            "HTTPBearer": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    }
+}
