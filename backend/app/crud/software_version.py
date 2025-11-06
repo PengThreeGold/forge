@@ -166,6 +166,10 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         # 获取架构文件
         architecture_files = crud_software_architecture_file.get_by_version_id(db, version_id=version_id)
         
+        # 为每个架构文件添加人类可读的文件大小
+        for arch_file in architecture_files:
+            arch_file.file_size_human = format_file_size(getattr(arch_file, 'file_size'))
+        
         # 计算总大小和总下载次数
         total_size = sum(getattr(af, 'file_size', 0) for af in architecture_files)
         total_downloads = sum(getattr(af, 'download_count', 0) for af in architecture_files)

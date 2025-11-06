@@ -56,12 +56,12 @@ class CRUDSoftwareArchitectureFile(CRUDBase[SoftwareArchitectureFile, SoftwareAr
         )
     
     def create(
-        self, 
-        db: Session, 
-        *, 
-        version_id: int, 
-        architecture: str, 
-        file_path: str, 
+        self,
+        db: Session,
+        *,
+        version_id: int,
+        architecture: str,
+        file_path: str,
         file_name: str,
         file_hash: Optional[str] = None
     ) -> SoftwareArchitectureFile:
@@ -76,6 +76,10 @@ class CRUDSoftwareArchitectureFile(CRUDBase[SoftwareArchitectureFile, SoftwareAr
             file_hash = self._calculate_file_hash(normalized_file_path)
         file_size = os.path.getsize(normalized_file_path)
         
+        # 计算人类可读的文件大小
+        from app.utils.file import format_file_size
+        file_size_human = format_file_size(file_size)
+        
         db_obj = SoftwareArchitectureFile(
             version_id=version_id,
             architecture=architecture,
@@ -84,9 +88,16 @@ class CRUDSoftwareArchitectureFile(CRUDBase[SoftwareArchitectureFile, SoftwareAr
             file_size=file_size,
             file_hash=file_hash
         )
+        
+        # 设置人类可读的文件大小（作为属性，不存储在数据库中）
+        db_obj.file_size_human = file_size_human
+        
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        
+        # 重新设置人类可读的文件大小（刷新后可能需要重新设置）
+        db_obj.file_size_human = file_size_human
         return db_obj
     
     def increment_download_count(
