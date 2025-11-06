@@ -99,11 +99,12 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
             is_published=obj_in.is_published or False,
             publish_date=datetime.utcnow() if obj_in.is_published else None,
             created_by=created_by,
+            is_ready=False,  # 新创建的版本默认未完成
         )
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        
+
         # 返回包含统计信息的版本对象
         return self.get_with_download_count(db, version_id=getattr(db_obj, 'id'))
 
@@ -121,14 +122,19 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         # 如果 documentation_url 在更新数据里，确保它是字符串或 None，避免 pydantic HttpUrl 对象被直接写入 DB
         if "documentation_url" in update_data and update_data["documentation_url"] is not None:
             update_data["documentation_url"] = str(update_data["documentation_url"])
-        
+
         # 如果发布状态改变，更新发布时间
         if "is_published" in update_data:
             if update_data["is_published"] and not getattr(db_obj, 'is_published'):
                 update_data["publish_date"] = datetime.utcnow()
             elif not update_data["is_published"]:
                 update_data["publish_date"] = None
-        
+
+        # 如果is_ready状态改变，可以在这里添加相应的逻辑
+        if "is_ready" in update_data and update_data["is_ready"] != getattr(db_obj, 'is_ready'):
+            # 可以在这里添加版本完成时的额外逻辑
+            pass
+
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     def publish(self, db: Session, *, db_obj: SoftwareVersion) -> SoftwareVersion:
@@ -162,24 +168,24 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         version = self.get(db, id=version_id)
         if not version:
             return None
-        
+
         # 获取架构文件
         architecture_files = crud_software_architecture_file.get_by_version_id(db, version_id=version_id)
-        
+
         # 为每个架构文件添加人类可读的文件大小
         for arch_file in architecture_files:
             arch_file.file_size_human = format_file_size(getattr(arch_file, 'file_size'))
-        
+
         # 计算总大小和总下载次数
         total_size = sum(getattr(af, 'file_size', 0) for af in architecture_files)
         total_downloads = sum(getattr(af, 'download_count', 0) for af in architecture_files)
-        
+
         # 添加架构文件信息
         version.architecture_files = architecture_files
         version.total_size = total_size
         version.total_size_human = format_file_size(int(total_size))
         version.total_downloads = total_downloads
-        
+
         return version
 
     def delete_version_files(self, db: Session, *, version_id: int) -> bool:
@@ -197,7 +203,7 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
                 except Exception:
                     success = False
             db.delete(af)
-        
+
         db.commit()
         return success
 

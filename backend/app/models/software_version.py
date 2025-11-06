@@ -15,6 +15,7 @@ class SoftwareVersion(Base):
     documentation_url = Column(String(500), nullable=True)
     is_published = Column(Boolean, default=False, nullable=False)
     publish_date = Column(DateTime(timezone=True), nullable=True)
+    is_ready = Column(Boolean, default=False, nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

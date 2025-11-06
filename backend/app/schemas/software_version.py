@@ -20,6 +20,7 @@ class SoftwareVersionUpdate(BaseModel):
     release_note: Optional[str] = Field(None, description="发布说明")
     documentation_url: Optional[str] = Field(None, description="文档链接")
     is_published: Optional[bool] = Field(None, description="是否已发布")
+    is_ready: Optional[bool] = Field(None, description="是否已完成（所有架构文件已上传）")
 
 
 class SoftwareVersion(SoftwareVersionBase):
@@ -33,6 +34,7 @@ class SoftwareVersion(SoftwareVersionBase):
     created_at: datetime = Field(..., description="创建时间")
     updated_at: Optional[datetime] = Field(None, description="更新时间")
     total_downloads: int = Field(0, description="所有架构文件总下载次数")
+    is_ready: bool = Field(False, description="是否已完成（所有架构文件已上传）")
 
     class Config:
         from_attributes = True
@@ -46,6 +48,7 @@ class PublicSoftwareVersion(SoftwareVersionBase):
     is_published: bool = Field(..., description="是否已发布")
     publish_date: Optional[datetime] = Field(None, description="发布时间")
     total_downloads: int = Field(0, description="所有架构文件总下载次数")
+    is_ready: bool = Field(False, description="是否已完成（所有架构文件已上传）")
 
     class Config:
         from_attributes = True
