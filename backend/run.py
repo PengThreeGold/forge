@@ -3,10 +3,10 @@
 Forge 软件发布管理平台 - 运行脚本
 
 使用方法:
-    python run.py init-admin  # 初始化管理员账户
-    python run.py run          # 启动服务器
     python run.py create-tables # 创建数据库表
     python run.py init-data    # 初始化基础数据
+    python run.py init-admin  # 初始化管理员账户
+    python run.py run          # 启动服务器
 """
 
 from app.crud.user import crud_user
