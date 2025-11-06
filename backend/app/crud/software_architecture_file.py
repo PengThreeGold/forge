@@ -68,12 +68,13 @@ class CRUDSoftwareArchitectureFile(CRUDBase[SoftwareArchitectureFile, SoftwareAr
         """
         创建架构文件
         """
-        # 计算文件哈希和大小
-        # 确保文件路径使用正确的路径分隔符
+        # 计算文件大小和确保文件路径使用正确的路径分隔符
         normalized_file_path = os.path.normpath(file_path)
         
+        # 如果没有提供文件哈希，则计算 MD5 哈希值
         if not file_hash:
             file_hash = self._calculate_file_hash(normalized_file_path)
+        
         file_size = os.path.getsize(normalized_file_path)
         
         # 计算人类可读的文件大小

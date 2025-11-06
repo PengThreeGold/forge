@@ -197,6 +197,11 @@ async def create_version(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"文件大小超过限制（最大{format_file_size(settings.MAX_FILE_SIZE)}）"
         )
+    
+    # 如果没有提供 file_hash，则计算 MD5 哈希值
+    if not file_hash:
+        import hashlib
+        file_hash = hashlib.md5(file_content).hexdigest()
 
     # 创建上传目录并保存文件
     try:
@@ -411,6 +416,11 @@ async def update_version(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"文件大小超过限制（最大{format_file_size(settings.MAX_FILE_SIZE)}）"
             )
+        
+        # 如果没有提供 file_hash，则计算 MD5 哈希值
+        if not file_hash:
+            import hashlib
+            file_hash = hashlib.md5(file_content).hexdigest()
 
         # 架构映射
         arch_mapping = {"x86_64": "x86_64", "aarch64": "aarch64"}
