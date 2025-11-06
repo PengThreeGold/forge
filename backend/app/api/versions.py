@@ -100,12 +100,55 @@ async def create_version(
             detail="版本号格式无效，请使用语义版本号格式（如：1.0.0）"
         )
 
-    # 检查版本是否已存在
+    # 架构映射（用于文件存储和显示）
+    arch_mapping = {
+        "x86_64": "x86_64",
+        "aarch64": "aarch64"
+    }
+    mapped_architecture = arch_mapping.get(architecture, architecture)
+    
+    # 处理 documentation_url，确保是字符串或 None（避免将 pydantic HttpUrl 直接写入 DB）
+    doc_url = None
+    if documentation_url and documentation_url.strip():
+        # 简单校验：以 http:// 或 https:// 开头则认为合法并使用其字符串形式
+        # 我们不直接把 pydantic 的 HttpUrl 对象传给 SQLAlchemy，因为它无法绑定该类型到 SQLite
+        if documentation_url.startswith(("http://", "https://")):
+            doc_url = documentation_url.strip()
+        else:
+            doc_url = None
+    
+    # 检查版本是否已存在该架构
     existing_version = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version)
     if existing_version:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="版本已存在"
+        # 检查该版本是否已存在相同架构的文件
+        from app.crud.software_architecture_file import crud_software_architecture_file
+        existing_arch_file = crud_software_architecture_file.get_by_version_and_architecture(
+            db, version_id=getattr(existing_version, 'id'), architecture=mapped_architecture
+        )
+        if existing_arch_file:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"版本 {version} 的 {mapped_architecture} 架构文件已存在"
+            )
+        
+        # 如果版本存在但没有该架构的文件，则允许添加新架构
+        # 使用已存在的版本记录，不再创建新版本
+        db_version = existing_version
+    else:
+        # 创建新版本记录
+        # 创建版本记录（documentation_url 当作普通字符串）
+        version_in = schemas.SoftwareVersionCreate(
+            version=version,
+            release_note=release_note,
+            documentation_url=doc_url,
+            is_published=is_published
+        )
+
+        db_version = crud.crud_software_version.create(
+            db,
+            obj_in=version_in,
+            space_id=space_id,
+            created_by=getattr(current_user, 'id')
         )
 
     # 验证架构参数
@@ -115,13 +158,6 @@ async def create_version(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"不支持的架构类型。支持的架构: {', '.join(valid_architectures)}"
         )
-    
-    # 架构映射（用于文件存储和显示）
-    arch_mapping = {
-        "x86_64": "x86_64",
-        "aarch64": "aarch64"
-    }
-    mapped_architecture = arch_mapping.get(architecture, architecture)
 
     # 验证文件对象
     if not file or not hasattr(file, 'filename') or not file.filename:
@@ -166,6 +202,13 @@ async def create_version(
             doc_url = documentation_url.strip()
         else:
             doc_url = None
+    
+    # 架构映射（用于文件存储和显示）
+    arch_mapping = {
+        "x86_64": "x86_64",
+        "aarch64": "aarch64"
+    }
+    mapped_architecture = arch_mapping.get(architecture, architecture)
     
     # 创建版本记录（documentation_url 当作普通字符串）
     version_in = schemas.SoftwareVersionCreate(
