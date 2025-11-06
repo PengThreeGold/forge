@@ -3,6 +3,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from sqlalchemy.orm import Session
 import os
+import json
 
 from app import crud, models, schemas
 from app.api.deps import get_current_db
@@ -288,10 +289,13 @@ async def update_version(
     space_id: str,
     version: str,
     request: Request,
-    version_in: Optional[schemas.SoftwareVersionUpdate] = None,
-    architecture: str = Form(None),  # 可选：指定要更新的架构
-    file: UploadFile = File(None),   # 可选：新文件
-    file_hash: str = Form(None),     # 可选：文件哈希值
+    version_new: Optional[str] = Form(None, description="新版本号"),
+    release_note: Optional[str] = Form(None, description="发布说明"),
+    documentation_url: Optional[str] = Form(None, description="文档链接"),
+    is_published: Optional[bool] = Form(None, description="是否已发布"),
+    is_ready: Optional[bool] = Form(None, description="是否已完成"),
+    architecture: Optional[str] = Form(None, description="架构类型"),
+    file_hash: Optional[str] = Form(None, description="文件哈希值"),
     db: Session = Depends(get_current_db),
     current_user: models.User = Depends(get_current_user)
 ) -> Any:
@@ -322,36 +326,36 @@ async def update_version(
             detail="版本不存在"
         )
 
-    # 如果没有通过 JSON body 提供 version_in，尝试从 multipart/form-data 的表单中读取元数据
-    if version_in is None:
-        try:
-            form = await request.form()
-            form_data = {}
-            # 文本字段
-            for f in ("version", "release_note", "documentation_url"):
-                if f in form and form.get(f) not in (None, ""):
-                    form_data[f] = form.get(f)
+    # 构建更新数据 - 只包含非空值
+    update_data = {}
+    if version_new is not None and version_new.strip() != "":
+        update_data["version"] = version_new.strip()
+    if release_note is not None:
+        update_data["release_note"] = release_note
+    if documentation_url is not None and documentation_url.strip() != "":
+        update_data["documentation_url"] = documentation_url.strip()
+    if is_published is not None:
+        update_data["is_published"] = is_published
+    if is_ready is not None:
+        update_data["is_ready"] = is_ready
 
-            # 布尔字段，需要把字符串转换为 bool
-            for b in ("is_published", "is_ready"):
-                if b in form:
-                    val = form.get(b)
-                    if isinstance(val, str):
-                        if val.lower() in ("true", "1", "yes"):
-                            form_data[b] = True
-                        elif val.lower() in ("false", "0", "no"):
-                            form_data[b] = False
-                    else:
-                        form_data[b] = bool(val)
+    # 创建版本更新对象
+    version_update_data = None
+    if update_data:
+        version_update_data = schemas.SoftwareVersionUpdate(**update_data)
 
-            if form_data:
-                version_in = schemas.SoftwareVersionUpdate(**form_data)
-        except Exception:
-            # 无法解析表单或没有表单数据时忽略，继续使用 None
-            pass
+    # 手动处理文件上传，避免 FastAPI 的参数解析问题
+    file: Optional[UploadFile] = None
+    try:
+        form = await request.form()
+        file_obj = form.get("file")
+        if file_obj and not isinstance(file_obj, str) and hasattr(file_obj, 'filename') and file_obj.filename:
+            file = file_obj  # type: ignore
+    except Exception:
+        file = None
 
     # 如果提供了文件，需要验证架构参数
-    if file and file.filename:
+    if file is not None and hasattr(file, 'filename') and file.filename:
         if not architecture:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -366,8 +370,9 @@ async def update_version(
             )
 
     # 检查版本号是否已存在（如果更新了版本号）
-    if version_in and version_in.version and version_in.version != getattr(version_obj, 'version'):
-        existing_version = crud.crud_software_version.get_by_version(db, space_id=space_id, version=version_in.version)
+    if version_update_data and version_update_data.version and version_update_data.version != getattr(version_obj, 'version'):
+        existing_version = crud.crud_software_version.get_by_version(
+            db, space_id=space_id, version=version_update_data.version)
         if existing_version:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -377,8 +382,8 @@ async def update_version(
     # 记录变更（用于Webhook）
     changes = {}
 
-    # 处理文件更新
-    if file and file.filename and architecture:
+    # 处理文件更新（完全独立，不依赖其他参数）
+    if file is not None and hasattr(file, 'filename') and file.filename and architecture:
         from app.crud.software_architecture_file import crud_software_architecture_file
 
         # 验证文件名
@@ -409,7 +414,7 @@ async def update_version(
 
         # 架构映射
         arch_mapping = {"x86_64": "x86_64", "aarch64": "aarch64"}
-        mapped_architecture = arch_mapping.get(architecture, architecture)
+        mapped_architecture = arch_mapping.get(str(architecture), str(architecture))
 
         # 查找现有的架构文件
         existing_arch_file = crud_software_architecture_file.get_by_version_and_architecture(
@@ -446,39 +451,51 @@ async def update_version(
                 detail=f"文件保存失败: {str(e)}"
             )
 
-        # 创建新的架构文件记录
+        # 创建新的架构文件记录（file_hash 完全可选）
         crud_software_architecture_file.create(
             db=db,
             version_id=getattr(version_obj, 'id'),
             architecture=mapped_architecture,
             file_path=file_path,
             file_name=safe_filename,
-            file_hash=file_hash
+            file_hash=str(file_hash) if file_hash and file_hash.strip() else None
         )
 
         changes["file_update"] = {"architecture": mapped_architecture, "file_name": safe_filename}
 
     # 处理元数据更新
-    if version_in:
-        if version_in.version and version_in.version != getattr(version_obj, 'version'):
-            changes["version"] = {"old": getattr(version_obj, 'version'), "new": version_in.version}
-        if version_in.release_note and version_in.release_note != getattr(version_obj, 'release_note'):
-            changes["release_note"] = {"old": getattr(version_obj, 'release_note'), "new": version_in.release_note}
-        if version_in.documentation_url and version_in.documentation_url != getattr(version_obj, 'documentation_url'):
+    if version_update_data:
+        # 只更新有变化的字段
+        update_dict = {}
+        if version_update_data.version is not None and version_update_data.version != getattr(version_obj, 'version'):
+            update_dict['version'] = version_update_data.version
+            changes["version"] = {"old": getattr(version_obj, 'version'), "new": version_update_data.version}
+        if version_update_data.release_note is not None and version_update_data.release_note != getattr(version_obj, 'release_note'):
+            update_dict['release_note'] = version_update_data.release_note
+            changes["release_note"] = {"old": getattr(version_obj, 'release_note'),
+                                       "new": version_update_data.release_note}
+        if version_update_data.documentation_url is not None and version_update_data.documentation_url != getattr(version_obj, 'documentation_url'):
+            update_dict['documentation_url'] = version_update_data.documentation_url
             changes["documentation_url"] = {"old": getattr(
-                version_obj, 'documentation_url'), "new": version_in.documentation_url}
-        if version_in.is_published is not None and version_in.is_published != getattr(version_obj, 'is_published'):
-            changes["is_published"] = {"old": getattr(version_obj, 'is_published'), "new": version_in.is_published}
-        if version_in.is_ready is not None and version_in.is_ready != getattr(version_obj, 'is_ready'):
-            changes["is_ready"] = {"old": getattr(version_obj, 'is_ready'), "new": version_in.is_ready}
+                version_obj, 'documentation_url'), "new": version_update_data.documentation_url}
+        if version_update_data.is_published is not None and version_update_data.is_published != getattr(version_obj, 'is_published'):
+            update_dict['is_published'] = version_update_data.is_published
+            changes["is_published"] = {"old": getattr(version_obj, 'is_published'),
+                                       "new": version_update_data.is_published}
+        if version_update_data.is_ready is not None and version_update_data.is_ready != getattr(version_obj, 'is_ready'):
+            update_dict['is_ready'] = version_update_data.is_ready
+            changes["is_ready"] = {"old": getattr(version_obj, 'is_ready'), "new": version_update_data.is_ready}
 
-        # 更新版本记录
-        db_version = crud.crud_software_version.update(db, db_obj=version_obj, obj_in=version_in)
+        # 如果有需要更新的字段，才执行更新
+        if update_dict:
+            db_version = crud.crud_software_version.update(db, db_obj=version_obj, obj_in=version_update_data)
+        else:
+            db_version = version_obj
     else:
         db_version = version_obj
 
     # 检查是否所有架构都已上传完成（如果更新了文件）
-    if file and architecture:
+    if file is not None and hasattr(file, 'filename') and file.filename and architecture:
         from app.crud.software_architecture_file import crud_software_architecture_file
         uploaded_architectures = crud_software_architecture_file.get_architectures(
             db, version_id=getattr(db_version, 'id'))
