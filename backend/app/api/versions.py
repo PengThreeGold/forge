@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from sqlalchemy.orm import Session
 import os
 
@@ -287,6 +287,7 @@ async def create_version(
 async def update_version(
     space_id: str,
     version: str,
+    request: Request,
     version_in: Optional[schemas.SoftwareVersionUpdate] = None,
     architecture: str = Form(None),  # 可选：指定要更新的架构
     file: UploadFile = File(None),   # 可选：新文件
@@ -320,6 +321,34 @@ async def update_version(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="版本不存在"
         )
+
+    # 如果没有通过 JSON body 提供 version_in，尝试从 multipart/form-data 的表单中读取元数据
+    if version_in is None:
+        try:
+            form = await request.form()
+            form_data = {}
+            # 文本字段
+            for f in ("version", "release_note", "documentation_url"):
+                if f in form and form.get(f) not in (None, ""):
+                    form_data[f] = form.get(f)
+
+            # 布尔字段，需要把字符串转换为 bool
+            for b in ("is_published", "is_ready"):
+                if b in form:
+                    val = form.get(b)
+                    if isinstance(val, str):
+                        if val.lower() in ("true", "1", "yes"):
+                            form_data[b] = True
+                        elif val.lower() in ("false", "0", "no"):
+                            form_data[b] = False
+                    else:
+                        form_data[b] = bool(val)
+
+            if form_data:
+                version_in = schemas.SoftwareVersionUpdate(**form_data)
+        except Exception:
+            # 无法解析表单或没有表单数据时忽略，继续使用 None
+            pass
 
     # 如果提供了文件，需要验证架构参数
     if file and file.filename:

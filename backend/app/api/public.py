@@ -149,8 +149,8 @@ def read_public_versions(
     for version in versions:
         # 获取版本统计信息（包含架构文件、总大小、下载次数等）
         version_with_stats = crud.crud_software_version.get_with_download_count(db, version_id=getattr(version, 'id'))
-        
-        # 构建架构文件列表
+
+        # 构建架构文件列表（从 ORM 对象复制为 Public schema）
         architecture_files = []
         if version_with_stats and hasattr(version_with_stats, 'architecture_files'):
             for af in version_with_stats.architecture_files:
@@ -164,9 +164,14 @@ def read_public_versions(
                 )
                 architecture_files.append(arch_file)
 
-        # 计算总大小和总下载次数
-        total_size = sum(getattr(af, 'file_size', 0) for af in architecture_files)
-        total_downloads = sum(getattr(af, 'download_count', 0) for af in architecture_files)
+        # 计算总大小和总下载次数（注意：architecture_files 是 Pydantic 对象，不包含原始 file_size 属性，
+        # 因此从 version_with_stats.architecture_files（ORM 对象）获取数值）
+        total_size = 0
+        total_downloads = 0
+        if version_with_stats and hasattr(version_with_stats, 'architecture_files'):
+            for af in version_with_stats.architecture_files:
+                total_size += getattr(af, 'file_size', 0)
+                total_downloads += getattr(af, 'download_count', 0)
 
         public_version = schemas.PublicSoftwareVersion(
             id=getattr(version, 'id'),
@@ -177,7 +182,8 @@ def read_public_versions(
             publish_date=getattr(version, 'publish_date'),
             architecture_files=architecture_files,
             total_size_human=format_file_size(total_size),
-            total_downloads=total_downloads
+            total_downloads=total_downloads,
+            is_ready=getattr(version_with_stats, 'is_ready', False)
         )
         public_versions.append(public_version)
 
@@ -195,7 +201,7 @@ async def download_version(
     space_id: str,
     version_or_latest: str,
     request: Request,
-    architecture: Optional[str] = Query(None, description="架构类型（x86, x64, arm64, arm, universal）"),
+    architecture: Optional[str] = Query(None, description="架构类型（支持：x86_64, aarch64；别名 x86/x64 -> x86_64, arm/arm64/arm -> aarch64）"),
     api_key: Optional[str] = Query(None, description="API密钥"),
     db: Session = Depends(get_current_db)
 ) -> Any:
@@ -254,21 +260,40 @@ async def download_version(
             detail="没有可用的架构文件"
         )
 
-    # 如果指定了架构，查找对应的文件
+
+    # 规范化并限制架构参数（仅支持 x86_64 与 aarch64，接受常见别名）
+    alias_map = {
+        'x86': 'x86_64',
+        'x64': 'x86_64',
+        'x86_64': 'x86_64',
+        'arm64': 'aarch64',
+        'arm': 'aarch64',
+        'aarch64': 'aarch64',
+        'universal': 'universal'
+    }
+
     selected_file = None
     if architecture:
+        normalized = alias_map.get(architecture.lower())
+        if not normalized or normalized not in ('x86_64', 'aarch64', 'universal'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="不支持的架构类型。仅支持: x86_64, aarch64（可使用别名 x86/x64/arm/arm64）"
+            )
+
+        # 优先精确匹配 normalized
         for af in architecture_files:
-            if getattr(af, 'architecture') == architecture:
+            if getattr(af, 'architecture') == normalized:
                 selected_file = af
                 break
         if not selected_file:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"未找到 {architecture} 架构的文件"
+                detail=f"未找到 {normalized} 架构的文件"
             )
     else:
-        # 如果没有指定架构，优先选择 universal，然后按优先级选择
-        for arch in ['universal', 'x64', 'x86', 'arm64', 'arm']:
+        # 没有指定架构时，优先选择 universal，然后按 x86_64, aarch64 的优先顺序
+        for arch in ['universal', 'x86_64', 'aarch64']:
             for af in architecture_files:
                 if getattr(af, 'architecture') == arch:
                     selected_file = af
