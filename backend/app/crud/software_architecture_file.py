@@ -69,14 +69,17 @@ class CRUDSoftwareArchitectureFile(CRUDBase[SoftwareArchitectureFile, SoftwareAr
         创建架构文件
         """
         # 计算文件哈希和大小
+        # 确保文件路径使用正确的路径分隔符
+        normalized_file_path = os.path.normpath(file_path)
+        
         if not file_hash:
-            file_hash = self._calculate_file_hash(file_path)
-        file_size = os.path.getsize(file_path)
+            file_hash = self._calculate_file_hash(normalized_file_path)
+        file_size = os.path.getsize(normalized_file_path)
         
         db_obj = SoftwareArchitectureFile(
             version_id=version_id,
             architecture=architecture,
-            file_path=file_path,
+            file_path=normalized_file_path,
             file_name=file_name,
             file_size=file_size,
             file_hash=file_hash

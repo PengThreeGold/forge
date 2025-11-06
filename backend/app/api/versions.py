@@ -130,10 +130,6 @@ async def create_version(
             detail="文件未提供或无效"
         )
 
-    # 创建上传目录
-    upload_dir = os.path.join(settings.UPLOAD_DIR, space_id, version)
-    ensure_directory_exists(upload_dir)
-
     # 验证文件名
     if not is_safe_filename(file.filename):
         raise HTTPException(
@@ -186,14 +182,20 @@ async def create_version(
         created_by=getattr(current_user, 'id')
     )
 
-    # 创建上传目录（在版本记录创建后）
+    # 创建上传目录并保存文件（在版本记录创建后）
     try:
-        upload_dir = os.path.join(settings.UPLOAD_DIR, space_id, version)
-        # 确保目录存在
-        os.makedirs(upload_dir, exist_ok=True)
+        # 使用os.path.join确保跨平台兼容性，按架构组织目录结构
+        upload_dir = os.path.join(settings.UPLOAD_DIR, space_id, version, mapped_architecture)
+        # 确保目录存在（直接创建目录，而不是依赖文件路径）
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir, exist_ok=True)
         
         # 保存文件
         file_path = os.path.join(upload_dir, safe_filename)
+        
+        # 确保文件路径使用正确的路径分隔符
+        file_path = os.path.normpath(file_path)
+        
         with open(file_path, "wb") as f:
             f.write(file_content)
     except Exception as e:
@@ -215,8 +217,17 @@ async def create_version(
         file_hash=file_hash
     )
 
-    # 重新加载版本信息（包含架构文件）
+    # 重新加载版本信息（包含架构文件、总大小、下载次数等）
     db_version = crud.crud_software_version.get_with_download_count(db, version_id=getattr(db_version, 'id'))
+    
+    # 确保版本信息完整，添加人类可读的文件大小
+    if db_version and hasattr(db_version, 'total_size'):
+        db_version.file_size_human = format_file_size(getattr(db_version, 'total_size'))
+    elif db_version and hasattr(db_version, 'architecture_files') and db_version.architecture_files:
+        # 如果没有total_size，计算第一个架构文件的大小
+        first_file = db_version.architecture_files[0]
+        if hasattr(first_file, 'file_size'):
+            db_version.file_size_human = format_file_size(first_file.file_size)
 
     # 如果发布了版本，发送Webhook通知
     if is_published and getattr(space, 'webhook_url'):
@@ -375,9 +386,16 @@ def delete_version(
             detail="版本不存在"
         )
 
-    # 删除文件
-    if os.path.exists(getattr(version_obj, 'file_path')):
-        os.remove(getattr(version_obj, 'file_path'))
+    # 删除文件（现在需要删除整个版本目录，因为按架构组织了）
+    import shutil
+    version_dir = os.path.join(settings.UPLOAD_DIR, space_id, version)
+    normalized_version_dir = os.path.normpath(version_dir)
+    if os.path.exists(normalized_version_dir):
+        try:
+            shutil.rmtree(normalized_version_dir)
+        except Exception as e:
+            # 如果删除目录失败，记录错误但不阻止删除版本记录
+            print(f"警告：删除版本目录失败: {str(e)}")
 
     # 删除版本记录
     crud.crud_software_version.remove(db, id=getattr(version_obj, 'id'))

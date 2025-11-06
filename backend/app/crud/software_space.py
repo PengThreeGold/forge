@@ -164,6 +164,8 @@ class CRUDSoftwareSpace(CRUDBase[SoftwareSpace, SoftwareSpaceCreate, SoftwareSpa
         obj = db.query(SoftwareSpace).filter(SoftwareSpace.id == id).first()
         if not obj:
             return None
+        
+        # 删除数据库记录（级联删除会自动处理所有相关记录）
         db.delete(obj)
         db.commit()
         return obj

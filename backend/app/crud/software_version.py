@@ -103,7 +103,9 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        return db_obj
+        
+        # 返回包含统计信息的版本对象
+        return self.get_with_download_count(db, version_id=getattr(db_obj, 'id'))
 
     def update(
         self, db: Session, *, db_obj: SoftwareVersion, obj_in: Union[SoftwareVersionUpdate, Dict[str, Any]]
@@ -122,7 +124,7 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         
         # 如果发布状态改变，更新发布时间
         if "is_published" in update_data:
-            if update_data["is_published"] and not db_obj.is_published:
+            if update_data["is_published"] and not getattr(db_obj, 'is_published'):
                 update_data["publish_date"] = datetime.utcnow()
             elif not update_data["is_published"]:
                 update_data["publish_date"] = None
@@ -165,13 +167,13 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         architecture_files = crud_software_architecture_file.get_by_version_id(db, version_id=version_id)
         
         # 计算总大小和总下载次数
-        total_size = sum(af.file_size for af in architecture_files)
-        total_downloads = sum(af.download_count for af in architecture_files)
+        total_size = sum(getattr(af, 'file_size', 0) for af in architecture_files)
+        total_downloads = sum(getattr(af, 'download_count', 0) for af in architecture_files)
         
         # 添加架构文件信息
         version.architecture_files = architecture_files
         version.total_size = total_size
-        version.total_size_human = format_file_size(total_size)
+        version.total_size_human = format_file_size(int(total_size))
         version.total_downloads = total_downloads
         
         return version
@@ -183,10 +185,11 @@ class CRUDSoftwareVersion(CRUDBase[SoftwareVersion, SoftwareVersionCreate, Softw
         architecture_files = crud_software_architecture_file.get_by_version_id(db, version_id=version_id)
         success = True
         for af in architecture_files:
-            file_path = af.file_path
-            if os.path.exists(str(file_path)):
+            file_path = getattr(af, 'file_path')
+            normalized_file_path = os.path.normpath(str(file_path))
+            if os.path.exists(normalized_file_path):
                 try:
-                    os.remove(str(file_path))
+                    os.remove(normalized_file_path)
                 except Exception:
                     success = False
             db.delete(af)

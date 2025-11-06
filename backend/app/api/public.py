@@ -9,6 +9,7 @@ from app import crud, models, schemas
 from app.schemas.software_architecture_file import PublicSoftwareArchitectureFile
 from app.api.deps import get_current_db
 from app.core.deps import get_optional_current_user
+from app.utils.file import format_file_size
 from app.utils.webhook import send_webhook, create_download_webhook_data
 from app.crud.webhook_log import crud_webhook_log
 
@@ -146,11 +147,9 @@ def read_public_versions(
     # 转换为公共版本格式
     public_versions = []
     for version in versions:
+        # 获取版本统计信息（包含架构文件、总大小、下载次数等）
         version_with_stats = crud.crud_software_version.get_with_download_count(db, version_id=getattr(version, 'id'))
-        if version_with_stats:
-            from app.utils.file import format_file_size
-            version_with_stats.file_size_human = format_file_size(version_with_stats.file_size)
-
+        
         # 构建架构文件列表
         architecture_files = []
         if version_with_stats and hasattr(version_with_stats, 'architecture_files'):
@@ -165,6 +164,10 @@ def read_public_versions(
                 )
                 architecture_files.append(arch_file)
 
+        # 计算总大小和总下载次数
+        total_size = sum(getattr(af, 'file_size', 0) for af in architecture_files)
+        total_downloads = sum(getattr(af, 'download_count', 0) for af in architecture_files)
+
         public_version = schemas.PublicSoftwareVersion(
             id=getattr(version, 'id'),
             version=getattr(version, 'version'),
@@ -173,8 +176,8 @@ def read_public_versions(
             is_published=getattr(version, 'is_published'),
             publish_date=getattr(version, 'publish_date'),
             architecture_files=architecture_files,
-            total_size_human=getattr(version_with_stats, 'total_size_human') if version_with_stats else None,
-            total_downloads=getattr(version_with_stats, 'total_downloads') if version_with_stats else 0
+            total_size_human=format_file_size(total_size),
+            total_downloads=total_downloads
         )
         public_versions.append(public_version)
 
@@ -277,7 +280,9 @@ async def download_version(
         selected_file = architecture_files[0]  # 默认选择第一个
 
     # 检查文件是否存在
-    if not os.path.exists(getattr(selected_file, 'file_path')):
+    file_path = getattr(selected_file, 'file_path')
+    normalized_file_path = os.path.normpath(str(file_path))
+    if not os.path.exists(normalized_file_path):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文件不存在"
@@ -331,8 +336,10 @@ async def download_version(
             )
 
     # 返回文件
+    file_path = getattr(selected_file, 'file_path')
+    normalized_file_path = os.path.normpath(str(file_path))
     return FileResponse(
-        path=str(selected_file.file_path),
+        path=normalized_file_path,
         filename=str(selected_file.file_name),
         media_type='application/octet-stream'
     )

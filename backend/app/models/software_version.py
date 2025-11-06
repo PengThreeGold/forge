@@ -22,5 +22,5 @@ class SoftwareVersion(Base):
     # 关系
     space = relationship("SoftwareSpace", back_populates="versions")
     creator = relationship("User", back_populates="created_versions")
-    architecture_files = relationship("SoftwareArchitectureFile", back_populates="version")
+    architecture_files = relationship("SoftwareArchitectureFile", back_populates="version", cascade="all, delete-orphan")
     download_records = relationship("DownloadRecord", back_populates="version")

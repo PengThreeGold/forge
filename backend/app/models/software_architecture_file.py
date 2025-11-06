@@ -17,5 +17,5 @@ class SoftwareArchitectureFile(Base):
     download_count = Column(Integer, default=0, nullable=False)
 
     # 关系
-    version = relationship("SoftwareVersion", back_populates="architecture_files")
-    download_records = relationship("DownloadRecord", back_populates="architecture_file")
+    version = relationship("SoftwareVersion", back_populates="architecture_files", cascade="save-update, merge")
+    download_records = relationship("DownloadRecord", back_populates="architecture_file", cascade="all, delete-orphan")
