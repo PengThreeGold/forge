@@ -10,6 +10,7 @@
           :default-active="activeMenu"
           router
           :collapse="false"
+          :unique-opened="true"
         >
           <el-menu-item index="/admin/spaces">
             <el-icon><Grid /></el-icon>
@@ -37,7 +38,7 @@
               <el-breadcrumb-item v-if="breadcrumb">{{ breadcrumb }}</el-breadcrumb-item>
             </el-breadcrumb>
             <div class="user-info">
-              <el-dropdown @command="handleCommand">
+              <el-dropdown @command="handleCommand" trigger="click">
                 <span class="user-name">
                   {{ authStore.user?.username }}
                   <el-icon><ArrowDown /></el-icon>
@@ -54,10 +55,10 @@
         </el-header>
         <el-main class="main">
           <div class="content-wrapper">
-            <router-view v-slot="{ Component }">
-              <transition name="fade" mode="out-in">
-                <component :is="Component" />
-              </transition>
+            <router-view v-slot="{ Component, route }">
+              <keep-alive :max="5">
+                <component :is="Component" :key="route.fullPath" />
+              </keep-alive>
             </router-view>
           </div>
         </el-main>
@@ -67,14 +68,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCacheStore } from '@/stores/cache'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const cacheStore = useCacheStore()
 
+// 计算当前激活的菜单
 const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/admin/spaces')) return '/admin/spaces'
@@ -84,6 +88,7 @@ const activeMenu = computed(() => {
   return path
 })
 
+// 计算面包屑
 const breadcrumb = computed(() => {
   const name = route.name
   const map = {
@@ -96,14 +101,36 @@ const breadcrumb = computed(() => {
   return map[name] || ''
 })
 
+// 处理用户操作
 function handleCommand(command) {
   if (command === 'logout') {
+    // 清除所有缓存
+    cacheStore.clearAllCache()
     authStore.logout()
     router.push('/login')
   } else if (command === 'profile') {
     router.push('/admin/profile')
   }
 }
+
+// 性能优化：防抖处理窗口大小变化
+let resizeTimer = null
+function handleResize() {
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    // 可以在这里处理响应式布局调整
+  }, 250)
+}
+
+// 生命周期
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  clearTimeout(resizeTimer)
+})
 </script>
 
 <style scoped>
@@ -142,6 +169,7 @@ function handleCommand(command) {
 
 :deep(.el-menu-item) {
   color: rgba(255, 255, 255, 0.65);
+  transition: all 0.3s ease;
 }
 
 :deep(.el-menu-item:hover),
@@ -176,6 +204,13 @@ function handleCommand(command) {
   display: flex;
   align-items: center;
   gap: 5px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-name:hover {
+  background-color: #f5f7fa;
 }
 
 .main {
@@ -193,14 +228,65 @@ function handleCommand(command) {
   min-height: 0;
 }
 
-/* 添加页面切换动画 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+/* 优化滚动条样式 */
+.content-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.content-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.content-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.content-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .aside {
+    width: 160px !important;
+  }
+  
+  .logo {
+    font-size: 16px;
+  }
+  
+  .header-content {
+    padding: 0 10px;
+  }
+  
+  .content-wrapper {
+    padding: 10px;
+  }
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .header {
+    background: #141414;
+    border-bottom-color: #303030;
+  }
+  
+  .main {
+    background: #000;
+  }
+  
+  .content-wrapper::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  
+  .content-wrapper::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+  }
+  
+  .content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+  }
 }
 </style>

@@ -3,28 +3,95 @@ import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
+// 创建请求队列管理器
+class RequestQueue {
+  constructor() {
+    this.queue = new Map()
+    this.maxConcurrent = 5
+    this.activeRequests = 0
+  }
+
+  add(key, request) {
+    if (this.activeRequests >= this.maxConcurrent) {
+      return new Promise((resolve) => {
+        this.queue.set(key, { request, resolve })
+      })
+    }
+    
+    this.activeRequests++
+    return request().finally(() => {
+      this.activeRequests--
+      this.processQueue()
+    })
+  }
+
+  processQueue() {
+    if (this.queue.size > 0 && this.activeRequests < this.maxConcurrent) {
+      const [key, { request, resolve }] = this.queue.entries().next().value
+      this.queue.delete(key)
+      
+      this.activeRequests++
+      request().then(resolve).finally(() => {
+        this.activeRequests--
+        this.processQueue()
+      })
+    }
+  }
+}
+
+const requestQueue = new RequestQueue()
+
 const api = axios.create({
   baseURL: '/api',
-  timeout: 30000
+  timeout: 30000,
+  // 启用请求缓存
+  headers: {
+    'Cache-Control': 'no-cache'
+  }
 })
+
+// 简单的内存缓存
+const cache = new Map()
+const CACHE_TTL = 5 * 60 * 1000 // 5分钟
+
+function getCacheKey(config) {
+  return `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`
+}
+
+function isCacheable(config) {
+  return config.method === 'get' && !config.url.includes('stats') && !config.url.includes('download')
+}
 
 // 请求拦截器
 api.interceptors.request.use(
   config => {
-    // 从 localStorage 直接获取 token，避免 Pinia 初始化时序问题
+    // 检查缓存
+    if (isCacheable(config)) {
+      const cacheKey = getCacheKey(config)
+      const cached = cache.get(cacheKey)
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        config.adapter = () => Promise.resolve(cached.data)
+        return config
+      }
+    }
+
+    // 从 localStorage 获取 token
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    // 添加调试日志
-    console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`)
-    console.log(`[Request] Headers:`, config.headers)
+    // 只在开发环境打印调试日志
+    if (import.meta.env.DEV) {
+      console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`)
+    }
     
     return config
   },
   error => {
-    console.error('[Request Error]', error)
+    if (import.meta.env.DEV) {
+      console.error('[Request Error]', error)
+    }
     return Promise.reject(error)
   }
 )
@@ -34,6 +101,15 @@ api.interceptors.response.use(
   response => {
     const data = response.data
 
+    // 缓存响应数据
+    if (isCacheable(response.config)) {
+      const cacheKey = getCacheKey(response.config)
+      cache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now()
+      })
+    }
+    
     // 处理分页响应格式
     if (data && (data.items !== undefined || data.total !== undefined || data.page !== undefined)) {
       return {
@@ -79,5 +155,15 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// 清理过期缓存
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, value] of cache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      cache.delete(key)
+    }
+  }
+}, 60000) // 每分钟清理一次
 
 export default api
