@@ -101,18 +101,34 @@ def run_server():
     )
 
 
+def init_all():
+    """一键初始化所有数据"""
+    print("=" * 50)
+    print("Forge 软件发布管理平台 - 自动初始化")
+    print("=" * 50)
+    create_tables()
+    init_data()
+    print("\n初始化完成！")
+    print("提示：请运行 'python run.py init-admin' 创建管理员账户")
+    print("然后运行 'python run.py run' 启动服务器")
+
+
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(description="Forge 软件发布管理平台运行脚本")
     parser.add_argument(
         "command",
-        choices=["init-admin", "run", "create-tables", "init-data"],
-        help="要执行的命令"
+        nargs="?",
+        default="run",
+        choices=["init", "init-admin", "run", "create-tables", "init-data"],
+        help="要执行的命令 (默认: run)"
     )
 
     args = parser.parse_args()
 
-    if args.command == "init-admin":
+    if args.command == "init":
+        init_all()
+    elif args.command == "init-admin":
         init_admin()
     elif args.command == "run":
         run_server()

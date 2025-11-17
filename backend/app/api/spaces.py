@@ -23,12 +23,15 @@ def read_spaces(
     获取软件空间列表
     """
     # 管理员可以查看所有空间，普通用户只能查看自己创建的空间
-    if getattr(current_user, 'role') == "admin":
+    user_role = str(current_user.role) if current_user.role else "user"
+    user_id = int(current_user.id) if current_user.id else 0
+    
+    if user_role == "admin":
         spaces = crud.crud_software_space.get_multi_with_stats(db, skip=skip, limit=limit)
         total = crud.crud_software_space.count(db)
     else:
-        spaces = crud.crud_software_space.get_multi_with_stats(db, skip=skip, limit=limit, created_by=getattr(current_user, 'id'))
-        total = crud.crud_software_space.count(db, created_by=getattr(current_user, 'id'))
+        spaces = crud.crud_software_space.get_multi_with_stats(db, skip=skip, limit=limit, created_by=user_id)
+        total = crud.crud_software_space.count(db, created_by=user_id)
     
     # 使用 Pydantic schema 序列化空间数据列表
     space_data_list = [schemas.SoftwareSpace.from_orm(space) for space in spaces]
@@ -89,15 +92,22 @@ def read_space(
         )
     
     # 检查权限：管理员可以查看所有空间，普通用户只能查看自己创建的空间
-    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
+    user_role = str(current_user.role) if current_user.role else "user"
+    user_id = int(current_user.id) if current_user.id else 0
+    space_created_by = int(space.created_by) if space.created_by else 0
+    
+    if user_role != "admin" and space_created_by != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
         )
     
     # 获取统计信息
+    user_role = str(current_user.role) if current_user.role else "user"
+    user_id = int(current_user.id) if current_user.id else 0
+    
     space_with_stats = crud.crud_software_space.get_multi_with_stats(
-        db, skip=0, limit=1, created_by=getattr(current_user, 'id') if getattr(current_user, 'role') != "admin" else None
+        db, skip=0, limit=1, created_by=user_id if user_role != "admin" else None
     )
     for s in space_with_stats:
         if getattr(s, 'id') == space_id:
@@ -132,7 +142,11 @@ async def update_space(
         )
     
     # 检查权限：管理员可以更新所有空间，普通用户只能更新自己创建的空间
-    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
+    user_role = str(current_user.role) if current_user.role else "user"
+    user_id = int(current_user.id) if current_user.id else 0
+    space_created_by = int(space.created_by) if space.created_by else 0
+    
+    if user_role != "admin" and space_created_by != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
@@ -210,7 +224,11 @@ def delete_space(
         )
     
     # 检查权限：管理员可以删除所有空间，普通用户只能删除自己创建的空间
-    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
+    user_role = str(current_user.role) if current_user.role else "user"
+    user_id = int(current_user.id) if current_user.id else 0
+    space_created_by = int(space.created_by) if space.created_by else 0
+    
+    if user_role != "admin" and space_created_by != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"
@@ -242,7 +260,11 @@ def get_space_stats(
         )
     
     # 检查权限
-    if getattr(current_user, 'role') != "admin" and getattr(space, 'created_by') != getattr(current_user, 'id'):
+    user_role = str(current_user.role) if current_user.role else "user"
+    user_id = int(current_user.id) if current_user.id else 0
+    space_created_by = int(space.created_by) if space.created_by else 0
+    
+    if user_role != "admin" and space_created_by != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="权限不足"

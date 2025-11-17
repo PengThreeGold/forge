@@ -197,6 +197,7 @@ def read_public_versions(
 
 
 @router.get("/download/{space_id}/{version_or_latest}")
+@router.get("/spaces/{space_id}/download/{version_or_latest}")
 async def download_version(
     space_id: str,
     version_or_latest: str,
@@ -209,22 +210,21 @@ async def download_version(
     下载软件版本（支持指定版本号或latest）
     版本号如：1.0.0，或使用 'latest' 下载最新版本
     """
-    # 验证API密钥
-    space = None
-    if api_key:
-        space = crud.crud_software_space.get_by_api_key(db, api_key=api_key)
-
-    if not space or getattr(space, 'id') != space_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="无效的API密钥"
-        )
-
-    if getattr(space, 'status') != "active":
+    # 获取软件空间并在提供 api_key 时进行校验（api_key 为可选，主要用于第三方调用）
+    space = crud.crud_software_space.get(db, id=space_id)
+    if not space or getattr(space, 'status') != "active":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="软件空间不存在或未激活"
         )
+
+    if api_key:
+        api_space = crud.crud_software_space.get_by_api_key(db, api_key=api_key)
+        if not api_space or getattr(api_space, 'id') != getattr(space, 'id'):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="无效的API密钥"
+            )
 
     # 获取版本信息
     if version_or_latest.lower() == 'latest':

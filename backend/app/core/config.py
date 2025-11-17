@@ -20,6 +20,16 @@ class Settings(BaseSettings):
     # 数据库配置
     SQLITE_DB_PATH: str = "forge.db"
     
+    @property
+    def DATABASE_URL(self) -> str:
+        """获取数据库完整路径"""
+        import os
+        if os.path.isabs(self.SQLITE_DB_PATH):
+            return self.SQLITE_DB_PATH
+        # 使用 backend 目录作为基准路径
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        return os.path.join(base_dir, self.SQLITE_DB_PATH)
+    
     # CORS配置
     CORS_ORIGINS: str = "*"
     

@@ -29,7 +29,7 @@ def get_current_user(
     if user_id is None:
         raise credentials_exception
     
-    # 获取用户信息
+    # 获取用户信息（包含角色信息）
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception

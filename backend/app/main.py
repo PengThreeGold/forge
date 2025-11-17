@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 from contextlib import asynccontextmanager
@@ -156,18 +157,6 @@ async def health_check():
     }
 
 
-# 根路径
-@app.get("/")
-async def root():
-    """根路径"""
-    return {
-        "message": f"欢迎使用 {settings.PROJECT_NAME}",
-        "version": settings.VERSION,
-        "docs": f"{settings.API_V1_STR}/docs",
-        "api": f"{settings.API_V1_STR}"
-    }
-
-
 # 注册API路由
 app.include_router(
     auth_router,
@@ -216,6 +205,32 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}/permissions",
     tags=["权限管理"]
 )
+
+
+# 挂载静态文件（前端构建产物）
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_dir):
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+    
+    # 前端路由处理：所有非API路径返回 index.html
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """服务前端单页应用"""
+        # API 路径已经被路由处理，这里只处理前端路由
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+        
+        index_path = os.path.join(static_dir, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        else:
+            return {
+                "message": f"欢迎使用 {settings.PROJECT_NAME}",
+                "version": settings.VERSION,
+                "docs": f"{settings.API_V1_STR}/docs",
+                "api": f"{settings.API_V1_STR}",
+                "note": "前端未构建，请运行 start.sh 或 start.bat"
+            }
 
 
 if __name__ == "__main__":
