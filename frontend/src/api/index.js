@@ -68,8 +68,8 @@ export default {
     return api.put(`/spaces/${spaceId}/versions/${versionId}`, data)
   },
   
-  deleteVersion(spaceId, versionId) {
-    return api.delete(`/spaces/${spaceId}/versions/${versionId}`)
+  deleteVersion(spaceId, version) {
+    return api.delete(`/spaces/${spaceId}/versions/${version}`)
   },
   
   uploadFile(spaceId, versionId, arch, file, onProgress) {
@@ -126,5 +126,52 @@ export default {
   
   getDownloadRecords(params) {
     return api.get('/stats/downloads', { params })
+  },
+  
+  // 管理员认证相关
+  changePassword(data) {
+    return api.put('/auth/admin/password', data)
+  },
+  
+  initAdmin(data) {
+    return api.post('/auth/admin/init', data)
+  },
+  
+  // 系统统计相关
+  getSystemStats() {
+    return api.get('/stats/system')
+  },
+  
+  getDailyDownloadStats(spaceId) {
+    return api.get(`/stats/spaces/${spaceId}/downloads/daily`)
+  },
+  
+  getVersionDownloadStats(spaceId) {
+    return api.get(`/stats/spaces/${spaceId}/downloads/versions`)
+  },
+  
+  // Webhook相关
+  getWebhookConfig(spaceId) {
+    return api.get(`/spaces/${spaceId}/config`)
+  },
+  
+  updateWebhookConfig(spaceId, data) {
+    return api.put(`/spaces/${spaceId}/config`, data)
+  },
+  
+  regenerateWebhookSecret(spaceId) {
+    return api.post(`/spaces/${spaceId}/regenerate-secret`)
+  },
+  
+  getWebhookLogs(spaceId, params) {
+    return api.get(`/spaces/${spaceId}/logs`, { params })
+  },
+  
+  getFailedWebhookLogs(spaceId, params) {
+    return api.get(`/spaces/${spaceId}/logs/failed`, { params })
+  },
+  
+  getWebhookLogsByEvent(spaceId, eventType, params) {
+    return api.get(`/spaces/${spaceId}/logs/events/${eventType}`, { params })
   }
 }

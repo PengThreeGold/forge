@@ -28,6 +28,11 @@ const routes = [
     component: () => import('@/views/auth/Login.vue')
   },
   {
+    path: '/init-admin',
+    name: 'InitAdmin',
+    component: () => import('@/views/admin/InitAdmin.vue')
+  },
+  {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
     meta: { requiresAuth: true },

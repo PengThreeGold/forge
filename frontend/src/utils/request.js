@@ -110,6 +110,11 @@ api.interceptors.response.use(
       })
     }
     
+    // 处理标准响应格式（优先检查）
+    if (data && typeof data.success === 'boolean') {
+      return data
+    }
+    
     // 处理分页响应格式
     if (data && (data.items !== undefined || data.total !== undefined || data.page !== undefined)) {
       return {
@@ -117,11 +122,6 @@ api.interceptors.response.use(
         message: '请求成功',
         data: data
       }
-    }
-    
-    // 处理标准响应格式
-    if (data && typeof data.success === 'boolean') {
-      return data
     }
 
     // 处理其他响应格式

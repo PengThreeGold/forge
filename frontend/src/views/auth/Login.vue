@@ -43,6 +43,7 @@
       </el-form>
       <div class="tips">
         <p>提示：首次使用请运行 <code>python run.py init-admin</code> 创建管理员账户</p>
+        <p>或者 <el-link type="primary" @click="goToInitAdmin">点击这里在线初始化</el-link></p>
       </div>
     </el-card>
   </div>
@@ -89,6 +90,10 @@ async function handleLogin() {
   } finally {
     loading.value = false
   }
+}
+
+function goToInitAdmin() {
+  router.push('/init-admin')
 }
 </script>
 

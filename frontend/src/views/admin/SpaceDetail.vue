@@ -186,6 +186,9 @@
         </el-button>
       </template>
     </el-dialog>
+    
+    <!-- Webhook 配置 -->
+    <webhook-config :space-id="route.params.id" />
   </div>
 </template>
 
@@ -196,6 +199,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus, CopyDocument } from '@element-plus/icons-vue'
 import api from '@/api'
 import { useCacheStore } from '@/stores/cache'
+import WebhookConfig from './WebhookConfig.vue'
 
 const route = useRoute()
 const cacheStore = useCacheStore()
@@ -452,7 +456,7 @@ async function handleDeleteVersion(row) {
       }
     )
     
-    const res = await api.deleteVersion(route.params.id, row.id)
+    const res = await api.deleteVersion(route.params.id, row.version)
     if (res.success) {
       ElMessage.success('删除成功')
       // 清除相关缓存
