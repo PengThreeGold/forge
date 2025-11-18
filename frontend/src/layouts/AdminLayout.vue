@@ -25,7 +25,7 @@
             <span>统计分析</span>
           </el-menu-item>
           <el-menu-item index="/admin/profile">
-            <el-icon><Setting /></el-icon>
+            <el-icon><Star /></el-icon>
             <span>个人设置</span>
           </el-menu-item>
         </el-menu>
@@ -71,6 +71,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { Box, Grid, User, DataAnalysis, Star, ArrowDown } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -203,7 +204,7 @@ function handleCommand(command) {
   opacity: 0;
   transition: opacity 0.15s ease;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
 :deep(.el-menu-item:hover),
@@ -217,14 +218,23 @@ function handleCommand(command) {
 }
 
 :deep(.el-menu-item .el-icon) {
+  color: rgba(255, 255, 255, 0.65) !important;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+:deep(.el-menu-item span) {
+  position: relative;
+  z-index: 1;
 }
 
 :deep(.el-menu-item:hover .el-icon),
 :deep(.el-menu-item.is-active .el-icon) {
+  color: #fff !important;
   transform: translate3d(0, 0, 0) scale(1.05);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, color 0.15s ease;
 }
 
 .main-container {
