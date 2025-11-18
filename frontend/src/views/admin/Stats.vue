@@ -152,8 +152,14 @@
   </div>
 </template>
 
+<script>
+export default {
+  name: 'AdminStats'
+}
+</script>
+
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Box, Document, Download, User, Refresh } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
@@ -328,14 +334,29 @@ const handleDownloadPageChange = (newPage) => {
 }
 
 // 生命周期
+let resizeHandler = null
+
 onMounted(() => {
   fetchSystemStats()
   fetchDownloadRecords()
   
   // 响应式图表
-  window.addEventListener('resize', () => {
+  resizeHandler = () => {
     dailyChartInstance?.resize()
-  })
+  }
+  window.addEventListener('resize', resizeHandler)
+})
+
+onUnmounted(() => {
+  // 清理事件监听器
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler)
+  }
+  // 销毁图表实例
+  if (dailyChartInstance) {
+    dailyChartInstance.dispose()
+    dailyChartInstance = null
+  }
 })
 </script>
 

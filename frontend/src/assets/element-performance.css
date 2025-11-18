@@ -1,0 +1,74 @@
+/* Element Plus 性能优化覆盖样式 */
+
+/* 优化菜单性能 */
+.el-menu {
+  /* 强制GPU加速 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.el-menu-item {
+  /* 优化菜单项渲染 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  /* 减少不必要的层叠上下文 */
+  isolation: isolate;
+}
+
+/* 优化下拉菜单 */
+.el-dropdown {
+  transform: translate3d(0, 0, 0);
+}
+
+.el-dropdown-menu {
+  /* 优化下拉菜单动画 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* 优化表格性能 */
+.el-table {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.el-table__body tr {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* 优化按钮hover */
+.el-button {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* 优化卡片 */
+.el-card {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* 减少不必要的阴影重绘 */
+.el-card:hover {
+  transform: translate3d(0, 0, 0);
+}
+
+/* 优化输入框 */
+.el-input__inner {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* 优化图标 */
+.el-icon {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* 全局禁用不必要的过渡 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}

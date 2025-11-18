@@ -1,5 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+
+// 配置NProgress
+NProgress.configure({ 
+  showSpinner: false,
+  trickleSpeed: 200,
+  minimum: 0.3
+})
 
 const routes = [
   {
@@ -78,6 +87,9 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach(async (to, from, next) => {
+  // 显示进度条
+  NProgress.start()
+  
   const authStore = useAuthStore()
   
   // 确保在检查权限前已获取用户信息
@@ -88,11 +100,17 @@ router.beforeEach(async (to, from, next) => {
       checkAuthAndRedirect(to, next, authStore)
     } catch (error) {
       // 获取用户信息失败，跳转到登录页
+      NProgress.done()
       next({ name: 'Login' })
     }
   } else {
     checkAuthAndRedirect(to, next, authStore)
   }
+})
+
+router.afterEach(() => {
+  // 完成进度条
+  NProgress.done()
 })
 
 function checkAuthAndRedirect(to, next, authStore) {

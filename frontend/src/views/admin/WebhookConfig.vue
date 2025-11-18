@@ -79,7 +79,7 @@
         </el-button>
       </div>
       
-      <el-table v-loading="logsLoading" :data="webhookLogs" stripe max-height="400">
+      <el-table v-loading="logsLoading" :data="webhookLogs" stripe :max-height="500" :height="500" style="width: 100%">
         <el-table-column prop="event_type" label="事件类型" width="120" />
         <el-table-column prop="attempt_time" label="时间" width="180">
           <template #default="{ row }">
@@ -375,5 +375,44 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+/* 表格性能优化 */
+:deep(.el-table) {
+  font-size: 14px;
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+:deep(.el-table__body-wrapper) {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar) {
+  width: 8px;
+  height: 8px;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-track) {
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb) {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb:hover) {
+  background: #a8a8a8;
+}
+
+:deep(.el-table th) {
+  background-color: #fafafa;
+  color: #606266;
+  font-weight: 600;
 }
 </style>

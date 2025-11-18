@@ -8,9 +8,9 @@
         </div>
         <el-menu
           :default-active="activeMenu"
-          router
           :collapse="false"
           :unique-opened="true"
+          @select="handleMenuSelect"
         >
           <el-menu-item index="/admin/spaces">
             <el-icon><Grid /></el-icon>
@@ -55,9 +55,9 @@
         </el-header>
         <el-main class="main">
           <div class="content-wrapper">
-            <router-view v-slot="{ Component, route }">
-              <keep-alive :max="5">
-                <component :is="Component" :key="route.fullPath" />
+            <router-view v-slot="{ Component }">
+              <keep-alive :include="['AdminSpaces', 'AdminUsers', 'AdminStats', 'AdminProfile']">
+                <component :is="Component" />
               </keep-alive>
             </router-view>
           </div>
@@ -68,15 +68,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useCacheStore } from '@/stores/cache'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const cacheStore = useCacheStore()
 
 // 计算当前激活的菜单
 const activeMenu = computed(() => {
@@ -101,53 +99,69 @@ const breadcrumb = computed(() => {
   return map[name] || ''
 })
 
+// 手动处理菜单选择，提高性能
+function handleMenuSelect(index) {
+  if (route.path !== index) {
+    router.push(index)
+  }
+}
+
 // 处理用户操作
 function handleCommand(command) {
   if (command === 'logout') {
-    // 清除所有缓存
-    cacheStore.clearAllCache()
     authStore.logout()
     router.push('/login')
   } else if (command === 'profile') {
     router.push('/admin/profile')
   }
 }
-
-// 性能优化：防抖处理窗口大小变化
-let resizeTimer = null
-function handleResize() {
-  clearTimeout(resizeTimer)
-  resizeTimer = setTimeout(() => {
-    // 可以在这里处理响应式布局调整
-  }, 250)
-}
-
-// 生命周期
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  clearTimeout(resizeTimer)
-})
 </script>
 
 <style scoped>
 .admin-layout {
   height: 100vh;
   overflow: hidden;
+  /* 性能优化 */
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
 }
 
 .layout-container {
   height: 100%;
+  /* 优化布局性能 */
+  contain: layout style;
 }
 
 .aside {
   background: #001529;
   color: #fff;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  /* 性能优化 */
+  transform: translate3d(0, 0, 0);
+  -webkit-overflow-scrolling: touch;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 优化侧边栏滚动条 */
+.aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+.aside::-webkit-scrollbar-track {
+  background: #002140;
+}
+
+.aside::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 0.3s;
+}
+
+.aside::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .logo {
@@ -160,6 +174,9 @@ onUnmounted(() => {
   font-weight: bold;
   color: #fff;
   border-bottom: 1px solid #002140;
+  /* 性能优化 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .el-menu {
@@ -169,19 +186,54 @@ onUnmounted(() => {
 
 :deep(.el-menu-item) {
   color: rgba(255, 255, 255, 0.65);
-  transition: all 0.3s ease;
+  position: relative;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  transition: color 0.15s ease;
+}
+
+:deep(.el-menu-item::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #1890ff;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: -1;
 }
 
 :deep(.el-menu-item:hover),
 :deep(.el-menu-item.is-active) {
-  background-color: #1890ff !important;
   color: #fff;
+}
+
+:deep(.el-menu-item:hover::before),
+:deep(.el-menu-item.is-active::before) {
+  opacity: 1;
+}
+
+:deep(.el-menu-item .el-icon) {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+:deep(.el-menu-item:hover .el-icon),
+:deep(.el-menu-item.is-active .el-icon) {
+  transform: translate3d(0, 0, 0) scale(1.05);
+  transition: transform 0.15s ease;
 }
 
 .main-container {
   height: 100%;
   display: flex;
   flex-direction: column;
+  /* 性能优化 */
+  transform: translate3d(0, 0, 0);
+  contain: layout style;
 }
 
 .header {
@@ -190,6 +242,9 @@ onUnmounted(() => {
   padding: 0 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   z-index: 10;
+  /* 性能优化 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .header-content {
@@ -206,11 +261,29 @@ onUnmounted(() => {
   gap: 5px;
   padding: 8px 12px;
   border-radius: 4px;
-  transition: background-color 0.3s;
+  position: relative;
+  transition: none;
+  /* 性能优化 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
-.user-name:hover {
+.user-name::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #f5f7fa;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: -1;
+}
+
+.user-name:hover::before {
+  opacity: 1;
 }
 
 .main {
@@ -224,23 +297,31 @@ onUnmounted(() => {
 .content-wrapper {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   min-height: 0;
+  /* 性能优化 */
+  will-change: scroll-position;
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
+  contain: layout style paint;
 }
 
 /* 优化滚动条样式 */
 .content-wrapper::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .content-wrapper::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 4px;
 }
 
 .content-wrapper::-webkit-scrollbar-thumb {
   background: #c1c1c1;
-  border-radius: 3px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 .content-wrapper::-webkit-scrollbar-thumb:hover {

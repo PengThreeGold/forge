@@ -141,29 +141,95 @@ onMounted(() => {
 
 <style scoped>
 .space-detail {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  background: #f5f7fa;
 }
 
 .el-page-header {
   margin-bottom: 20px;
+  padding: 12px 0;
+  background: white;
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .space-info {
   margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .card-header h2 {
   margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.versions-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .versions-card h3 {
   margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+:deep(.el-table) {
+  font-size: 14px;
+}
+
+:deep(.el-table th) {
+  background-color: #fafafa;
+  color: #606266;
+  font-weight: 600;
+}
+
+:deep(.el-descriptions__label) {
+  font-weight: 600;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .space-detail {
+    padding: 10px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-header h2 {
+    font-size: 20px;
+  }
+
+  :deep(.el-table) {
+    font-size: 12px;
+  }
+
+  :deep(.el-button--small) {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  :deep(.el-descriptions) {
+    font-size: 13px;
+  }
 }
 </style>

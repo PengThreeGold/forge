@@ -13,19 +13,18 @@
 
       <!-- 搜索和筛选 -->
       <div class="filter-bar">
-        <el-input
-          v-model="searchText"
-          placeholder="搜索空间名称或作者..."
-          clearable
-          style="width: 300px"
-          @input="debouncedSearch"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-        
-        <el-select v-model="statusFilter" placeholder="状态筛选" clearable style="width: 120px">
+    <el-input
+      v-model="searchText"
+      placeholder="搜索空间名称或作者..."
+      clearable
+      style="width: 300px"
+      @change="handleSearchChange"
+      @keyup.enter="handleSearchChange"
+    >
+      <template #prefix>
+        <el-icon><Search /></el-icon>
+      </template>
+    </el-input>        <el-select v-model="statusFilter" placeholder="状态筛选" clearable style="width: 120px" @change="handleFilterChange">
           <el-option label="全部" value="" />
           <el-option label="激活" value="active" />
           <el-option label="停用" value="inactive" />
@@ -37,6 +36,7 @@
         v-loading="loading" 
         :data="displaySpaces" 
         stripe
+        lazy
         :max-height="tableHeight"
         @sort-change="handleSortChange"
       >
@@ -133,6 +133,12 @@
   </div>
 </template>
 
+<script>
+export default {
+  name: 'AdminSpaces'
+}
+</script>
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
@@ -170,36 +176,19 @@ const editingId = ref(null)
 // 表格高度计算
 const tableHeight = ref(400)
 
-// 防抖搜索
-let searchTimer = null
-const debouncedSearch = () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    fetchSpaces()
-  }, 300)
+// 搜索和筛选处理
+function handleSearchChange() {
+  page.value = 1
+  fetchSpaces()
 }
 
-// 计算属性：过滤后的数据
-const displaySpaces = computed(() => {
-  let filtered = spaces.value
-  
-  // 文本搜索过滤
-  if (searchText.value) {
-    const search = searchText.value.toLowerCase()
-    filtered = filtered.filter(space => 
-      space.name.toLowerCase().includes(search) || 
-      space.author.toLowerCase().includes(search)
-    )
-  }
-  
-  // 状态过滤
-  if (statusFilter.value) {
-    filtered = filtered.filter(space => space.status === statusFilter.value)
-  }
-  
-  return filtered
-})
+function handleFilterChange() {
+  page.value = 1
+  fetchSpaces()
+}
+
+// 直接使用后端返回的数据，不做前端过滤
+const displaySpaces = computed(() => spaces.value)
 
 // 表单验证规则
 const rules = {
@@ -229,17 +218,6 @@ async function fetchSpaces() {
   try {
     loading.value = true
     
-    // 构建缓存key
-    const cacheKey = `spaces_${page.value}_${pageSize.value}_${searchText.value}_${statusFilter.value}_${sortProp.value}_${sortOrder.value}`
-    
-    // 检查缓存
-    const cached = cacheStore.getSpacesCache(cacheKey)
-    if (cached) {
-      spaces.value = cached.items
-      total.value = cached.total
-      return
-    }
-    
     const params = {
       skip: (page.value - 1) * pageSize.value,
       limit: pageSize.value,
@@ -255,13 +233,6 @@ async function fetchSpaces() {
       const data = res.data || res
       spaces.value = data.items || []
       total.value = data.total || 0
-      
-      // 缓存数据
-      cacheStore.setSpacesCache(cacheKey, {
-        items: spaces.value,
-        total: total.value,
-        timestamp: Date.now()
-      })
     }
   } catch (error) {
     console.error('获取空间列表失败:', error)
@@ -353,8 +324,6 @@ async function handleDelete(row) {
     const res = await api.deleteSpace(row.id)
     if (res.success) {
       ElMessage.success('删除成功')
-      // 清除相关缓存
-      cacheStore.clearSpacesCache()
       fetchSpaces()
     }
   } catch (error) {
@@ -371,47 +340,49 @@ function goToDetail(id) {
 
 // 计算表格高度
 function calculateTableHeight() {
-  nextTick(() => {
-    const windowHeight = window.innerHeight
-    const tableTop = 200 // 估算表格顶部位置
-    tableHeight.value = Math.max(300, windowHeight - tableTop - 100)
-  })
+  // 固定高度，避免频繁计算
+  tableHeight.value = 600
 }
 
 // 生命周期
 onMounted(() => {
   fetchSpaces()
   calculateTableHeight()
-  window.addEventListener('resize', calculateTableHeight)
 })
 
 onUnmounted(() => {
-  clearTimeout(searchTimer)
-  window.removeEventListener('resize', calculateTableHeight)
+  // 清理资源
 })
 </script>
 
 <style scoped>
 .admin-spaces {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .card-header h2 {
   margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
 }
 
 .filter-bar {
   display: flex;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .pagination {
@@ -420,8 +391,66 @@ onUnmounted(() => {
   justify-content: center;
 }
 
+:deep(.el-table) {
+  font-size: 14px;
+  /* 性能优化 */
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+:deep(.el-table__body-wrapper) {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar) {
+  width: 8px;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-track) {
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb) {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb:hover) {
+  background: #a8a8a8;
+}
+
+:deep(.el-table th) {
+  background-color: #fafafa;
+  color: #606266;
+  font-weight: 600;
+}
+
+:deep(.el-button) {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
 /* 响应式设计 */
+@media (max-width: 1024px) {
+  .admin-spaces {
+    max-width: 100%;
+    padding: 15px;
+  }
+}
+
 @media (max-width: 768px) {
+  .admin-spaces {
+    padding: 10px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
@@ -430,6 +459,15 @@ onUnmounted(() => {
   .filter-bar .el-input,
   .filter-bar .el-select {
     width: 100% !important;
+  }
+  
+  :deep(.el-table) {
+    font-size: 12px;
+  }
+  
+  :deep(.el-button--small) {
+    padding: 5px 10px;
+    font-size: 12px;
   }
 }
 </style>

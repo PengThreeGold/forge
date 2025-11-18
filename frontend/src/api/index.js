@@ -1,6 +1,27 @@
 import api from '@/utils/request'
 
 export default {
+  // 认证相关
+  login(data) {
+    return api.post('/auth/login', data)
+  },
+
+  refreshToken(data) {
+    return api.post('/auth/refresh', data)
+  },
+
+  getProfile() {
+    return api.get('/auth/profile')
+  },
+
+  changePassword(data) {
+    return api.put('/auth/admin/password', data)
+  },
+
+  initAdmin(data) {
+    return api.post('/auth/admin/init', data)
+  },
+
   // 公共API
   getPublicSpaces(params) {
     return api.get('/public/spaces', { params })
@@ -28,7 +49,7 @@ export default {
   
   // 管理API - 空间
   getSpaces(params) {
-    return api.get('/spaces', { params })
+    return api.get('/spaces/', { params })
   },
   
   getSpace(id) {
@@ -36,7 +57,7 @@ export default {
   },
   
   createSpace(data) {
-    return api.post('/spaces', data)
+    return api.post('/spaces/', data)
   },
   
   updateSpace(id, data) {
@@ -46,9 +67,9 @@ export default {
   deleteSpace(id) {
     return api.delete(`/spaces/${id}`)
   },
-  
-  regenerateApiKey(id) {
-    return api.post(`/spaces/${id}/regenerate-key`)
+
+  getSpaceStats(spaceId) {
+    return api.get(`/spaces/${spaceId}/stats`)
   },
   
   // 管理API - 版本
@@ -56,43 +77,33 @@ export default {
     return api.get(`/spaces/${spaceId}/versions`, { params })
   },
   
-  getVersion(spaceId, versionId) {
-    return api.get(`/spaces/${spaceId}/versions/${versionId}`)
+  createVersion(spaceId, formData) {
+    return api.post(`/spaces/${spaceId}/versions`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
   },
   
-  createVersion(spaceId, data) {
-    return api.post(`/spaces/${spaceId}/versions`, data)
-  },
-  
-  updateVersion(spaceId, versionId, data) {
-    return api.put(`/spaces/${spaceId}/versions/${versionId}`, data)
+  updateVersion(spaceId, version, formData) {
+    return api.put(`/spaces/${spaceId}/versions/${version}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
   },
   
   deleteVersion(spaceId, version) {
     return api.delete(`/spaces/${spaceId}/versions/${version}`)
   },
-  
-  uploadFile(spaceId, versionId, arch, file, onProgress) {
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    return api.post(
-      `/spaces/${spaceId}/versions/${versionId}/upload/${arch}`,
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: onProgress
-      }
-    )
+
+  publishVersion(spaceId, version) {
+    return api.post(`/spaces/${spaceId}/versions/${version}/publish`)
   },
-  
-  deleteFile(spaceId, versionId, fileId) {
-    return api.delete(`/spaces/${spaceId}/versions/${versionId}/files/${fileId}`)
+
+  unpublishVersion(spaceId, version) {
+    return api.post(`/spaces/${spaceId}/versions/${version}/unpublish`)
   },
   
   // 管理API - 用户
   getUsers(params) {
-    return api.get('/users', { params })
+    return api.get('/users/', { params })
   },
   
   getUser(id) {
@@ -100,7 +111,7 @@ export default {
   },
   
   createUser(data) {
-    return api.post('/users', data)
+    return api.post('/users/', data)
   },
   
   updateUser(id, data) {
@@ -111,39 +122,17 @@ export default {
     return api.delete(`/users/${id}`)
   },
   
-  // 管理API - 统计
-  getStats() {
-    return api.get('/stats')
-  },
-  
-  getSpaceStats(spaceId) {
-    return api.get(`/stats/spaces/${spaceId}`)
-  },
-  
-  getVersionStats(spaceId, versionId) {
-    return api.get(`/stats/spaces/${spaceId}/versions/${versionId}`)
-  },
-  
-  getDownloadRecords(params) {
-    return api.get('/stats/downloads', { params })
-  },
-  
-  // 管理员认证相关
-  changePassword(data) {
-    return api.put('/auth/admin/password', data)
-  },
-  
-  initAdmin(data) {
-    return api.post('/auth/admin/init', data)
-  },
-  
-  // 系统统计相关
+  // 统计分析
   getSystemStats() {
     return api.get('/stats/system')
   },
+
+  getSpaceStatsDetail(spaceId) {
+    return api.get(`/stats/spaces/${spaceId}`)
+  },
   
-  getDailyDownloadStats(spaceId) {
-    return api.get(`/stats/spaces/${spaceId}/downloads/daily`)
+  getDailyDownloadStats(spaceId, params) {
+    return api.get(`/stats/spaces/${spaceId}/downloads/daily`, { params })
   },
   
   getVersionDownloadStats(spaceId) {
@@ -173,5 +162,10 @@ export default {
   
   getWebhookLogsByEvent(spaceId, eventType, params) {
     return api.get(`/spaces/${spaceId}/logs/events/${eventType}`, { params })
+  },
+
+  // 权限管理
+  getPermissions() {
+    return api.get('/permissions/')
   }
 }

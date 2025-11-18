@@ -43,55 +43,21 @@ const requestQueue = new RequestQueue()
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 30000,
-  // 启用请求缓存
-  headers: {
-    'Cache-Control': 'no-cache'
-  }
+  timeout: 30000
 })
-
-// 简单的内存缓存
-const cache = new Map()
-const CACHE_TTL = 5 * 60 * 1000 // 5分钟
-
-function getCacheKey(config) {
-  return `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`
-}
-
-function isCacheable(config) {
-  return config.method === 'get' && !config.url.includes('stats') && !config.url.includes('download')
-}
 
 // 请求拦截器
 api.interceptors.request.use(
   config => {
-    // 检查缓存
-    if (isCacheable(config)) {
-      const cacheKey = getCacheKey(config)
-      const cached = cache.get(cacheKey)
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        config.adapter = () => Promise.resolve(cached.data)
-        return config
-      }
-    }
-
     // 从 localStorage 获取 token
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    // 只在开发环境打印调试日志
-    if (import.meta.env.DEV) {
-      console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`)
-    }
-    
     return config
   },
   error => {
-    if (import.meta.env.DEV) {
-      console.error('[Request Error]', error)
-    }
     return Promise.reject(error)
   }
 )
@@ -100,14 +66,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => {
     const data = response.data
-
-    // 缓存响应数据
-    if (isCacheable(response.config)) {
-      const cacheKey = getCacheKey(response.config)
-      cache.set(cacheKey, {
-        data: response,
-        timestamp: Date.now()
-      })
+    
+    // 处理 Blob 类型响应（文件下载）
+    if (response.config.responseType === 'blob') {
+      return response
     }
     
     // 处理标准响应格式（优先检查）
@@ -132,6 +94,10 @@ api.interceptors.response.use(
     }
   },
   async error => {
+    if (import.meta.env.DEV) {
+      console.error('[Response Error]', error)
+    }
+
     if (error.response) {
       const { status, data } = error.response
       
@@ -141,29 +107,29 @@ api.interceptors.response.use(
         router.push({ name: 'Login' })
         ElMessage.error('登录已过期，请重新登录')
       } else if (status === 403) {
-        ElMessage.error('权限不足')
+        ElMessage.error(data?.detail || '权限不足')
       } else if (status === 404) {
-        ElMessage.error('请求的资源不存在')
+        ElMessage.error(data?.detail || '请求的资源不存在')
+      } else if (status === 422) {
+        // 处理验证错误
+        if (data?.detail && Array.isArray(data.detail)) {
+          const messages = data.detail.map(err => err.msg || err.message).join(', ')
+          ElMessage.error('参数错误: ' + messages)
+        } else {
+          ElMessage.error(data?.detail || '参数验证失败')
+        }
       } else if (status === 500) {
-        ElMessage.error('服务器错误，请稍后重试')
+        ElMessage.error(data?.detail || '服务器错误，请稍后重试')
       } else {
-        ElMessage.error(data?.message || '请求失败')
+        ElMessage.error(data?.detail || data?.message || '请求失败')
       }
-    } else {
+    } else if (error.request) {
       ElMessage.error('网络错误，请检查网络连接')
+    } else {
+      ElMessage.error('请求配置错误')
     }
     return Promise.reject(error)
   }
 )
-
-// 清理过期缓存
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, value] of cache.entries()) {
-    if (now - value.timestamp > CACHE_TTL) {
-      cache.delete(key)
-    }
-  }
-}, 60000) // 每分钟清理一次
 
 export default api

@@ -34,8 +34,8 @@
             {{ space.status === 'active' ? '激活' : '停用' }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="版本数量">{{ space.versions_count }}</el-descriptions-item>
-        <el-descriptions-item label="总下载量">{{ formatNumber(space.total_downloads) }}</el-descriptions-item>
+        <el-descriptions-item label="版本数量">{{ space.versions_count || 0 }}</el-descriptions-item>
+        <el-descriptions-item label="总下载量">{{ formatNumber(space.downloads_count || 0) }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ formatDate(space.created_at) }}</el-descriptions-item>
         <el-descriptions-item label="更新时间">{{ formatDate(space.updated_at) }}</el-descriptions-item>
         <el-descriptions-item label="描述" :span="2">
@@ -55,7 +55,8 @@
               placeholder="搜索版本号..."
               clearable
               style="width: 200px"
-              @input="debouncedVersionSearch"
+              @change="handleVersionSearch"
+              @keyup.enter="handleVersionSearch"
             >
               <template #prefix>
                 <el-icon><Search /></el-icon>
@@ -75,6 +76,8 @@
         :data="displayVersions" 
         stripe
         :max-height="tableHeight"
+        :height="tableHeight"
+        style="width: 100%"
       >
         <el-table-column prop="version" label="版本号" min-width="120" />
         <el-table-column label="更新说明" min-width="200" show-overflow-tooltip>
@@ -119,10 +122,26 @@
             {{ formatDate(row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right" align="center">
+        <el-table-column label="操作" width="280" fixed="right" align="center">
           <template #default="{ row }">
             <el-button size="small" @click="handleViewVersion(row)">查看</el-button>
             <el-button size="small" type="primary" @click="handleEditVersion(row)">编辑</el-button>
+            <el-button 
+              v-if="!row.is_published" 
+              size="small" 
+              type="success" 
+              @click="handlePublishVersion(row)"
+            >
+              发布
+            </el-button>
+            <el-button 
+              v-else 
+              size="small" 
+              type="warning" 
+              @click="handleUnpublishVersion(row)"
+            >
+              取消发布
+            </el-button>
             <el-button size="small" type="danger" @click="handleDeleteVersion(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -154,8 +173,41 @@
     >
       <el-form ref="versionFormRef" :model="versionForm" :rules="versionRules" label-width="100px">
         <el-form-item label="版本号" prop="version">
-          <el-input v-model="versionForm.version" placeholder="例如: 1.0.0" />
+          <el-input 
+            v-model="versionForm.version" 
+            placeholder="例如: 1.0.0"
+            :disabled="versionDialogMode === 'edit'"
+          />
         </el-form-item>
+        
+        <el-form-item v-if="versionDialogMode === 'create'" label="架构类型" prop="architecture">
+          <el-select v-model="versionForm.architecture" placeholder="请选择架构类型">
+            <el-option label="x86_64" value="x86_64" />
+            <el-option label="aarch64" value="aarch64" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item v-if="versionDialogMode === 'create'" label="上传文件" prop="file">
+          <el-upload
+            ref="uploadRef"
+            :auto-upload="false"
+            :limit="1"
+            :on-change="handleFileChange"
+            :file-list="fileList"
+            drag
+          >
+            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <div class="el-upload__text">
+              将文件拖到此处，或<em>点击上传</em>
+            </div>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持各类安装包文件
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        
         <el-form-item label="更新说明" prop="release_note">
           <el-input
             v-model="versionForm.release_note"
@@ -164,25 +216,26 @@
             placeholder="请输入更新说明"
           />
         </el-form-item>
-        <el-form-item label="发布状态" prop="is_published">
-          <el-radio-group v-model="versionForm.is_published">
-            <el-radio :value="false">草稿</el-radio>
-            <el-radio :value="true">发布</el-radio>
-          </el-radio-group>
+        
+        <el-form-item label="文档链接" prop="documentation_url">
+          <el-input
+            v-model="versionForm.documentation_url"
+            placeholder="https://docs.example.com"
+          />
         </el-form-item>
-        <el-form-item label="发布时间" v-if="versionForm.is_published">
-          <el-date-picker
-            v-model="versionForm.publish_date"
-            type="datetime"
-            placeholder="选择发布时间"
-            format="YYYY-MM-DD HH:mm"
+        
+        <el-form-item label="发布状态" prop="is_published">
+          <el-switch
+            v-model="versionForm.is_published"
+            active-text="发布"
+            inactive-text="草稿"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="versionDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="versionSubmitting" @click="handleVersionSubmit">
-          确定
+          {{ versionDialogMode === 'create' ? '创建并上传' : '更新' }}
         </el-button>
       </template>
     </el-dialog>
@@ -196,7 +249,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus, CopyDocument } from '@element-plus/icons-vue'
+import { Search, Plus, CopyDocument, UploadFilled } from '@element-plus/icons-vue'
 import api from '@/api'
 import { useCacheStore } from '@/stores/cache'
 import WebhookConfig from './WebhookConfig.vue'
@@ -225,32 +278,26 @@ const editingVersionId = ref(null)
 
 const versionForm = ref({
   version: '',
+  architecture: '',
+  file: null,
   release_note: '',
-  is_published: false,
-  publish_date: null
+  documentation_url: '',
+  is_published: false
 })
 
-const tableHeight = ref(400)
+const uploadRef = ref(null)
+const fileList = ref([])
 
-// 防抖搜索
-let versionSearchTimer = null
-const debouncedVersionSearch = () => {
-  clearTimeout(versionSearchTimer)
-  versionSearchTimer = setTimeout(() => {
-    versionPage.value = 1
-    fetchVersions()
-  }, 300)
+const tableHeight = ref(500)
+
+// 版本搜索处理
+function handleVersionSearch() {
+  versionPage.value = 1
+  fetchVersions()
 }
 
-// 计算属性：过滤后的版本数据
-const displayVersions = computed(() => {
-  if (!versionSearch.value) return versions.value
-  
-  const search = versionSearch.value.toLowerCase()
-  return versions.value.filter(version => 
-    version.version.toLowerCase().includes(search)
-  )
-})
+// 直接使用后端返回的数据
+const displayVersions = computed(() => versions.value)
 
 // 表单验证规则
 const versionRules = {
@@ -258,8 +305,22 @@ const versionRules = {
     { required: true, message: '请输入版本号', trigger: 'blur' },
     { pattern: /^\d+\.\d+\.\d+$/, message: '版本号格式不正确，例如: 1.0.0', trigger: 'blur' }
   ],
-  release_note: [{ required: false }],
-  is_published: [{ required: true }]
+  architecture: [
+    { required: true, message: '请选择架构类型', trigger: 'change' }
+  ],
+  file: [
+    { 
+      required: true, 
+      validator: (rule, value, callback) => {
+        if (versionDialogMode.value === 'create' && !versionForm.value.file) {
+          callback(new Error('请上传文件'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
+  ]
 }
 
 // 工具函数
@@ -301,18 +362,12 @@ async function fetchSpace() {
   try {
     loading.value = true
     
-    // 检查缓存
-    const cached = cacheStore.getSpacesCache(`space_${route.params.id}`)
-    if (cached) {
-      space.value = cached
-      return
-    }
-    
     const res = await api.getSpace(route.params.id)
     if (res.success) {
       space.value = res.data || res
-      // 缓存空间信息
-      cacheStore.setSpacesCache(`space_${route.params.id}`, space.value)
+      
+      // 同时获取统计信息
+      fetchSpaceStats()
     }
   } catch (error) {
     console.error('获取空间信息失败:', error)
@@ -322,21 +377,25 @@ async function fetchSpace() {
   }
 }
 
+// 获取空间统计信息
+async function fetchSpaceStats() {
+  try {
+    const res = await api.getSpaceStats(route.params.id)
+    if (res.success && space.value) {
+      // 更新统计数据
+      const stats = res.data
+      space.value.versions_count = stats.versions_count || 0
+      space.value.downloads_count = stats.downloads_count || 0
+    }
+  } catch (error) {
+    console.error('获取空间统计失败:', error)
+  }
+}
+
 // 获取版本列表
 async function fetchVersions() {
   try {
     versionsLoading.value = true
-    
-    // 构建缓存key
-    const cacheKey = `versions_${route.params.id}_${versionPage.value}_${versionPageSize.value}_${versionSearch.value}`
-    
-    // 检查缓存
-    const cached = cacheStore.getVersionsCache(cacheKey)
-    if (cached) {
-      versions.value = cached.items
-      versionTotal.value = cached.total
-      return
-    }
     
     const params = {
       skip: (versionPage.value - 1) * versionPageSize.value,
@@ -350,13 +409,6 @@ async function fetchVersions() {
       const data = res.data || res
       versions.value = data.items || []
       versionTotal.value = data.total || 0
-      
-      // 缓存版本数据
-      cacheStore.setVersionsCache(cacheKey, {
-        items: versions.value,
-        total: versionTotal.value,
-        timestamp: Date.now()
-      })
     }
   } catch (error) {
     console.error('获取版本列表失败:', error)
@@ -420,11 +472,19 @@ function handleCreateVersion() {
   versionDialogMode.value = 'create'
   versionForm.value = {
     version: '',
+    architecture: '',
+    file: null,
     release_note: '',
-    is_published: false,
-    publish_date: null
+    documentation_url: '',
+    is_published: false
   }
+  fileList.value = []
   versionDialogVisible.value = true
+}
+
+function handleFileChange(file, files) {
+  versionForm.value.file = file.raw
+  fileList.value = files
 }
 
 function handleViewVersion(row) {
@@ -434,13 +494,16 @@ function handleViewVersion(row) {
 
 function handleEditVersion(row) {
   versionDialogMode.value = 'edit'
-  editingVersionId.value = row.id
+  editingVersionId.value = row.version
   versionForm.value = {
     version: row.version,
+    architecture: '',
+    file: null,
     release_note: row.release_note || '',
-    is_published: row.is_published,
-    publish_date: row.publish_date ? new Date(row.publish_date) : null
+    documentation_url: row.documentation_url || '',
+    is_published: row.is_published
   }
+  fileList.value = []
   versionDialogVisible.value = true
 }
 
@@ -459,10 +522,7 @@ async function handleDeleteVersion(row) {
     const res = await api.deleteVersion(route.params.id, row.version)
     if (res.success) {
       ElMessage.success('删除成功')
-      // 清除相关缓存
-      cacheStore.clearVersionsCache()
       fetchVersions()
-      // 同时刷新空间信息
       fetchSpace()
     }
   } catch (error) {
@@ -473,37 +533,98 @@ async function handleDeleteVersion(row) {
   }
 }
 
+async function handlePublishVersion(row) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要发布版本 "${row.version}" 吗？发布后用户可以下载此版本。`,
+      '提示',
+      {
+        type: 'info',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
+    
+    const res = await api.publishVersion(route.params.id, row.version)
+    if (res.success) {
+      ElMessage.success('发布成功')
+      fetchVersions()
+      fetchSpace()
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('发布失败:', error)
+      ElMessage.error('发布失败')
+    }
+  }
+}
+
+async function handleUnpublishVersion(row) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要取消发布版本 "${row.version}" 吗？取消后用户将无法下载此版本。`,
+      '提示',
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
+    
+    const res = await api.unpublishVersion(route.params.id, row.version)
+    if (res.success) {
+      ElMessage.success('已取消发布')
+      fetchVersions()
+      fetchSpace()
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('操作失败:', error)
+      ElMessage.error('操作失败')
+    }
+  }
+}
+
 async function handleVersionSubmit() {
   try {
     await versionFormRef.value.validate()
     versionSubmitting.value = true
     
-    let res
-    const versionData = {
-      version: versionForm.value.version,
-      release_note: versionForm.value.release_note,
-      is_published: versionForm.value.is_published,
-      publish_date: versionForm.value.publish_date
-    }
-    
     if (versionDialogMode.value === 'create') {
-      res = await api.createVersion(route.params.id, versionData)
+      // 创建版本并上传文件
+      const formData = new FormData()
+      formData.append('version', versionForm.value.version)
+      formData.append('architecture', versionForm.value.architecture)
+      formData.append('file', versionForm.value.file)
+      formData.append('release_note', versionForm.value.release_note || '')
+      formData.append('documentation_url', versionForm.value.documentation_url || '')
+      formData.append('is_published', versionForm.value.is_published)
+      
+      const res = await api.createVersion(route.params.id, formData)
+      if (res.success) {
+        ElMessage.success('版本创建成功')
+        versionDialogVisible.value = false
+        fetchVersions()
+        fetchSpace()
+      }
     } else {
-      res = await api.updateVersion(route.params.id, editingVersionId.value, versionData)
-    }
-    
-    if (res.success) {
-      ElMessage.success(versionDialogMode.value === 'create' ? '创建成功' : '更新成功')
-      versionDialogVisible.value = false
-      // 清除相关缓存
-      cacheStore.clearVersionsCache()
-      fetchVersions()
-      // 同时刷新空间信息
-      fetchSpace()
+      // 更新版本
+      const formData = new FormData()
+      formData.append('release_note', versionForm.value.release_note || '')
+      formData.append('documentation_url', versionForm.value.documentation_url || '')
+      formData.append('is_published', versionForm.value.is_published)
+      
+      const res = await api.updateVersion(route.params.id, editingVersionId.value, formData)
+      if (res.success) {
+        ElMessage.success('版本更新成功')
+        versionDialogVisible.value = false
+        fetchVersions()
+        fetchSpace()
+      }
     }
   } catch (error) {
     console.error('提交失败:', error)
-    ElMessage.error('提交失败')
+    ElMessage.error(error.message || '提交失败')
   } finally {
     versionSubmitting.value = false
   }
@@ -511,11 +632,8 @@ async function handleVersionSubmit() {
 
 // 计算表格高度
 function calculateTableHeight() {
-  nextTick(() => {
-    const windowHeight = window.innerHeight
-    const tableTop = 400 // 估算表格顶部位置
-    tableHeight.value = Math.max(300, windowHeight - tableTop - 100)
-  })
+  // 使用固定高度，保证所有表格高度一致
+  tableHeight.value = 500
 }
 
 // 生命周期
@@ -523,23 +641,23 @@ onMounted(() => {
   fetchSpace()
   fetchVersions()
   calculateTableHeight()
-  window.addEventListener('resize', calculateTableHeight)
 })
 
 onUnmounted(() => {
-  clearTimeout(versionSearchTimer)
-  window.removeEventListener('resize', calculateTableHeight)
+  // 清理资源
 })
 </script>
 
 <style scoped>
 .admin-space-detail {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .el-page-header {
   margin-bottom: 20px;
+  padding: 12px 0;
 }
 
 .space-info {
@@ -554,11 +672,16 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .card-header h2,
 .card-header h3 {
   margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
 }
 
 .header-actions,
@@ -566,20 +689,24 @@ onUnmounted(() => {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .api-key-container {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .api-key {
-  font-family: monospace;
-  font-size: 14px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
   background: #f5f7fa;
-  padding: 4px 8px;
+  padding: 6px 12px;
   border-radius: 4px;
+  color: #606266;
+  border: 1px solid #dcdfe6;
 }
 
 .pagination {
@@ -588,11 +715,62 @@ onUnmounted(() => {
   justify-content: center;
 }
 
+:deep(.el-table) {
+  font-size: 14px;
+  /* 性能优化 */
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+:deep(.el-table__body-wrapper) {
+  /* 优化滚动性能 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar) {
+  width: 8px;
+  height: 8px;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-track) {
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb) {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+:deep(.el-table__body-wrapper::-webkit-scrollbar-thumb:hover) {
+  background: #a8a8a8;
+}
+
+:deep(.el-table th) {
+  background-color: #fafafa;
+  color: #606266;
+  font-weight: 600;
+}
+
+:deep(.el-descriptions__label) {
+  font-weight: 600;
+}
+
+:deep(.el-upload-dragger) {
+  padding: 30px;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .admin-space-detail {
+    padding: 10px;
+  }
+
   .card-header {
     flex-direction: column;
-    gap: 16px;
     align-items: stretch;
   }
   
@@ -604,6 +782,22 @@ onUnmounted(() => {
   
   .version-actions .el-input {
     width: 100% !important;
+  }
+  
+  :deep(.el-table) {
+    font-size: 12px;
+  }
+  
+  :deep(.el-button--small) {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .api-key {
+    font-size: 11px;
+    word-break: break-all;
   }
 }
 </style>
