@@ -240,5 +240,7 @@ if __name__ == "__main__":
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
-        log_level="debug" if settings.DEBUG else "info"
+        log_level="debug" if settings.DEBUG else "info",
+        timeout_keep_alive=settings.TIMEOUT_KEEP_ALIVE,
+        timeout_graceful_shutdown=settings.TIMEOUT_GRACEFUL_SHUTDOWN
     )

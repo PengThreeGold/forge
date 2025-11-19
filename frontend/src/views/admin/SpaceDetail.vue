@@ -303,7 +303,7 @@ const displayVersions = computed(() => versions.value)
 const versionRules = {
   version: [
     { required: true, message: '请输入版本号', trigger: 'blur' },
-    { pattern: /^\d+\.\d+\.\d+$/, message: '版本号格式不正确，例如: 1.0.0', trigger: 'blur' }
+    { pattern: /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+|[a-zA-Z]+)?$/, message: '版本号格式不正确，例如: 1.0.0, 1.0.0-preview, 1.0.0b', trigger: 'blur' }
   ],
   architecture: [
     { required: true, message: '请选择架构类型', trigger: 'change' }

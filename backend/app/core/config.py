@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     WEBHOOK_TIMEOUT: int = 10  # 10秒
     WEBHOOK_MAX_RETRIES: int = 3
     
+    # 服务器超时配置
+    TIMEOUT_KEEP_ALIVE: int = 300  # 保持连接超时(秒)，匹配前端上传超时
+    TIMEOUT_GRACEFUL_SHUTDOWN: int = 30  # 优雅关闭超时(秒)
+    
     # 分页配置
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100

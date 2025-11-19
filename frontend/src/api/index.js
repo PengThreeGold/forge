@@ -1,4 +1,4 @@
-import api from '@/utils/request'
+import api, { uploadApi } from '@/utils/request'
 
 export default {
   // 认证相关
@@ -78,13 +78,13 @@ export default {
   },
   
   createVersion(spaceId, formData) {
-    return api.post(`/spaces/${spaceId}/versions`, formData, {
+    return uploadApi.post(`/spaces/${spaceId}/versions`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
   
   updateVersion(spaceId, version, formData) {
-    return api.put(`/spaces/${spaceId}/versions/${version}`, formData, {
+    return uploadApi.put(`/spaces/${spaceId}/versions/${version}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
