@@ -172,7 +172,7 @@ REFRESH_TOKEN_EXPIRE_MINUTES=10080
 SQLITE_DB_PATH=forge.db
 
 # CORS 配置
-CORS_ORIGINS=*
+CORS_ORIGINS=http://localhost:1112,http://127.0.0.1:1112
 
 # 文件存储配置
 UPLOAD_DIR=storage/uploads
@@ -186,6 +186,30 @@ WEBHOOK_MAX_RETRIES=3
 ### 前端配置
 
 编辑 `frontend/vite.config.js` 修改开发服务器配置。
+
+### 域名访问配置
+
+如果需要通过域名访问应用，只需配置后端的CORS设置即可。
+
+#### 添加允许访问的域名
+
+在 `backend/.env` 文件中修改 `CORS_ORIGINS` 配置，添加您需要允许访问的域名（用逗号分隔）：
+```
+CORS_ORIGINS=http://yourdomain.com,https://yourdomain.com,http://localhost:1112
+```
+
+#### 生产环境部署建议
+
+- 设置 `CORS_ORIGINS` 为具体的域名，不要使用通配符 `*`
+- 启用 HTTPS 配置
+- 修改 `SECRET_KEY` 为强密钥
+- 设置 `DEBUG=False`
+
+#### 常见问题
+
+1. **CORS错误**：检查 `CORS_ORIGINS` 配置是否包含访问的域名
+2. **连接被拒绝**：确认防火墙设置，确保端口已开放
+3. **无法访问**：检查 `HOST` 配置是否为 `0.0.0.0`（允许所有IP访问）
 
 ## 🔐 安全建议
 

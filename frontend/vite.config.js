@@ -11,7 +11,8 @@ export default defineConfig({
   },
   server: {
     port: 1112,  // 端口号
-    host: '0.0.0.0', // 主机号
+    host: '0.0.0.0', // 主机号，允许外部访问
+    cors: true, // 启用CORS
     proxy: {
       '/api': {
         target: 'http://localhost:1110',

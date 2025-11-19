@@ -31,7 +31,7 @@ class Settings(BaseSettings):
         return os.path.join(base_dir, self.SQLITE_DB_PATH)
     
     # CORS配置
-    CORS_ORIGINS: str = "*"
+    CORS_ORIGINS: str = "http://localhost:1112,http://127.0.0.1:1112"
     
     def get_cors_origins(self) -> List[str]:
         if self.CORS_ORIGINS == "*":
