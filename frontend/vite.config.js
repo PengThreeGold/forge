@@ -10,7 +10,8 @@ export default defineConfig({
     }
   },
   server: {
-    port: 3000,
+    port: 1112,  // 端口号
+    host: '0.0.0.0', // 主机号
     proxy: {
       '/api': {
         target: 'http://localhost:1110',
@@ -30,11 +31,11 @@ export default defineConfig({
             console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyReq.path}`);
             console.log(`[Proxy] Headers:`, originalHeaders);
           });
-          
+
           proxy.on('proxyRes', (proxyRes, req, res) => {
             console.log(`[Proxy Response] ${proxyRes.statusCode} from ${req.url}`);
           });
-          
+
           proxy.on('error', (err, req, res) => {
             console.error(`[Proxy Error] ${err.message} for ${req.url}`);
           });
