@@ -4,14 +4,26 @@
 
 set -e
 
+# 设置日志文件路径
+LOG_FILE="forge.log"
+
 echo "====================================="
 echo "Forge 软件发布管理平台 - 启动脚本"
 echo "====================================="
 
+# 将日志输出到文件和终端
+exec > >(tee -a "$LOG_FILE")
+exec 2>&1
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') - 开始启动Forge平台"
+
 # 检查 Python
-if ! command -v python3 &> /dev/null; then
-    echo "错误：未找到 Python 3"
-    exit 1
+if ! command -v python &> /dev/null; then
+    if ! command -v python3 &> /dev/null; then
+        echo "错误：未找到 Python"
+        exit 1
+    fi
+    alias python=python3
 fi
 
 # 检查 Node.js
@@ -23,16 +35,18 @@ fi
 # 进入后端目录
 cd backend
 
-# 检查并安装后端依赖
+# 检查虚拟环境是否已存在
 if [ ! -d ".venv" ]; then
     echo "创建 Python 虚拟环境..."
     python3 -m venv .venv
+else
+    echo "检测到虚拟环境已存在，跳过创建步骤"
 fi
 
 echo "激活虚拟环境..."
 source .venv/bin/activate
 
-echo "安装后端依赖..."
+echo "安装/更新后端依赖..."
 pip install -q -r requirements.txt
 
 # 初始化数据库（如果需要）
@@ -54,6 +68,8 @@ cd frontend
 if [ ! -d "node_modules" ]; then
     echo "安装前端依赖..."
     npm install
+else
+    echo "检测到前端依赖已存在，跳过安装步骤"
 fi
 
 echo "构建前端..."
@@ -73,4 +89,10 @@ echo "启动服务器..."
 echo "====================================="
 cd backend
 source .venv/bin/activate
-python run.py run
+echo "$(date '+%Y-%m-%d %H:%M:%S') - 服务器启动中..."
+nohup python run.py run > ../forge.log 2>&1 &
+SERVER_PID=$!
+echo "服务器已启动，PID: $SERVER_PID"
+echo "日志文件: forge.log"
+echo "请访问: http://localhost:1110"
+echo "如需停止服务器，请执行: kill $SERVER_PID"

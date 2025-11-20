@@ -9,8 +9,12 @@ export default defineConfig(({ mode }) => {
   // 解析允许的主机列表
   const allowedHosts = env.VITE_ALLOWED_HOSTS ? env.VITE_ALLOWED_HOSTS.split(',') : []
 
+  // 判断是否为生产环境
+  const isProduction = mode === 'production'
+
   return {
     plugins: [vue()],
+    base: isProduction ? '/' : '/', // 确保生产环境使用根路径
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src')
@@ -62,7 +66,10 @@ export default defineConfig(({ mode }) => {
             'vue-vendor': ['vue', 'vue-router', 'pinia']
           }
         }
-      }
+      },
+      // 确保资源路径正确
+      assetsInlineLimit: 4096,
+      sourcemap: false
     }
   }
 })
