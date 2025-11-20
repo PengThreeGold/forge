@@ -12,9 +12,41 @@ export default defineConfig(({ mode }) => {
   // 判断是否为生产环境
   const isProduction = mode === 'production'
 
+  // 代理配置
+  const proxyConfig = {
+    '/api': {
+      target: env.VITE_API_TARGET || 'http://localhost:1110',
+      changeOrigin: true,
+      // 重要：不要重写路径，保持原始路径
+      // rewrite: (path) => path.replace(/^\/api/, '/api'),
+      // 确保所有请求头都被正确转发
+      configure: (proxy, options) => {
+        proxy.on('proxyReq', (proxyReq, req, res) => {
+          // 转发所有原始请求头，包括 Authorization
+          const originalHeaders = req.headers;
+          for (const [key, value] of Object.entries(originalHeaders)) {
+            if (value !== undefined) {
+              proxyReq.setHeader(key, value);
+            }
+          }
+          console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyReq.path}`);
+          console.log(`[Proxy] Headers:`, originalHeaders);
+        });
+
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+          console.log(`[Proxy Response] ${proxyRes.statusCode} from ${req.url}`);
+        });
+
+        proxy.on('error', (err, req, res) => {
+          console.error(`[Proxy Error] ${err.message} for ${req.url}`);
+        });
+      }
+    }
+  }
+
   return {
     plugins: [vue()],
-    base: isProduction ? '/' : '/', // 确保生产环境使用根路径
+    base: isProduction ? './' : '/', // 生产环境用相对路径，兼容 preview
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src')
@@ -25,45 +57,32 @@ export default defineConfig(({ mode }) => {
       host: env.VITE_HOST || '0.0.0.0', // 主机号，允许外部访问
       cors: true, // 启用CORS
       allowedHosts, // 允许的主机名列表
-      proxy: {
-        '/api': {
-          target: env.VITE_API_TARGET || 'http://localhost:1110',
-          changeOrigin: true,
-          // 重要：不要重写路径，保持原始路径
-          // rewrite: (path) => path.replace(/^\/api/, '/api'),
-          // 确保所有请求头都被正确转发
-          configure: (proxy, options) => {
-            proxy.on('proxyReq', (proxyReq, req, res) => {
-              // 转发所有原始请求头，包括 Authorization
-              const originalHeaders = req.headers;
-              for (const [key, value] of Object.entries(originalHeaders)) {
-                if (value !== undefined) {
-                  proxyReq.setHeader(key, value);
-                }
-              }
-              console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyReq.path}`);
-              console.log(`[Proxy] Headers:`, originalHeaders);
-            });
-
-            proxy.on('proxyRes', (proxyRes, req, res) => {
-              console.log(`[Proxy Response] ${proxyRes.statusCode} from ${req.url}`);
-            });
-
-            proxy.on('error', (err, req, res) => {
-              console.error(`[Proxy Error] ${err.message} for ${req.url}`);
-            });
-          }
-        }
-      }
+      proxy: proxyConfig
+    },
+    preview: {
+      port: 4173,
+      host: env.VITE_HOST || '0.0.0.0',
+      proxy: proxyConfig
     },
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
       rollupOptions: {
         output: {
-          manualChunks: {
-            'element-plus': ['element-plus'],
-            'vue-vendor': ['vue', 'vue-router', 'pinia']
+          manualChunks(id) {
+            // 将 node_modules 中的包分组到 vendor chunk
+            if (id.includes('node_modules')) {
+              // Element Plus 单独打包
+              if (id.includes('element-plus')) {
+                return 'element-plus'
+              }
+              // Vue 生态系统单独打包
+              if (id.includes('vue') || id.includes('pinia') || id.includes('@vue')) {
+                return 'vue-vendor'
+              }
+              // 其他第三方库打包到 vendor
+              return 'vendor'
+            }
           }
         }
       },

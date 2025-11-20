@@ -4,7 +4,12 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
+import mimetypes
 from contextlib import asynccontextmanager
+
+# 修复 Windows 下 MIME 类型问题
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
 
 from app.core.config import settings
 from app.db.database import engine
@@ -208,29 +213,58 @@ app.include_router(
 
 
 # 挂载静态文件（前端构建产物）
+# 注意：app.mount() 必须在所有路由之前注册，但 catch-all 路由除外
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.exists(static_dir):
-    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+    # 挂载 assets 目录 - 这会优先匹配 /assets/* 路径
+    assets_dir = os.path.join(static_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+
+# 前端 SPA 路由处理（必须放在所有其他路由之后）
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str, request: Request):
+    """
+    Catch-all 路由：处理前端 SPA 路由
+    必须放在所有 API 路由之后，这样 API 路由才能优先匹配
+    """
+    # API 路径已经被路由处理，如果到这里说明是无效的 API
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
     
-    # 前端路由处理：所有非API路径返回 index.html
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        """服务前端单页应用"""
-        # API 路径已经被路由处理，这里只处理前端路由
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404, detail="API endpoint not found")
-        
-        index_path = os.path.join(static_dir, "index.html")
-        if os.path.exists(index_path):
-            return FileResponse(index_path)
-        else:
-            return {
-                "message": f"欢迎使用 {settings.PROJECT_NAME}",
-                "version": settings.VERSION,
-                "docs": f"{settings.API_V1_STR}/docs",
-                "api": f"{settings.API_V1_STR}",
-                "note": "前端未构建，请运行 start.sh 或 start.bat"
-            }
+    # assets 路径已被 app.mount 处理，不应该到这里
+    if full_path.startswith("assets/"):
+        raise HTTPException(status_code=404, detail="Static asset not found")
+    
+    # 检查是否存在静态文件目录
+    if not os.path.exists(static_dir):
+        return {
+            "message": f"欢迎使用 {settings.PROJECT_NAME}",
+            "version": settings.VERSION,
+            "docs": f"{settings.API_V1_STR}/docs",
+            "api": f"{settings.API_V1_STR}",
+            "note": "前端未构建，请运行 start.sh 或 start.bat"
+        }
+    
+    # 尝试作为静态文件提供（处理根目录的文件，如 favicon.ico）
+    file_path = os.path.join(static_dir, full_path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # 所有其他路径返回 index.html（Vue Router 的 HTML5 History 模式）
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    # 如果 index.html 不存在
+    return {
+        "message": f"欢迎使用 {settings.PROJECT_NAME}",
+        "version": settings.VERSION,
+        "docs": f"{settings.API_V1_STR}/docs",
+        "api": f"{settings.API_V1_STR}",
+        "note": "前端未构建，请运行 start.sh 或 start.bat"
+    }
 
 
 if __name__ == "__main__":
